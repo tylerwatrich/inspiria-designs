@@ -21,11 +21,22 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, onClickLink, classNa
   return (
     <nav className={cn('items-center md:space-x-8', className)}>
       {navItems.map(({ link }, i) => {
-        return <CMSLink key={i} {...link} appearance="link" />
+        return (
+          <CMSLink
+            key={i}
+            {...link}
+            appearance="headerLink"
+            className="whitespace-nowrap text-gray-600 hover:text-brand-blue-500 transition-colors"
+            onClick={onClickLink}
+          />
+        )
       })}
-      <Link href="/search">
-        <span className="sr-only">Search</span>
-        <SearchIcon className="w-5 text-primary" />
+      <Link
+        href="#contact"
+        onClick={onClickLink}
+        className="w-full text-center mt-4 md:mt-0 bg-brand-blue-500 text-white font-medium py-2 px-5 rounded-lg shadow-floating hover:bg-brand-blue-600 transition-all block"
+      >
+        Get a Quote
       </Link>
     </nav>
   )

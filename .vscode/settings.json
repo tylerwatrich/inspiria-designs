@@ -36,5 +36,11 @@
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit"
     }
-  }
+  },
+  "editor.suggest.showStatusBar": false,
+  "workbench.secondarySideBar.defaultVisibility": "visibleInWorkspace",
+  "workbench.statusBar.visible": true,
+  "editor.scrollbar.vertical": "auto",
+  "editor.scrollbar.verticalScrollbarSize": 14,
+  "editor.minimap.autohide": "scroll"
 }
