@@ -101,3 +101,26 @@ html[data-theme='dark'],
 html[data-theme='light'] {
   opacity: initial;
 }
+
+
+
+
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f8f9fa; /* using light-bg from tailwind config is also an option */
+}
+
+@layer components {
+  .card {
+    @apply transition-transform duration-300 ease-in-out;
+  }
+  .card:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}

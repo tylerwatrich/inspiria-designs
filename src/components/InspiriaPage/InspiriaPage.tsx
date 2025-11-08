@@ -1,14 +1,9 @@
-// import PageTemplate, { generateMetadata } from './[slug]/page'
+'use client'
 
-// export default PageTemplate
-
-// export { generateMetadata }
-
-// import React, { useState } from 'react'
-import React from 'react'
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { Media } from '@/components/Media'
+import React, { useState } from 'react'
+import Image from 'next/image'
+import { AboutImage } from '@/types/globals'
+import { Media } from '@payloadcms/next'
 
 // --- Data for mapping ---
 const servicesData = [
@@ -117,16 +112,15 @@ interface PortfolioItemProps {
   height?: number
 }
 
-interface MediaItem {
-  id: string | number
-  alt: string // Assuming 'alt' is a field on your media collection
-  url: string // The URL must be present for display
-  filename: string
-  mimeType: string
-  // Add other fields you might use, like width/height
+// 🚀 UPDATED PROP INTERFACE 🚀
+interface InspiriaPageProps {
+  aboutImage: AboutImage
 }
 
 // 🚀 UPDATED PROP INTERFACE 🚀
+interface AboutProps {
+  aboutImage: AboutImage
+}
 
 // --- Reusable Components ---
 const ServiceCard = ({ icon, title, description }: ServiceCardProps) => (
@@ -209,7 +203,7 @@ const Portfolio = () => (
   </section>
 )
 
-const About = ({ aboutImage }) => (
+const About = ({ aboutImage }: AboutProps) => (
   <section
     id="about"
     className="bg-white rounded-2xl shadow-floating p-8 md:p-12 mb-24 md:mb-32 flex flex-col md:flex-row items-center gap-8 md:gap-12"
@@ -285,12 +279,15 @@ const About = ({ aboutImage }) => (
       </ul>
     </div>
     <div className="w-full md:w-1/2 relative min-h-[500px]">
-      <Media
-        resource={aboutImage}
-        fill={true}
-        size="(max-width: 768px) 100vw, 50vw"
-        imgClassName="rounded-2xl object-cover"
-      />
+      {aboutImage?.url && (
+        <Image
+          src={aboutImage.url}
+          alt={aboutImage.alt || 'Radar Screen'}
+          fill={true}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="rounded-2xl object-cover"
+        />
+      )}
 
       {/* <img 
          src="https://placehold.co/600x500/e0e7ff/334155?text=Our+Team"
@@ -323,23 +320,18 @@ const ContactCTA = () => (
   </section>
 )
 
-export default async function HomePage() {
-  const payload = await getPayload({ config })
-  const home = await payload.findGlobal({ slug: 'home' })
-
+export default function InspiriaPage({ aboutImage }: InspiriaPageProps) {
   return (
-    <main>
-      <div className="bg-light-bg text-gray-800 font-sans">
-        {/* <Header /> */}
-        <main className="container mx-auto px-6 py-12 md:py-20">
-          <Hero />
-          <Services />
-          {/* <Portfolio /> */}
-          <About aboutImage={home.aboutImage} />
-          <ContactCTA />
-        </main>
-        {/* <Footer /> */}
-      </div>
-    </main>
+    <div className="bg-light-bg text-gray-800 font-sans">
+      {/* <Header /> */}
+      <main className="container mx-auto px-6 py-12 md:py-20">
+        <Hero />
+        <Services />
+        {/* <Portfolio /> */}
+        <About aboutImage={aboutImage} />
+        <ContactCTA />
+      </main>
+      {/* <Footer /> */}
+    </div>
   )
 }
