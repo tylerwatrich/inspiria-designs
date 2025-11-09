@@ -9,6 +9,7 @@ import React from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Media } from '@/components/Media'
+import { Media as MediaType } from '@/payload-types'
 
 // --- Data for mapping ---
 const servicesData = [
@@ -209,7 +210,11 @@ const Portfolio = () => (
   </section>
 )
 
-const About = ({ aboutImage }) => (
+interface AboutProps {
+  aboutImage?: number | MediaType | null
+}
+
+const About = ({ aboutImage }: AboutProps) => (
   <section
     id="about"
     className="bg-white rounded-2xl shadow-floating p-8 md:p-12 mb-24 md:mb-32 flex flex-col md:flex-row items-center gap-8 md:gap-12"
