@@ -343,3 +343,9 @@ export default async function HomePage() {
     </main>
   )
 }
+
+// OPTIONAL: Define custom metadata for this page
+export const metadata = {
+  // title: 'My Custom Home',
+  // description: 'A brief description of my new home page.',
+}
