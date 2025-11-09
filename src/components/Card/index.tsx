@@ -27,7 +27,14 @@ export const Card: React.FC<{
   const hasCategories = categories && Array.isArray(categories) && categories.length > 0
   const titleToUse = titleFromProps || title
   const sanitizedDescription = description?.replace(/\s/g, ' ') // replace non-breaking space with white space
-  const href = `/${relationTo}/${slug}`
+  // Map Payload collection slugs -> frontend route segments
+  // Convert Payload collection slugs to public-facing routes
+  const routeMap: Record<string, string> = {
+    posts: 'blog', // map the 'posts' collection to the '/blog' route
+  }
+
+  const publicRoute = relationTo ? routeMap[relationTo] || relationTo : 'blog'
+  const href = `/${publicRoute}/${slug}`
 
   return (
     <article
