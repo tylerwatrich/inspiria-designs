@@ -99,6 +99,23 @@ export const Posts: CollectionConfig<'posts'> = {
               label: false,
               required: true,
             },
+            {
+              name: 'url',
+              type: 'text',
+              admin: {
+                readOnly: true,
+                position: 'sidebar', // optional: keeps it out of the main form
+              },
+              hooks: {
+                afterRead: [
+                  ({ data }) => {
+                    // Ensure the slug exists before returning the URL
+                    if (!data?.slug) return ''
+                    return `/blog/${data.slug}`
+                  },
+                ],
+              },
+            },
           ],
           label: 'Content',
         },

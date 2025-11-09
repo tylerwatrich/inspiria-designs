@@ -48,7 +48,7 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
 
   /* Ensure we don't break any styles set by richText */
-  if (appearance === 'inline') {
+  if (appearance === 'inline' || appearance === 'headerLink') {
     return (
       <Link className={cn(className)} href={href || url || ''} {...newTabProps} onClick={onClick}>
         {label && label}
