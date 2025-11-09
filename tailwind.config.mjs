@@ -4,10 +4,10 @@ import typography from '@tailwindcss/typography'
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   darkMode: ['selector', '[data-theme="dark"]'],
   plugins: [tailwindcssAnimate, typography],
@@ -56,6 +56,12 @@ const config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        'brand-blue': {
+          500: '#0d6efd',
+          600: '#0b5ed7',
+          700: '#0a58ca',
+        },
+        'light-bg': '#f8f9fa',
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
@@ -95,7 +101,11 @@ const config = {
       },
       fontFamily: {
         mono: ['var(--font-geist-mono)'],
-        sans: ['var(--font-geist-sans)'],
+        sans: ['Inter', 'sans-serif', 'var(--font-geist-sans)'],
+      },
+      boxShadow: {
+        floating: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'floating-lg': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
       },
       keyframes: {
         'accordion-down': {
