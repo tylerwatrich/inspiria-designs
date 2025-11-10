@@ -29,6 +29,13 @@ const nextConfig = {
   },
   experimental: {
     allowPrivateNetwork: process.env.NODE_ENV === 'development',
+    turbo: {
+      resolveAlias: {
+        // Prevent Turbopack from trying to bundle esbuild binaries
+        esbuild: false,
+      },
+      resolveExtensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+    },
   },
   turbopack: {},
   webpack: (webpackConfig) => {
