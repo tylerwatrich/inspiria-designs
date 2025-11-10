@@ -131,12 +131,12 @@ interface MediaItem {
 
 // --- Reusable Components ---
 const ServiceCard = ({ icon, title, description }: ServiceCardProps) => (
-  <div className="bg-white p-8 rounded-2xl shadow-floating card">
+  <div className="bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-floating card">
     <div className="bg-brand-blue-500/10 text-brand-blue-600 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
       {icon}
     </div>
     <h3 className="text-xl font-bold mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
+    <p className="text-gray-600 dark:text-gray-400">{description}</p>
   </div>
 )
 
@@ -156,10 +156,10 @@ const PortfolioItem = ({ imageUrl, altText, title, category }: PortfolioItemProp
 
 const Hero = () => (
   <section className="text-center my-24 md:my-32">
-    <h1 className="text-4xl md:text-6xl font-bold text-gray-800 leading-tight mb-4">
+    <h1 className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-gray-300 leading-tight mb-4">
       Creative Ideas, <span className="text-brand-blue-500">Stunning Designs</span>.
     </h1>
-    <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+    <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
       Crafting beautiful, user-friendly websites and strategic visual branding that helps your
       business shine.
     </p>
@@ -183,8 +183,12 @@ const Hero = () => (
 const Services = () => (
   <section id="services" className="mb-24 md:mb-32">
     <div className="text-center mb-12">
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-800">What We Do</h2>
-      <p className="text-lg text-gray-600 mt-2">We offer a complete suite of design services.</p>
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-200">
+        What We Do
+      </h2>
+      <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+        We offer a complete suite of design services.
+      </p>
     </div>
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       {servicesData.map((service, index) => (
@@ -217,11 +221,13 @@ interface AboutProps {
 const About = ({ aboutImage }: AboutProps) => (
   <section
     id="about"
-    className="bg-white rounded-2xl shadow-floating p-8 md:p-12 mb-24 md:mb-32 flex flex-col md:flex-row items-center gap-8 md:gap-12"
+    className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating p-8 md:p-12 mb-24 md:mb-32 flex flex-col md:flex-row items-center gap-8 md:gap-12"
   >
     <div className="w-full md:w-1/2">
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why Choose Us?</h2>
-      <p className="text-gray-600 mb-4">
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-300 mb-4">
+        Why Choose Us?
+      </h2>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
         {
           "We're your dedicated partner, focused on delivering exceptional results. Our process is collaborative, transparent, and streamlined to bring your vision to life with efficiency and precision."
         }
@@ -334,7 +340,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <div className="bg-light-bg text-gray-800 font-sans">
+      <div className="bg-light-bg dark:bg-zinc-900 text-gray-800 dark:text-gray-300 font-sans">
         {/* <Header /> */}
         <main className="container mx-auto px-6 py-12 md:py-20">
           <Hero />
