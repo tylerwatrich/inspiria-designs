@@ -19,6 +19,16 @@ const nextConfig = {
         }
       }),
     ],
+    localPatterns: [
+      {
+        pathname: '/api/media/**',
+        search: '',
+      },
+    ],
+    qualities: [100, 75],
+  },
+  experimental: {
+    allowPrivateNetwork: process.env.NODE_ENV === 'development',
   },
   turbopack: {},
   webpack: (webpackConfig) => {

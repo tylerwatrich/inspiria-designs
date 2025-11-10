@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
 
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-zinc-900`}>
         <Providers>
           <AdminBar
             adminBarProps={{
