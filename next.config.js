@@ -34,10 +34,15 @@ const nextConfig = {
         // Prevent Turbopack from trying to bundle esbuild binaries
         esbuild: false,
       },
-      resolveExtensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+      resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.cts', '.cjs', '.mts', '.mjs'],
+      rules: {
+        '*.md': {
+          loaders: ['ignore-loader'],
+          as: '*.js',
+        },
+      },
     },
   },
-  turbopack: {},
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
