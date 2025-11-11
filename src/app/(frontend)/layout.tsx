@@ -25,7 +25,11 @@ const inter = Inter({
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
+  // app/layout.tsx
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
+  // TEMPORARY CHECK
+  console.log('GA ID CHECK:', gaId)
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
       <head>
@@ -47,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Footer />
         </Providers>
       </body>
-      <GoogleAnalytics gaId="G-RYMZWLCSVK" />
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!} />
     </html>
   )
 }
