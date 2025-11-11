@@ -16,7 +16,7 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    <footer className="bg-white dark:bg-card border-t border-gray-200 mt-20">
+    <footer className="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-black mt-20">
       <div className="container px-6 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
           <div className="mb-4 md:mb-0">

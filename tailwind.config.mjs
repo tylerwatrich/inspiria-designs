@@ -10,6 +10,7 @@ const config = {
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   darkMode: ['selector', '[data-theme="dark"]'],
+  // darkMode: ['variant', ['@media not all', '&:not(*)']],
   plugins: [tailwindcssAnimate, typography],
   prefix: '',
   safelist: [
