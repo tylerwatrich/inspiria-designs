@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import Analytics from '@/components/Analytics'
 
 import { cn } from '@/utilities/ui'
 import { GeistMono } from 'geist/font/mono'
