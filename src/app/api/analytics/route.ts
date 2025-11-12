@@ -1,46 +1,54 @@
-// This proxies GA4 requests through your domain to bypass content blockers
-
 import { NextRequest, NextResponse } from 'next/server'
-
-const GA_ENDPOINT = 'https://www.google-analytics.com'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text()
     const url = new URL(request.url)
-    const path = url.searchParams.get('path') || '/g/collect'
 
-    // Forward the request to Google Analytics
-    const response = await fetch(`${GA_ENDPOINT}${path}?${url.searchParams.toString()}`, {
+    // Get the path (e.g., /api/analytics/g/collect -> /g/collect)
+    const pathname = url.pathname.replace('/api/analytics', '')
+
+    // Get all query parameters
+    const searchParams = url.searchParams.toString()
+
+    // Forward to Google Analytics with the correct path
+    const gaUrl = `https://www.google-analytics.com${pathname}?${searchParams}`
+
+    console.log('Forwarding POST to:', gaUrl)
+
+    await fetch(gaUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'text/plain',
       },
       body: body,
     })
 
-    // Return a successful response
     return new NextResponse(null, {
       status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
       },
     })
   } catch (error) {
     console.error('Analytics proxy error:', error)
-    return new NextResponse(null, { status: 204 }) // Still return 204 to not break tracking
+    return new NextResponse(null, { status: 204 })
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
-    const path = url.searchParams.get('path') || '/g/collect'
 
-    // Forward GET requests (for pageviews, etc.)
-    const response = await fetch(`${GA_ENDPOINT}${path}?${url.searchParams.toString()}`, {
+    // Get the path
+    const pathname = url.pathname.replace('/api/analytics', '')
+    const searchParams = url.searchParams.toString()
+
+    const gaUrl = `https://www.google-analytics.com${pathname}?${searchParams}`
+
+    console.log('Forwarding GET to:', gaUrl)
+
+    await fetch(gaUrl, {
       method: 'GET',
       headers: {
         'User-Agent': request.headers.get('user-agent') || '',
@@ -59,7 +67,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
