@@ -302,12 +302,6 @@ const About = ({ aboutImage }: AboutProps) => (
         size="(max-width: 768px) 100vw, 50vw"
         imgClassName="rounded-2xl object-cover"
       />
-
-      {/* <img 
-         src="https://placehold.co/600x500/e0e7ff/334155?text=Our+Team"
-         alt="Our team collaborating"
-         className="rounded-2xl w-full h-full object-cover"
-      />*/}
     </div>
   </section>
 )
