@@ -7,6 +7,9 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { fileURLToPath } from 'url'
 
+import { seoPlugin } from '@payloadcms/plugin-seo'
+import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
+
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
@@ -30,6 +33,25 @@ const storagePlugin = process.env.VERCEL_ENV
       token: process.env.BLOB_READ_WRITE_TOKEN!,
     })
   : undefined
+
+const generateTitle: GenerateTitle = ({ doc }) => {
+  return doc?.title ? `${doc.title} | Inspiria Designs` : 'Inspiria Designs'
+}
+
+const generateURL: GenerateURL = ({ doc, collectionConfig }) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+  if (!doc?.slug) return baseUrl
+
+  const slug = Array.isArray(doc.slug) ? doc.slug.join('/') : doc.slug
+
+  // Only use /blog/ prefix for posts collection
+  if (collectionConfig?.slug === 'posts') {
+    return `${baseUrl}/blog/${slug}`
+  }
+
+  // All other collections (pages, etc.) use root path
+  return `${baseUrl}/${slug}`
+}
 
 export default buildConfig({
   admin: {
@@ -81,7 +103,13 @@ export default buildConfig({
   plugins: [
     ...plugins,
     ...(storagePlugin ? [storagePlugin] : []),
-    // storage-adapter-placeholder
+    seoPlugin({
+      collections: ['pages', 'posts'],
+      uploadsCollection: 'media',
+      generateTitle,
+      generateURL,
+      tabbedUI: true, // Adds a separate "SEO" tab in the admin
+    }),
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,

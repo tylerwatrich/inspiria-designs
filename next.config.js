@@ -61,7 +61,22 @@ const nextConfig = {
   },
 
   reactStrictMode: true,
-  redirects,
+  async redirects() {
+    const customRedirects = await redirects()
+    return [
+      ...customRedirects,
+      {
+        source: '/posts',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
+        source: '/posts/:slug',
+        destination: '/blog/:slug',
+        permanent: true, // 301 redirect
+      },
+    ]
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
