@@ -29,7 +29,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
   // TEMPORARY CHECK
-  console.log('GA ID CHECK:', gaId)
   return (
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
       <head>

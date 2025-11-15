@@ -21,17 +21,25 @@ const getImageURL = (image?: Media | Config['db']['defaultIDType'] | null) => {
 
 export const generateMeta = async (args: {
   doc: Partial<Page> | Partial<Post> | null
+  collection?: 'pages' | 'posts'
 }): Promise<Metadata> => {
-  const { doc } = args
+  const { doc, collection } = args
 
   const ogImage = getImageURL(doc?.meta?.image)
 
-  const title = doc?.meta?.title
-    ? doc?.meta?.title + ' | Payload Website Template'
-    : 'Payload Website Template'
+  const title = doc?.meta?.title ? doc?.meta?.title + ' | Inspiria Designs' : 'Inspiria Designs'
+
+  let canonicalURL = '/'
+  if (doc?.slug) {
+    const slugPath = Array.isArray(doc.slug) ? doc.slug.join('/') : doc.slug
+    canonicalURL = collection === 'posts' ? `/blog/${slugPath}` : `/${slugPath}`
+  }
 
   return {
     description: doc?.meta?.description,
+    alternates: {
+      canonical: canonicalURL, // Allow custom override
+    },
     openGraph: mergeOpenGraph({
       description: doc?.meta?.description || '',
       images: ogImage
@@ -42,7 +50,8 @@ export const generateMeta = async (args: {
           ]
         : undefined,
       title,
-      url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
+      url: canonicalURL,
+      // url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
     title,
   }
