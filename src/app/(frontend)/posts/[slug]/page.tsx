@@ -17,10 +17,9 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
-  const { isEnabled: isDraftMode } = await draftMode()
   const posts = await payload.find({
     collection: 'posts',
-    draft: isDraftMode,
+    draft: false,
     limit: 1000,
     overrideAccess: false,
     pagination: false,
