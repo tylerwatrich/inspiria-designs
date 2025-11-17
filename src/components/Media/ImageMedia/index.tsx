@@ -91,10 +91,10 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
       quality={100}
       loading={loading}
       sizes={sizes}
-      src={getAbsoluteUrl(src)}
+      src={src}
       // src={getAbsoluteUrl(src)}
       width={!fill ? width : undefined}
-      // unoptimized={true}
+      unoptimized={true}
     />
   )
 
