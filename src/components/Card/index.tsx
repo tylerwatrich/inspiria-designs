@@ -49,7 +49,7 @@ export const Card: React.FC<{
         {metaImage && typeof metaImage !== 'string' && (
           <>
             {console.log('metaImage:', metaImage)}
-            <Media resource={metaImage} size="33vw" />
+            <Media resource={metaImage} size="33vw" fill={true} />
           </>
         )}
       </div>
