@@ -266,7 +266,7 @@ function convertHtmlToLexicalStructure(html: string) {
       ]
     }
 
-    // Handle lists - convert to simple paragraphs with bullets
+    // Handle lists - convert to simple bullet paragraphs (Lexical list format is finicky)
     if (tagName === 'ul' || tagName === 'ol') {
       const results: any[] = []
       const listItems = node.querySelectorAll('li')
@@ -274,7 +274,6 @@ function convertHtmlToLexicalStructure(html: string) {
       listItems.forEach((li: any, index: number) => {
         const text = li.text.trim()
         if (text) {
-          // Create simple bullet paragraph
           const prefix = tagName === 'ul' ? '• ' : `${index + 1}. `
 
           results.push({
