@@ -3,6 +3,7 @@ import config from '@payload-config'
 import fs from 'fs'
 import path from 'path'
 import { parseStringPromise } from 'xml2js'
+import { parse } from 'node-html-parser'
 
 async function migrateWordPressPosts() {
   const payload = await getPayload({ config })
@@ -148,49 +149,174 @@ async function migrateWordPressPosts() {
 
 /**
  * Convert WordPress HTML content to Lexical editor format
- * Simplified version that creates basic paragraphs
+ * Preserves headings and paragraphs with basic formatting
  */
 function convertHtmlToLexicalStructure(html: string) {
-  // Strip HTML tags and get plain text, preserving line breaks
-  const stripped = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .trim()
+  const root = parse(html)
+  const children: any[] = []
 
-  // Split into paragraphs
-  const paragraphs = stripped
-    .split(/\n\n+/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0)
+  function processTextNode(text: string, format = 0): any {
+    if (!text.trim()) return null
+    return {
+      type: 'text',
+      text: text,
+      format,
+      detail: 0,
+      mode: 'normal',
+      style: '',
+      version: 1,
+    }
+  }
 
-  const children = paragraphs.map((text) => ({
-    type: 'paragraph',
-    format: '' as const,
-    indent: 0,
-    version: 1,
-    children: [
-      {
-        type: 'text',
-        format: 0,
-        text: text,
-        mode: 'normal',
-        style: '',
-        detail: 0,
-        version: 1,
-      },
-    ],
-    direction: 'ltr' as const,
-  }))
+  function processChildren(nodes: any[], format = 0): any[] {
+    const result: any[] = []
+
+    for (const node of nodes) {
+      if (node.nodeType === 3) {
+        // Text node
+        const textNode = processTextNode(node.rawText, format)
+        if (textNode) result.push(textNode)
+      } else if (node.nodeType === 1) {
+        // Element node
+        const tagName = node.rawTagName?.toLowerCase()
+
+        if (tagName === 'strong' || tagName === 'b') {
+          result.push(...processChildren(node.childNodes, 1)) // Bold
+        } else if (tagName === 'em' || tagName === 'i') {
+          result.push(...processChildren(node.childNodes, 2)) // Italic
+        } else if (tagName === 'a') {
+          const linkChildren = processChildren(node.childNodes, format)
+          if (linkChildren.length > 0) {
+            result.push({
+              type: 'link',
+              fields: {
+                url: node.getAttribute('href') || '',
+                linkType: 'custom',
+              },
+              children: linkChildren,
+              direction: 'ltr' as const,
+              format: '' as const,
+              indent: 0,
+              version: 2,
+            })
+          }
+        } else {
+          result.push(...processChildren(node.childNodes, format))
+        }
+      }
+    }
+
+    return result
+  }
+
+  function processNode(node: any): any[] {
+    if (node.nodeType === 3) {
+      // Text node
+      const text = node.rawText.trim()
+      if (!text) return []
+
+      return [
+        {
+          type: 'paragraph',
+          children: [processTextNode(text)].filter(Boolean),
+          format: '' as const,
+          indent: 0,
+          direction: 'ltr' as const,
+          version: 1,
+        },
+      ]
+    }
+
+    if (node.nodeType !== 1) return []
+
+    const tagName = node.rawTagName?.toLowerCase()
+
+    // Handle headings
+    if (/^h[1-6]$/.test(tagName)) {
+      const textChildren = processChildren(node.childNodes)
+      if (textChildren.length === 0) return []
+
+      return [
+        {
+          type: 'heading',
+          tag: tagName,
+          children: textChildren,
+          format: '' as const,
+          indent: 0,
+          direction: 'ltr' as const,
+          version: 1,
+        },
+      ]
+    }
+
+    // Handle paragraphs
+    if (tagName === 'p') {
+      const textChildren = processChildren(node.childNodes)
+      if (textChildren.length === 0) return []
+
+      return [
+        {
+          type: 'paragraph',
+          children: textChildren,
+          format: '' as const,
+          indent: 0,
+          direction: 'ltr' as const,
+          version: 1,
+        },
+      ]
+    }
+
+    // Handle lists - convert to simple paragraphs with bullets
+    if (tagName === 'ul' || tagName === 'ol') {
+      const results: any[] = []
+      const listItems = node.querySelectorAll('li')
+
+      listItems.forEach((li: any, index: number) => {
+        const text = li.text.trim()
+        if (text) {
+          // Create simple bullet paragraph
+          const prefix = tagName === 'ul' ? '• ' : `${index + 1}. `
+
+          results.push({
+            type: 'paragraph',
+            children: [
+              {
+                type: 'text',
+                text: prefix + text,
+                format: 0,
+                detail: 0,
+                mode: 'normal',
+                style: '',
+                version: 1,
+              },
+            ],
+            format: '' as const,
+            indent: 0,
+            direction: 'ltr' as const,
+            version: 1,
+          })
+        }
+      })
+
+      return results
+    }
+
+    // For divs and other containers, process children
+    if (tagName === 'div' || !tagName) {
+      const results: any[] = []
+      for (const child of node.childNodes) {
+        results.push(...processNode(child))
+      }
+      return results
+    }
+
+    return []
+  }
+
+  // Process all top-level nodes
+  for (const node of root.childNodes) {
+    children.push(...processNode(node))
+  }
 
   // If no content, create default paragraph
   if (children.length === 0) {
