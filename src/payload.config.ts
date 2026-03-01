@@ -7,7 +7,7 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { fileURLToPath } from 'url'
 
-import { seoPlugin } from '@payloadcms/plugin-seo'
+// import { seoPlugin } from '@payloadcms/plugin-seo'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 
 import { Categories } from './collections/Categories'
@@ -103,13 +103,13 @@ export default buildConfig({
   plugins: [
     ...plugins,
     ...(storagePlugin ? [storagePlugin] : []),
-    seoPlugin({
-      collections: ['pages', 'posts'],
-      uploadsCollection: 'media',
-      generateTitle,
-      generateURL,
-      tabbedUI: true, // Adds a separate "SEO" tab in the admin
-    }),
+    // seoPlugin({
+    //   collections: ['pages'],
+    //   uploadsCollection: 'media',
+    //   generateTitle,
+    //   generateURL,
+    //   tabbedUI: true, // Adds a separate "SEO" tab in the admin
+    // }),
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,
