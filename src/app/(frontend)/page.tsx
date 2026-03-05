@@ -1,10 +1,3 @@
-// import PageTemplate, { generateMetadata } from './[slug]/page'
-
-// export default PageTemplate
-
-// export { generateMetadata }
-
-// import React, { useState } from 'react'
 import React from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -335,22 +328,15 @@ export default async function HomePage() {
   return (
     <main>
       <div className="bg-light-bg dark:bg-zinc-900 text-gray-800 dark:text-gray-300 font-sans">
-        {/* <Header /> */}
         <main className="container mx-auto px-6 py-12 md:py-20">
           <Hero />
           <Services />
-          {/* <Portfolio /> */}
+          <Portfolio />
           <About aboutImage={home.aboutImage} />
           <ContactCTA />
         </main>
-        {/* <Footer /> */}
       </div>
     </main>
   )
 }
 
-// OPTIONAL: Define custom metadata for this page
-export const metadata = {
-  // title: 'My Custom Home',
-  // description: 'A brief description of my new home page.',
-}

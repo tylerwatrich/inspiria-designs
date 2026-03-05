@@ -47,37 +47,28 @@ export const Card: React.FC<{
       <div className="relative w-full ">
         {!metaImage && <div className="">No image</div>}
         {metaImage && typeof metaImage !== 'string' && (
-          <>
-            {console.log('metaImage:', metaImage)}
-            <Media resource={metaImage} size="33vw" fill={true} />
-          </>
+          <Media resource={metaImage} size="33vw" fill={true} />
         )}
       </div>
       <div className="p-4">
         {showCategories && hasCategories && (
           <div className="uppercase text-sm mb-4">
-            {showCategories && hasCategories && (
-              <div>
-                {categories?.map((category, index) => {
-                  if (typeof category === 'object') {
-                    const { title: titleFromCategory } = category
+            {categories?.map((category, index) => {
+              if (typeof category === 'object') {
+                const { title: titleFromCategory } = category
+                const categoryTitle = titleFromCategory || 'Untitled category'
+                const isLast = index === categories.length - 1
 
-                    const categoryTitle = titleFromCategory || 'Untitled category'
+                return (
+                  <Fragment key={index}>
+                    {categoryTitle}
+                    {!isLast && <Fragment>, &nbsp;</Fragment>}
+                  </Fragment>
+                )
+              }
 
-                    const isLast = index === categories.length - 1
-
-                    return (
-                      <Fragment key={index}>
-                        {categoryTitle}
-                        {!isLast && <Fragment>, &nbsp;</Fragment>}
-                      </Fragment>
-                    )
-                  }
-
-                  return null
-                })}
-              </div>
-            )}
+              return null
+            })}
           </div>
         )}
         {titleToUse && (
@@ -89,7 +80,7 @@ export const Card: React.FC<{
             </h3>
           </div>
         )}
-        {description && <div className="mt-2">{description && <p>{sanitizedDescription}</p>}</div>}
+        {description && <div className="mt-2"><p>{sanitizedDescription}</p></div>}
       </div>
     </article>
   )
