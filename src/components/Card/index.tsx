@@ -10,6 +10,11 @@ import { Media } from '@/components/Media'
 
 export type CardPostData = Pick<Post, 'slug' | 'categories' | 'meta' | 'title'>
 
+// Map Payload collection slugs to public-facing route segments
+const routeMap: Record<string, string> = {
+  posts: 'blog',
+}
+
 export const Card: React.FC<{
   alignItems?: 'center'
   className?: string
@@ -26,18 +31,14 @@ export const Card: React.FC<{
 
   const hasCategories = categories && Array.isArray(categories) && categories.length > 0
   const titleToUse = titleFromProps || title
-  const sanitizedDescription = description?.replace(/\s/g, ' ') // replace non-breaking space with white space
-  // Map Payload collection slugs -> frontend route segments
-  // Convert Payload collection slugs to public-facing routes
-  const routeMap: Record<string, string> = {
-    posts: 'blog', // map the 'posts' collection to the '/blog' route
-  }
+  const sanitizedDescription = description?.replace(/\s/g, ' ')
 
-  const publicRoute = relationTo ? routeMap[relationTo] || relationTo : 'blog'
+  const publicRoute = relationTo ? (routeMap[relationTo] ?? relationTo) : 'blog'
   const href = `/${publicRoute}/${slug}`
 
   return (
     <article
+      aria-label={titleToUse ?? undefined}
       className={cn(
         'border border-border rounded-lg overflow-hidden bg-card hover:cursor-pointer',
         className,

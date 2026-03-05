@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "prepare": "husky",
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
     "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap && next build",
     "postbuild": "next-sitemap --config next-sitemap.config.cjs",
@@ -91,6 +92,8 @@
     "postcss": "^8.4.38",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.1.17",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
     "tsx": "^4.21.0",
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "5.1.4",
@@ -105,6 +108,19 @@
       "sharp",
       "esbuild",
       "unrs-resolver"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
     ]
   }
 }
