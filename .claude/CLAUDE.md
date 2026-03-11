@@ -74,11 +74,33 @@ Complexity is determined by Claude after Phase 2 returns. Claude must declare co
 
 **Simple task rule:** If Claude identifies a task as simple, skip the extended validation loop entirely. State the fix, confirm with one Gemini check if needed, implement. Unnecessary back-and-forth on simple tasks is its own failure mode.
 
+### Gemini Task Size Rules — Critical
+
+Gemini has an internal execution time limit. Large tasks time out and fail silently. Claude must decompose every Gemini request into small, targeted calls.
+
+**One call = one concern. Never bundle multiple questions into a single Gemini call.**
+
+| ❌ Too broad — will timeout | ✅ Correct — targeted |
+|---------------------------|----------------------|
+| "Scan the entire workspace for access control issues" | "Read `src/collections/Posts.ts` and return the `access.read` function" |
+| "Audit all collections and find any misconfigurations" | "List all files in `src/collections/`" then one call per file |
+| "Check .env, Posts.ts, and payload.config.ts for the empty list bug" | Three separate calls, one per file |
+
+**Rules:**
+- One file or one directory per call — never both
+- One question per call — never ask Gemini to find AND validate in the same call
+- If a task requires scanning more than one directory, chain calls sequentially
+- If Gemini is taking more than ~20 seconds, the task is too broad — cancel and split it
+
+**When Gemini fails:** Log it immediately in the Gemini Error Log in SESSION.md before doing anything else. Then retry with a smaller scoped call.
+
 ### What Claude Must Never Do
 - Accept Gemini's findings without checking them against the hypothesis
 - Accept Gemini's validation of Claude's own instructions without confirming it makes sense
 - Continue a loop past round 10
 - Treat a simple fix as complex to be thorough — bias toward action on simple tasks
+- Send Gemini a broad multi-file scan in a single call
+- Wait indefinitely for Gemini — if no response after ~20 seconds, surface the issue to the user
 
 ---
 
@@ -90,7 +112,6 @@ Complexity is determined by Claude after Phase 2 returns. Claude must declare co
 | `.claude/STACK.md` | Static project facts — versions, files, patterns | Gemini (after scans) | Both agents |
 | `.claude/SESSION.md` | Live state — current task, last action, next step, blockers | Claude (after every change) | Both agents |
 | `.claude/BRAIN.md` | Accumulated intelligence — thoughts, risks, change summaries, context for next session | Both agents (append-only) | Both agents |
-
 SESSION.md tracks current state. BRAIN.md accumulates wisdom across sessions. Never delete BRAIN.md entries — cross them out if wrong, then add a correction below.
 
 ---

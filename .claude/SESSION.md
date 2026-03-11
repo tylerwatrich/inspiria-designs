@@ -49,6 +49,24 @@ Verify the AI content generation pipeline is producing posts correctly and posts
 
 ---
 
+## 🔴 Gemini Error Log
+*Claude logs every Gemini failure here automatically. Do not skip this step.*
+
+| # | Date & Time | Task Given to Gemini | How Far It Got | Time Elapsed | Error Type |
+|---|-------------|---------------------|----------------|--------------|------------|
+| — | — | — | — | — | — |
+
+**Error Types:**
+- `TIMEOUT` — ran too long, hit execution time limit
+- `AUTH` — authentication or credential failure
+- `CONNECT` — MCP connection dropped
+- `UNKNOWN` — no clear error returned
+
+**How Claude should log:**
+After any Gemini failure, immediately add a row before doing anything else. Estimate time elapsed if not exact. Note how far Gemini got — "started scan, reached src/collections before failing" is more useful than "failed."
+
+---
+
 ## How Claude Should Update This File
 
 After every meaningful action, rewrite the relevant sections above. Keep it current — this file is the single source of truth for project state.
@@ -61,5 +79,5 @@ Then append a one-liner to the history below:
 
 | Date | Agent | Action | Outcome |
 |------|-------|--------|---------|
-| 2026-03-10 | Gemini → Claude | Initial orchestration system designed | CLAUDE.md, STACK.md, SESSION.md created |
+| 2026-03-10 | Gemini → Claude | Initial orchestration system designed | CLAUDE.md, STACK.md, SESSION.md, BRAIN.md created |
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
