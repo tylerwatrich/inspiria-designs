@@ -49,13 +49,16 @@ const slugs = [
 
 function extractMeta(html) {
   const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
-  const ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
-    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i)
+  const ogTitleMatch =
+    html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i)
 
-  const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
-    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)
-  const ogDescMatch = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)
-    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)
+  const descMatch =
+    html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)
+  const ogDescMatch =
+    html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)
 
   const rawTitle = ogTitleMatch?.[1] || titleMatch?.[1] || ''
   // Strip " - Inspiria Designs" or "| Inspiria Designs" suffixes
@@ -72,15 +75,21 @@ async function login() {
     body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
   })
   const data = await res.json()
-  if (!data.token) { console.error('Login failed:', data); process.exit(1) }
+  if (!data.token) {
+    console.error('Login failed:', data)
+    process.exit(1)
+  }
   console.log('✅ Logged in')
   return data.token
 }
 
 async function findPost(token, slug) {
-  const res = await fetch(`${BASE_URL}/api/posts?where[slug][equals]=${encodeURIComponent(slug)}&limit=1&depth=0`, {
-    headers: { Authorization: `JWT ${token}` },
-  })
+  const res = await fetch(
+    `${BASE_URL}/api/posts?where[slug][equals]=${encodeURIComponent(slug)}&limit=1&depth=0`,
+    {
+      headers: { Authorization: `JWT ${token}` },
+    },
+  )
   const data = await res.json()
   return data.docs?.[0] || null
 }
@@ -104,7 +113,8 @@ async function patchMetaSQL(postId, metaTitle, metaDescription) {
 
 async function main() {
   const token = await login()
-  let ok = 0, failed = 0
+  let ok = 0,
+    failed = 0
   const sqlFallback = []
 
   for (const slug of slugs) {
@@ -150,7 +160,9 @@ async function main() {
     const sqlFile = 'scripts/assign-meta-fallback.sql'
     fs.writeFileSync(sqlFile, sqlFallback.join('\n') + '\n')
     console.log(`\n⚠️  ${sqlFallback.length} posts need SQL fallback → ${sqlFile}`)
-    console.log(`   Run: psql postgresql://tylerwatrich@localhost:5432/inspiria-designs < ${sqlFile}`)
+    console.log(
+      `   Run: psql postgresql://tylerwatrich@localhost:5432/inspiria-designs < ${sqlFile}`,
+    )
   }
 
   console.log(`\nDone — ${ok} updated, ${failed} failed`)
