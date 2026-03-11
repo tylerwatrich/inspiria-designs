@@ -22,7 +22,6 @@ node_modules/
 posts_export.sql
 .claude/ACTIVE_TASK.md
 .claude/AGENT_LOG.md
-.claude/CLAUDE.md
 .claude/PROJECT_ANALYSIS.md
 .vscode/settings.json
 .claude/SESSION.md
