@@ -42,5 +42,20 @@
   "workbench.statusBar.visible": true,
   "editor.scrollbar.vertical": "auto",
   "editor.scrollbar.verticalScrollbarSize": 14,
-  "editor.minimap.autohide": "scroll"
+  "editor.minimap.autohide": "scroll",
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": true
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "driver": "PostgreSQL",
+      "name": "inspiria-designs",
+      "connectString": "postgresql://neondb_owner:npg_GNUqrPfo89Dx@ep-delicate-glitter-ahfsntrf-pooler.c-3.us-east-1.aws.neon.tech/inspiria-designs?sslmode=require&channel_binding=require"
+    }
+  ]
 }
