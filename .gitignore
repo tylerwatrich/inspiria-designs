@@ -25,3 +25,4 @@ posts_export.sql
 .claude/PROJECT_ANALYSIS.md
 .vscode/settings.json
 .claude/SESSION.md
+scripts/assign-images.mjs

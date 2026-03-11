@@ -2,7 +2,7 @@
 
 ---
 
-## ⚡ SESSION START — Do These 3 Things Before Anything Else
+## ⚡ SESSION START — Do These 4 Things Before Anything Else
 
 1. Read `.claude/STACK.md` → understand the project architecture and current versions
 2. Read `.claude/SESSION.md` → know exactly where we left off and what's broken
@@ -26,16 +26,59 @@ Claude manages Gemini via MCP (`gemini-cli`). Do not wait for the user to ask. S
 | Updating .claude/SESSION.md or .claude/BRAIN.md | Claude handles directly |
 
 ### Handoff Workflow
+
 ```
-User describes problem
-  → Claude reads .claude/STACK.md + .claude/SESSION.md + .claude/BRAIN.md
-  → If multi-file or unknown cause → Claude calls Gemini
-      → Gemini returns: file paths, line numbers, bullet points (no prose)
-      → Claude validates against .claude/STACK.md before trusting findings
-  → Claude writes the fix
-  → Claude updates .claude/SESSION.md
-  → Claude appends observations, risks, and change summary to .claude/BRAIN.md
+PHASE 1 — PREFLIGHT
+  Claude reads memory files
+  Claude states: task + assumptions + hypothesis + expected outcome
+  Claude sends instructions to Gemini
+
+  Gemini validates Claude's instructions BEFORE acting:
+    - Are Claude's assumptions current and accurate?
+    - Are there newer APIs, versions, or patterns Claude may not know about?
+    - Is Claude's approach the right one for this stack?
+  Gemini reports back: "Assumptions valid" OR "Correction needed: [what's wrong]"
+
+  Claude reviews Gemini's validation
+    - If correction is minor → Claude adjusts and confirms
+    - If correction changes the approach → Claude revises instructions before proceeding
+    - Claude must explicitly confirm before Gemini acts
+
+PHASE 2 — EXECUTION
+  Gemini performs the action
+  Gemini self-validates results against Claude's stated criteria
+  Gemini returns:
+    - Raw data (file:line references, no prose)
+    - Summary (what was found, confidence level)
+    - Flag: Simple fix / Complex fix
+
+PHASE 3 — DECISION
+  Claude reads summary first, raw data only if something seems off
+  Claude checks findings against its original hypothesis
+  Claude decides: implement / push back / request clarification
+
+  If pushing back → Claude sends a narrower, more precise follow-up to Gemini
+  Loop returns to Phase 2 with the new query
 ```
+
+### Back-and-Forth Limits
+
+Complexity is determined by Claude after Phase 2 returns. Claude must declare complexity before the loop begins.
+
+| Complexity | Definition | Max Rounds |
+|------------|------------|------------|
+| Simple | Single cause, under 3 files, known pattern | 1-2 rounds — implement fast, don't over-verify |
+| Complex | Multi-file, unknown cause, architectural impact | Hard cap of 10 rounds |
+
+**At round 10 on a complex task:** Claude stops the loop, summarizes what's known and unknown, and asks the user for a decision rather than continuing to iterate. Do not exceed 10 rounds under any circumstances.
+
+**Simple task rule:** If Claude identifies a task as simple, skip the extended validation loop entirely. State the fix, confirm with one Gemini check if needed, implement. Unnecessary back-and-forth on simple tasks is its own failure mode.
+
+### What Claude Must Never Do
+- Accept Gemini's findings without checking them against the hypothesis
+- Accept Gemini's validation of Claude's own instructions without confirming it makes sense
+- Continue a loop past round 10
+- Treat a simple fix as complex to be thorough — bias toward action on simple tasks
 
 ---
 
