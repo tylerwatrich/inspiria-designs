@@ -19,11 +19,13 @@ Claude manages Gemini via MCP (`gemini-cli`). Do not wait for the user to ask. S
 |-----------|--------|
 | Task touches more than 3 files | Delegate to Gemini |
 | User describes a symptom without a known cause | Delegate to Gemini |
-| Workspace-wide search needed (`grep`, `find`, directory scan) | Delegate to Gemini |
+| Workspace-wide search needed (`grep`, `find`, directory scan) | Chain targeted single-file Gemini calls — never one broad scan |
 | A version or API exists that Claude doesn't recognize | Delegate to Gemini (web search) |
 | User asks about current best practices for a fast-moving library | Delegate to Gemini (web search) |
 | Fix is under 3 files and cause is already known | Claude handles directly |
 | Updating .claude/SESSION.md or .claude/BRAIN.md | Claude handles directly |
+| Task requires DB queries, SQL, or data inspection | Claude handles directly — Gemini reads files only |
+| Task requires running code or shell commands | Claude handles directly — Gemini reads files only |
 
 ### Handoff Workflow
 
@@ -78,6 +80,11 @@ Complexity is determined by Claude after Phase 2 returns. Claude must declare co
 
 Gemini has an internal execution time limit. Large tasks time out and fail silently. Claude must decompose every Gemini request into small, targeted calls.
 
+**Why this matters — the 60-second hard timeout:**
+Gemini CLI enforces a hard 60-second timeout on all MCP tool calls (introduced v0.1.22, bug [#7324](https://github.com/google-gemini/gemini-cli/issues/7324) — still open Jan 2026). The timeout setting in `settings.json` is ignored. Any call exceeding 60 seconds silently hangs with no error. Large files and multi-file reads are the primary trigger.
+
+**Workaround:** Set `export GEMINI_TIMEOUT=120000` in your shell before running Gemini CLI. This extends the window but does not fix the underlying bug — keep calls small regardless.
+
 **One call = one concern. Never bundle multiple questions into a single Gemini call.**
 
 | ❌ Too broad — will timeout | ✅ Correct — targeted |
@@ -90,7 +97,7 @@ Gemini has an internal execution time limit. Large tasks time out and fail silen
 - One file or one directory per call — never both
 - One question per call — never ask Gemini to find AND validate in the same call
 - If a task requires scanning more than one directory, chain calls sequentially
-- If Gemini is taking more than ~20 seconds, the task is too broad — cancel and split it
+- If Gemini is taking more than ~20 seconds, it's a warning sign the call is too broad — at 60 seconds it will hard-timeout silently with no error
 
 **When Gemini fails:** Log it immediately in the Gemini Error Log in SESSION.md before doing anything else. Then retry with a smaller scoped call.
 
@@ -101,6 +108,7 @@ Gemini has an internal execution time limit. Large tasks time out and fail silen
 - Treat a simple fix as complex to be thorough — bias toward action on simple tasks
 - Send Gemini a broad multi-file scan in a single call
 - Wait indefinitely for Gemini — if no response after ~20 seconds, surface the issue to the user
+- Delegate database queries, SQL, or any runtime execution to Gemini — Gemini reads files only
 
 ---
 
@@ -134,6 +142,40 @@ Before Claude writes a single line of code, Gemini audits in this order:
 - Match `DATABASE_URI` to the correct Neon branch (dev ≠ prod)
 - Free tier pauses after inactivity — wake it before any test
 - Vercel env vars must exactly match local `.env`
+
+---
+
+## 🗄️ SQL Rules — Claude Owns All Database Work
+
+Gemini cannot execute SQL. All DB inspection, fixes, and migrations are Claude's responsibility via `psql`.
+
+**Connection strings:**
+- Local dev: `postgresql://tylerwatrich@localhost:5432/inspiria-designs`
+- Neon prod: use `DATABASE_URI` from `.env` — never hardcode
+
+**Before running any destructive SQL (DELETE, UPDATE, DROP, TRUNCATE):**
+1. Show the user the exact query and what it will affect
+2. Get explicit confirmation before executing
+3. No exceptions — even "safe-looking" deletes can have FK cascade effects
+
+**Safe read queries need no confirmation** — `SELECT` is always fine to run directly.
+
+**Common health-check queries:**
+```sql
+-- Post status breakdown
+SELECT _status, COUNT(*) FROM posts GROUP BY _status;
+
+-- Orphaned search entries (safe to delete if count > 0 and all rels are accounted for)
+SELECT COUNT(*) FROM search WHERE id NOT IN (SELECT DISTINCT parent_id FROM search_rels);
+
+-- payload_preferences state for admin columns
+SELECT key, value FROM payload_preferences WHERE key LIKE '%posts%';
+
+-- Locked documents (stale session locks)
+SELECT id, global_slug, updated_at FROM payload_locked_documents;
+```
+
+**Migration note:** Only one migration exists (`dev`, batch `-1`). This is Payload's initial dev migration — normal for this stage. Do not run `payload migrate` in prod without confirming the migration state first.
 
 ---
 
