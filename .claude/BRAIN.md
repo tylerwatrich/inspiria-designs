@@ -18,6 +18,15 @@
 
 *Patterns, hunches, things that seem off, architectural notes that don't fit anywhere else.*
 
+**[2026-03-11] — Claude**
+Root cause of blank admin columns CONFIRMED: `slugField()` (from the `payload` package) returns `{ type: 'row', fields: [{ name: 'slug', ... }] }` — not a top-level named field. Payload's admin column initializer walks the top-level fields array to validate `defaultColumns`. When it can't find `slug` at the top level, it generates a fresh preference with every column set to `active: false` and writes it to the `payload_preferences` table (`key: 'collection-posts'`). This happens on every cold load, silently overwriting any manual fix. Fix: replace `slugField()` with an inline `{ name: 'slug', type: 'text', ... }` definition at the top level of the fields array. Then delete the corrupted preference row from DB.
+
+**[2026-03-11] — Claude**
+`payload_preferences` table is the source of truth for admin UI column state. Key pattern: `collection-{slug}`. If the admin list ever goes blank again, check this table first: `SELECT key, value FROM payload_preferences WHERE key LIKE '%posts%';`. If all columns show `"active": false`, delete the row and restart — do NOT just UPDATE it, because the app will overwrite it on next load if the underlying field config is still wrong.
+
+**[2026-03-11] — Claude**
+Security note: Neon DB password `npg_GNUqrPfo89Dx` was exposed in `git diff` output during a debug session. The password is for the Neon branch used in `.vscode/settings.json` (SQLTools connection). `.vscode/settings.json` is now gitignored but was NOT gitignored during the session where the diff ran. Recommend rotating this password in the Neon dashboard.
+
 **[2026-03-10] — Claude**
 The empty admin list bug is almost certainly one of three things: a `PAYLOAD_PUBLIC_SERVER_URL` port mismatch causing Payload's internal fetch to silently return `[]`, an `access.read` filter that's too aggressive (blocking authenticated users alongside public ones), or the database simply having no rows yet. These three causes look identical from the UI — the list is just empty with no error. The only way to differentiate them is to check the DB directly first. Don't skip this step.
 
@@ -48,6 +57,15 @@ Claude's knowledge of Next.js and Payload versions may be stale as of 2026. Any 
 
 *Summarized log of what was actually changed and why. Not a git log — explain the reasoning.*
 
+**[2026-03-11] — Claude**
+Empty Posts list bug confirmed fixed by user. Root cause was not documented — if the cause surfaces later, record it here. Project is now unblocked and moving to content pipeline testing.
+
+**[2026-03-11] — Claude**
+Committed 6cfab19 "Fix Payload admin blank columns and clean up AI slop". Changes: (1) inline slug field replacing `slugField()`, (2) `populateAuthors` bug fix — assignment moved outside try block so all authors accumulate, (3) `url` afterRead hook `data` → `originalDoc`, (4) autosave interval restored to 100ms, (5) unused `ListNode`/`ListItemNode` imports removed, (6) `seoPlugin` scoped to `['pages']`, (7) downgraded to Next.js 15.2.3 / Payload 3.63.0 (user's preferred stable versions), (8) tsconfig `jsx: preserve`, (9) .gitignore cleanup.
+
+**[2026-03-11] — Claude**
+Gemini MCP (`gemini-cli`) requires auth configured in `~/.gemini/settings.json` or `GEMINI_API_KEY` env var. It threw exit code 41 on first call in the session before auth was set up. Once configured, it responded correctly. Always test with `mcp__gemini-cli__ping` before delegating a real task.
+
 **[2026-03-10] — Claude**
 Created the AI orchestration system (CLAUDE.md, STACK.md, SESSION.md, BRAIN.md). The previous setup had two files (ACTIVE_TASK.md, AGENT_LOG.md) doing overlapping jobs, which creates stale state risk. Consolidated into: CLAUDE.md (rules), STACK.md (static facts), SESSION.md (live state), BRAIN.md (this file — accumulated intelligence). The key change is that Claude now self-routes to Gemini based on explicit rules rather than waiting for the user to specify.
 
@@ -57,8 +75,11 @@ Created the AI orchestration system (CLAUDE.md, STACK.md, SESSION.md, BRAIN.md).
 
 *What the next agent session needs to know immediately to not waste time re-discovering things.*
 
+**[2026-03-11] — Claude**
+31 posts confirmed in DB, IDs 289–324, all `_status: published`. The AI content pipeline has already run and produced real content. Next session focus: verify the pipeline runs reliably on schedule and that new posts appear correctly. Also test Vercel + Neon connectivity (never verified — dev uses local PG).
+
 **[2026-03-10] — Claude**
-The active blocker is unconfirmed DB state. Before doing anything else: run `test-fetch.ts` and confirm whether rows exist in Neon. If rows exist → the bug is access control or env vars. If no rows exist → the bug is data seeding or the AI pipeline hasn't run yet. Everything else flows from this one check.
+~~The active blocker is unconfirmed DB state. Before doing anything else: run `test-fetch.ts`...~~ [SUPERSEDED — DB has 31 rows confirmed. Bug was column preferences, not DB state.] Before doing anything else: run `test-fetch.ts` and confirm whether rows exist in Neon. If rows exist → the bug is access control or env vars. If no rows exist → the bug is data seeding or the AI pipeline hasn't run yet. Everything else flows from this one check.
 
 **[2026-03-10] — Claude**
 Do not assume `.env` is correct. `PAYLOAD_PUBLIC_SERVER_URL` has not been verified this session. Check it early — a wrong port causes the admin list to silently return empty and wastes significant debugging time chasing phantom access control bugs.

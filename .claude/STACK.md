@@ -16,11 +16,12 @@
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| Framework | Next.js 15 (App Router) | Confirm current version in package.json — may be 16.x |
-| CMS | Payload 3.0 | Postgres adapter — NOT the MongoDB version |
+| Framework | Next.js **15.2.3** (App Router) | Confirmed 2026-03-11 |
+| CMS | Payload **3.63.0** | Postgres adapter — NOT the MongoDB version |
 | Database | Neon (Postgres, serverless) | Free tier pauses on inactivity |
+| Database (dev) | Local PostgreSQL | `postgresql://tylerwatrich@localhost:5432/inspiria-designs` |
 | Hosting | Vercel | Serverless — no persistent Node process |
-| Language | TypeScript | Strict mode assumed |
+| Language | TypeScript | `jsx: preserve` in tsconfig (Next.js handles transform) |
 | AI Content | External AI APIs | Auto-generates news posts |
 
 > ⚠️ **Version Warning:** Claude's training cutoff may predate current versions of Next.js and Payload. If versions in `package.json` are unfamiliar, have Gemini confirm current docs before writing code.
@@ -31,7 +32,9 @@
 
 | File | Purpose |
 |------|---------|
-| `src/collections/Posts.ts` | Core Posts collection — access control, fields, hooks |
+| `src/collections/Posts/index.ts` | Core Posts collection — access control, fields, hooks |
+| `src/collections/Posts/hooks/populateAuthors.ts` | After-read hook that populates author name/id |
+| `src/plugins/index.ts` | Plugin config — seoPlugin scoped to `['pages']` only |
 | `payload.config.ts` | Main Payload config — collections registered here, admin user set here |
 | `.env` | `PAYLOAD_PUBLIC_SERVER_URL`, `DATABASE_URI` — both critical |
 | `test-fetch.ts` | Manual DB row verification script |
@@ -69,8 +72,10 @@ read: ({ req: { user } }) => {
 
 | Date | Issue | Resolution | Status |
 |------|-------|-----------|--------|
-| 2026-03-10 | Admin list view empty | Auditing in progress — see SESSION.md | 🔴 Open |
-| — | Vercel + Neon connectivity | Not yet resolved | 🔴 Open |
+| 2026-03-11 | Admin list view empty | `slugField()` row wrapper → replaced with inline slug field; deleted corrupted `payload_preferences` row | ✅ Resolved |
+| 2026-03-11 | `populateAuthors` only setting last author | Moved `populatedAuthors` assignment outside try block | ✅ Resolved |
+| 2026-03-11 | `url` field afterRead hook using wrong param | `data` → `originalDoc` (correct Payload 3.0 API) | ✅ Resolved |
+| — | Vercel + Neon connectivity | Not yet tested | 🔴 Open |
 
 ---
 
