@@ -6,6 +6,8 @@ import {
   HeadingFeature,
   HorizontalRuleFeature,
   InlineToolbarFeature,
+  UnorderedListFeature, // Import for bullet points
+  OrderedListFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
@@ -25,7 +27,6 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
-import { slugField } from 'payload'
 
 export const Posts: CollectionConfig<'posts'> = {
   slug: 'posts',
@@ -42,6 +43,8 @@ export const Posts: CollectionConfig<'posts'> = {
     title: true,
     slug: true,
     categories: true,
+    updatedAt: true,
+    _status: true,
     meta: {
       image: true,
       description: true,
@@ -85,14 +88,16 @@ export const Posts: CollectionConfig<'posts'> = {
               name: 'content',
               type: 'richText',
               editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
+                features: ({ defaultFeatures }) => {
                   return [
-                    ...rootFeatures,
+                    ...defaultFeatures,
                     HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
                     BlocksFeature({ blocks: [Banner, Code, MediaBlock] }),
                     FixedToolbarFeature(),
                     InlineToolbarFeature(),
                     HorizontalRuleFeature(),
+                    UnorderedListFeature(),
+                    OrderedListFeature(),
                   ]
                 },
               }),
@@ -108,10 +113,10 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hooks: {
                 afterRead: [
-                  ({ data }) => {
+                  ({ originalDoc }) => {
                     // Ensure the slug exists before returning the URL
-                    if (!data?.slug) return ''
-                    return `/blog/${data.slug}`
+                    if (!originalDoc?.slug) return ''
+                    return `/blog/${originalDoc.slug}`
                   },
                 ],
               },
@@ -231,12 +236,20 @@ export const Posts: CollectionConfig<'posts'> = {
         },
       ],
     },
-    slugField(),
+    {
+      name: 'slug',
+      type: 'text',
+      index: true,
+      required: true,
+      admin: {
+        position: 'sidebar',
+      },
+    },
   ],
   hooks: {
-    afterChange: [revalidatePost],
+    // afterChange: [revalidatePost],
     afterRead: [populateAuthors],
-    afterDelete: [revalidateDelete],
+    // afterDelete: [revalidateDelete],
   },
   versions: {
     drafts: {
