@@ -35,14 +35,17 @@ const nextConfig = {
           protocol: url.protocol.replace(':', ''),
         }
       }),
+      // Add Vercel deployment URLs
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+      },
     ],
     localPatterns: [
       {
         pathname: '/api/media/**',
-        search: '',
       },
     ],
-    qualities: [100, 75],
   },
 
   // Experimental features (uncomment if needed in development)

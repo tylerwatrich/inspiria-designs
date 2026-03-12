@@ -205,10 +205,6 @@ export interface Page {
   meta?: {
     title?: string | null;
     description?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
   };
   publishedAt?: string | null;
   /**
@@ -248,11 +244,11 @@ export interface Post {
   categories?: (number | Category)[] | null;
   meta?: {
     title?: string | null;
-    description?: string | null;
     /**
      * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
      */
     image?: (number | null) | Media;
+    description?: string | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
@@ -262,10 +258,6 @@ export interface Post {
         name?: string | null;
       }[]
     | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
   slug: string;
   updatedAt: string;
   createdAt: string;
@@ -1095,7 +1087,6 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         title?: T;
         description?: T;
-        image?: T;
       };
   publishedAt?: T;
   generateSlug?: T;
@@ -1203,8 +1194,8 @@ export interface PostsSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
-        description?: T;
         image?: T;
+        description?: T;
       };
   publishedAt?: T;
   authors?: T;
@@ -1214,7 +1205,6 @@ export interface PostsSelect<T extends boolean = true> {
         id?: T;
         name?: T;
       };
-  generateSlug?: T;
   slug?: T;
   updatedAt?: T;
   createdAt?: T;
