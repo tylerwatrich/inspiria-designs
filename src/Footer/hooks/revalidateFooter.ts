@@ -8,6 +8,6 @@ export const revalidateFooter: GlobalAfterChangeHook = ({ doc, req: { payload, c
 
     revalidateTag('global_footer')
   }
-
+  //
   return doc
 }
