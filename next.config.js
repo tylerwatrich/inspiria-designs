@@ -44,10 +44,8 @@ const nextConfig = {
     localPatterns: [
       {
         pathname: '/api/media/**',
-        search: '',
       },
     ],
-    qualities: [100, 75],
   },
 
   // Experimental features (uncomment if needed in development)

@@ -20,3 +20,5 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 posts_export.sql
+.vscode/settings.json
+scripts/assign-images.mjs
