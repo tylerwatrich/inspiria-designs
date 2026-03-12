@@ -25,7 +25,7 @@ export const generateMeta = async (args: {
 }): Promise<Metadata> => {
   const { doc, collection } = args
 
-  const ogImage = getImageURL(doc?.meta?.image ?? (doc as Partial<Post>)?.heroImage)
+  const ogImage = getImageURL((doc?.meta as Partial<Post>['meta'])?.image ?? (doc as Partial<Post>)?.heroImage)
 
   const title = doc?.meta?.title ? doc?.meta?.title + ' | Inspiria Designs' : 'Inspiria Designs'
 
