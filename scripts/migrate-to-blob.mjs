@@ -31,7 +31,7 @@ for (const filename of files) {
   const contentType = mimeTypes[ext] || 'application/octet-stream'
 
   try {
-    const result = await put(`media/${filename}`, fileBuffer, {
+    const result = await put(filename, fileBuffer, {
       access: 'public',
       contentType,
       token,
