@@ -48,7 +48,7 @@ export default async function Post({ params: paramsPromise }: Args) {
   if (!post) return <PayloadRedirects url={url} />
 
   return (
-    <article className="pt-16 pb-16">
+    <article className="bg-light-bg dark:bg-zinc-900 pb-24">
       <PageClient />
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
@@ -56,17 +56,24 @@ export default async function Post({ params: paramsPromise }: Args) {
 
       <PostHero post={post} />
 
-      <div className="flex flex-col items-center gap-4 pt-8">
-        <div className="container">
-          <RichText className="max-w-[48rem] mx-auto" data={post.content} enableGutter={false} />
-          {post.relatedPosts && post.relatedPosts.length > 0 && (
-            <RelatedPosts
-              className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
-              docs={post.relatedPosts.filter((post) => typeof post === 'object')}
-            />
-          )}
+      <div className="container pt-12">
+        <div className="max-w-[52rem] mx-auto">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating px-8 py-10 md:px-14 md:py-14">
+            <RichText data={post.content} enableGutter={false} />
+          </div>
         </div>
       </div>
+
+      {post.relatedPosts && post.relatedPosts.length > 0 && (
+        <div className="container mt-20">
+          <div className="max-w-[52rem] mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">
+              More <span className="text-brand-blue-500">Articles</span>
+            </h2>
+            <RelatedPosts docs={post.relatedPosts.filter((post) => typeof post === 'object')} />
+          </div>
+        </div>
+      )}
     </article>
   )
 }
