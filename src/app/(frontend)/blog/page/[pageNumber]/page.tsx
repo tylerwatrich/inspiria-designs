@@ -67,7 +67,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 
       <div className="container mt-12">
         {posts?.page && posts?.totalPages > 1 && (
-          <Pagination page={posts.page} totalPages={posts.totalPages} />
+          <Pagination page={posts.page} totalPages={posts.totalPages} basePath="/blog" />
         )}
       </div>
     </div>
