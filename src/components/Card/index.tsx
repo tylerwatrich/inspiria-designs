@@ -40,7 +40,7 @@ export const Card: React.FC<{
   return (
     <article
       className={cn(
-        'border border-border rounded-lg overflow-hidden bg-card hover:cursor-pointer',
+        'bg-white dark:bg-zinc-800 rounded-2xl shadow-floating card overflow-hidden hover:cursor-pointer',
         className,
       )}
       ref={card.ref}
@@ -52,43 +52,37 @@ export const Card: React.FC<{
           <div className="w-full h-full bg-muted" />
         )}
       </div>
-      <div className="p-4">
+      <div className="p-6">
         {showCategories && hasCategories && (
-          <div className="uppercase text-sm mb-4">
-            {showCategories && hasCategories && (
-              <div>
-                {categories?.map((category, index) => {
-                  if (typeof category === 'object') {
-                    const { title: titleFromCategory } = category
-
-                    const categoryTitle = titleFromCategory || 'Untitled category'
-
-                    const isLast = index === categories.length - 1
-
-                    return (
-                      <Fragment key={index}>
-                        {categoryTitle}
-                        {!isLast && <Fragment>, &nbsp;</Fragment>}
-                      </Fragment>
-                    )
-                  }
-
-                  return null
-                })}
-              </div>
-            )}
+          <div className="mb-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-brand-blue-500">
+              {categories?.map((category, index) => {
+                if (typeof category === 'object') {
+                  const { title: titleFromCategory } = category
+                  const categoryTitle = titleFromCategory || 'Untitled category'
+                  const isLast = index === categories.length - 1
+                  return (
+                    <Fragment key={index}>
+                      {categoryTitle}
+                      {!isLast && <Fragment>, &nbsp;</Fragment>}
+                    </Fragment>
+                  )
+                }
+                return null
+              })}
+            </div>
           </div>
         )}
         {titleToUse && (
-          <div className="prose">
-            <h3>
-              <Link className="not-prose" href={href} ref={link.ref}>
-                {titleToUse}
-              </Link>
-            </h3>
-          </div>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 leading-snug">
+            <Link className="hover:text-brand-blue-500 transition-colors" href={href} ref={link.ref}>
+              {titleToUse}
+            </Link>
+          </h3>
         )}
-        {description && <div className="mt-2">{description && <p>{sanitizedDescription}</p>}</div>}
+        {description && (
+          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">{sanitizedDescription}</p>
+        )}
       </div>
     </article>
   )
