@@ -151,9 +151,6 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
-  background-color: #f8f9fa; /* using light-bg from tailwind config is also an option */
-}
 
 @layer components {
   .card {
