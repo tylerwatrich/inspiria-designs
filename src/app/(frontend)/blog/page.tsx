@@ -56,7 +56,7 @@ export default async function Page() {
 
       <div className="container mt-12">
         {posts.totalPages > 1 && posts.page && (
-          <Pagination page={posts.page} totalPages={posts.totalPages} />
+          <Pagination page={posts.page} totalPages={posts.totalPages} basePath="/blog" />
         )}
       </div>
     </div>
