@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import type { Header } from '@/payload-types'
 
 import { Logo } from '@/components/Logo/Logo'
+import TextLogo from '@/components/Branding/textLogo'
 import { HeaderNav } from './Nav'
 
 interface HeaderClientProps {
@@ -40,10 +41,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
     >
       <div className="flex justify-between">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-brand-blue-600">
-            Inspiria<span className="text-gray-700 dark:text-gray-300">Designs</span>
-            {/* <Logo loading="eager" priority="high" className="invert dark:invert-0" /> */}
-          </Link>
+          <TextLogo />
           {/* Use HeaderNav for both desktop and mobile, toggle with menu state */}
 
           <HeaderNav
