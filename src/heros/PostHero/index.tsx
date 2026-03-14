@@ -18,13 +18,11 @@ export const PostHero: React.FC<{
   const hasCategories = categories && categories.length > 0
 
   return (
-    <div className="bg-light-bg dark:bg-zinc-900 pt-20 pb-12">
+    <div className="bg-light-bg dark:bg-zinc-900 pt-8 pb-2">
       <div className="container">
         <div
           className={
-            heroImage
-              ? 'grid lg:grid-cols-[1fr_420px] gap-10 items-center'
-              : 'grid grid-cols-1'
+            heroImage ? 'grid lg:grid-cols-[1fr_420px] gap-10 items-center' : 'grid grid-cols-1'
           }
         >
           {/* Left Column */}
@@ -77,13 +75,17 @@ export const PostHero: React.FC<{
             <div className="flex flex-col md:flex-row gap-4 md:gap-16 border-t border-gray-200 dark:border-white/20 pt-6">
               {hasAuthors && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">Author</p>
+                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">
+                    Author
+                  </p>
                   <p>{formatAuthors(populatedAuthors)}</p>
                 </div>
               )}
               {publishedAt && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">Date Published</p>
+                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">
+                    Date Published
+                  </p>
                   <time dateTime={publishedAt}>{formatDateTime(publishedAt)}</time>
                 </div>
               )}
