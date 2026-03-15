@@ -6,22 +6,24 @@
 ## Current Objective
 
 **What we're trying to do:**
-Validate the AI content generation pipeline end-to-end — admin UI is now unblocked.
+`TargetAudience` collection created — next step is running `payload generate:types` so TypeScript picks up the new schema, then populating the first few industry records.
 
 **Why it matters:**
-31 published posts are confirmed in the DB. The admin list now displays correctly. Next step is confirming the pipeline that generates and inserts those posts is working reliably.
+This collection is the data source AI will query when generating industry-targeted articles. Needs to be seeded before the AI pipeline can use it.
 
 ---
 
 ## Current State
 
-**Stage:** Content Pipeline Testing
-**Status:** 🟢 Unblocked
+**Stage:** New Collection — Needs Migration + Seed Data
+**Status:** 🟡 Needs `payload generate:types` and DB migration
 
-**Blocker:** None
+**Blocker:** None — but collection won't appear in DB until Payload runs its migration on next dev server start.
 
 **Next Action:**
-Verify the AI content generation pipeline is producing posts correctly and posts appear in the admin UI as expected.
+1. Start dev server (`pnpm dev`) — Payload will auto-migrate the new table
+2. Run `pnpm payload generate:types` to update `payload-types.ts`
+3. Populate initial industry records in the admin UI
 
 ---
 
@@ -45,7 +47,7 @@ Verify the AI content generation pipeline is producing posts correctly and posts
 
 ## Last Action
 
-> 2026-03-11 — Full debug session completed. slugField() replaced with inline slug field. Corrupted payload_preferences deleted. 5 additional bug fixes committed. Commit 6cfab19.
+> 2026-03-14 — Created `TargetAudience` collection (`src/collections/TargetAudience.ts`) and registered it in `payload.config.ts`. Fields: industry (title), businessSizes (multi-select), keywords (array), relatedPosts (relationship → posts), notes (textarea).
 
 ---
 
@@ -81,3 +83,4 @@ Then append a one-liner to the history below:
 |------|-------|--------|---------|
 | 2026-03-10 | Gemini → Claude | Initial orchestration system designed | CLAUDE.md, STACK.md, SESSION.md, BRAIN.md created |
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
+| 2026-03-14 | Claude | Create TargetAudience collection | 2 files changed — needs pnpm dev to auto-migrate |
