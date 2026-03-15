@@ -72,6 +72,9 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
+    'target-audience': TargetAudience;
+    'article-types': ArticleType;
+    industries: Industry;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -94,6 +97,9 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'target-audience': TargetAudienceSelect<false> | TargetAudienceSelect<true>;
+    'article-types': ArticleTypesSelect<false> | ArticleTypesSelect<true>;
+    industries: IndustriesSelect<false> | IndustriesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -242,7 +248,35 @@ export interface Post {
   url?: string | null;
   relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
+  /**
+   * Where in the buyer journey does this post target?
+   */
+  funnelStage?: ('awareness' | 'consideration' | 'conversion') | null;
+  /**
+   * Check if this post was written or heavily drafted by AI.
+   */
+  aiGenerated?: boolean | null;
+  /**
+   * The content format of this post (Guide, Pain Point, Listicle, etc.)
+   */
+  articleType?: (number | null) | ArticleType;
+  /**
+   * Which industry vertical(s) is this post written for?
+   */
+  targetIndustry?: (number | TargetAudience)[] | null;
+  /**
+   * Which business size(s) within that industry does this post address?
+   */
+  targetBusinessSize?: ('solo' | 'micro' | 'small' | 'medium' | 'large')[] | null;
   meta?: {
+    /**
+     * The main SEO keyword this post is targeting. Used for reporting and content gap analysis.
+     */
+    primaryKeyword?: string | null;
+    /**
+     * The specific search query you want this post to rank for.
+     */
+    targetKeyword?: string | null;
     title?: string | null;
     /**
      * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
@@ -403,6 +437,72 @@ export interface Category {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Content format categories used to classify and report on articles.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-types".
+ */
+export interface ArticleType {
+  id: number;
+  label: string;
+  /**
+   * What this article type means and when to use it.
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Detailed targeting profile for each industry — keywords, business sizes, and linked articles.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "target-audience".
+ */
+export interface TargetAudience {
+  id: number;
+  industry?: string | null;
+  /**
+   * Which industry does this profile belong to?
+   */
+  industryRef?: (number | null) | Industry;
+  businessSizes?: ('solo' | 'micro' | 'small' | 'medium' | 'large')[] | null;
+  /**
+   * Words and phrases AI uses when writing articles for this industry.
+   */
+  keywords?:
+    | {
+        keyword: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Posts written targeting this industry. Foundation for the per-industry performance dashboard.
+   */
+  relatedPosts?: (number | Post)[] | null;
+  /**
+   * Internal notes about this industry — pain points, content angles, lead patterns.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Industry verticals. Adding one here makes it available as a Target Audience profile.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "industries".
+ */
+export interface Industry {
+  id: number;
+  name: string;
+  /**
+   * Brief description of this industry vertical.
+   */
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -984,6 +1084,18 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'target-audience';
+        value: number | TargetAudience;
+      } | null)
+    | ({
+        relationTo: 'article-types';
+        value: number | ArticleType;
+      } | null)
+    | ({
+        relationTo: 'industries';
+        value: number | Industry;
+      } | null)
+    | ({
         relationTo: 'redirects';
         value: number | Redirect;
       } | null)
@@ -1190,9 +1302,16 @@ export interface PostsSelect<T extends boolean = true> {
   url?: T;
   relatedPosts?: T;
   categories?: T;
+  funnelStage?: T;
+  aiGenerated?: T;
+  articleType?: T;
+  targetIndustry?: T;
+  targetBusinessSize?: T;
   meta?:
     | T
     | {
+        primaryKeyword?: T;
+        targetKeyword?: T;
         title?: T;
         image?: T;
         description?: T;
@@ -1346,6 +1465,45 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "target-audience_select".
+ */
+export interface TargetAudienceSelect<T extends boolean = true> {
+  industry?: T;
+  industryRef?: T;
+  businessSizes?: T;
+  keywords?:
+    | T
+    | {
+        keyword?: T;
+        id?: T;
+      };
+  relatedPosts?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-types_select".
+ */
+export interface ArticleTypesSelect<T extends boolean = true> {
+  label?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "industries_select".
+ */
+export interface IndustriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
