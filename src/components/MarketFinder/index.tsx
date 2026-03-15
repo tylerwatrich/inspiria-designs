@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { cn } from '@/utilities/ui'
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -89,7 +90,10 @@ const TARIFF_RISK: Record<string, Record<string, TariffInfo>> = {
       note: 'Canola restrictions have been applied; political volatility adds uncertainty',
     },
     Japan: { level: 'LOW', note: 'CPTPP progressively eliminating ag tariffs' },
-    'United Kingdom': { level: 'LOW', note: 'CETA-successor framework provides stable market access' },
+    'United Kingdom': {
+      level: 'LOW',
+      note: 'CETA-successor framework provides stable market access',
+    },
     Mexico: { level: 'LOW', note: 'CUSMA protects most ag categories' },
     'South Korea': { level: 'LOW', note: 'CKFTA provides stable preferential access' },
   },
@@ -156,14 +160,8 @@ const TARIFF_RISK: Record<string, Record<string, TariffInfo>> = {
       level: 'MEDIUM',
       note: 'Political risk is real; LNG sales possible but relationships are complex',
     },
-    Germany: {
-      level: 'LOW',
-      note: 'Urgent demand post-Russia; regulatory alignment improving',
-    },
-    Japan: {
-      level: 'LOW',
-      note: 'Long-term LNG contracts reduce risk; CPTPP supports trade',
-    },
+    Germany: { level: 'LOW', note: 'Urgent demand post-Russia; regulatory alignment improving' },
+    Japan: { level: 'LOW', note: 'Long-term LNG contracts reduce risk; CPTPP supports trade' },
     'South Korea': {
       level: 'LOW',
       note: 'CKFTA and strong energy partnership create stable framework',
@@ -184,7 +182,10 @@ const TARIFF_RISK: Record<string, Record<string, TariffInfo>> = {
       level: 'LOW',
       note: 'CKFTA and battery supply chain partnerships are stable',
     },
-    Germany: { level: 'LOW', note: 'CETA covers metals; EU critical mineral partnerships deepening' },
+    Germany: {
+      level: 'LOW',
+      note: 'CETA covers metals; EU critical mineral partnerships deepening',
+    },
     India: { level: 'LOW', note: 'No active tariff disputes; emerging relationship' },
   },
   'Software & Technology': {
@@ -319,9 +320,9 @@ const TRADE_AGREEMENTS: Record<string, { name: string; color: string }> = {
   'United Kingdom': { name: 'CETA/CUKTCA', color: '#d97706' },
   Germany: { name: 'CETA (EU)', color: '#d97706' },
   France: { name: 'CETA (EU)', color: '#d97706' },
-  India: { name: 'Negotiations ongoing', color: '#9ca3af' },
-  China: { name: 'No FTA', color: '#9ca3af' },
-  'Saudi Arabia': { name: 'No FTA', color: '#9ca3af' },
+  India: { name: 'Negotiations ongoing', color: '#6b7280' },
+  China: { name: 'No FTA', color: '#6b7280' },
+  'Saudi Arabia': { name: 'No FTA', color: '#6b7280' },
 }
 
 interface Market {
@@ -1151,37 +1152,19 @@ const MARKET_DATA: Record<string, IndustryData> = {
 // ─── SUB-COMPONENTS ────────────────────────────────────────────────────────────
 
 function ScoreBar({ score }: { score: number }) {
-  const color = score >= 85 ? '#c8102e' : score >= 70 ? '#e05a20' : '#f5a623'
+  const barColor =
+    score >= 85 ? '#0b5ed7' : score >= 70 ? '#3b82f6' : '#93c5fd'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <div
-        style={{
-          flex: 1,
-          height: '6px',
-          background: '#e8e0d4',
-          borderRadius: '3px',
-          overflow: 'hidden',
-        }}
-      >
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-1.5 bg-gray-100 dark:bg-zinc-700 rounded-full overflow-hidden">
         <div
-          style={{
-            width: `${score}%`,
-            height: '100%',
-            background: color,
-            borderRadius: '3px',
-            transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
-          }}
+          className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${score}%`, background: barColor }}
         />
       </div>
       <span
-        style={{
-          fontFamily: "'Courier New', monospace",
-          fontSize: '13px',
-          fontWeight: '700',
-          color,
-          minWidth: '36px',
-          textAlign: 'right',
-        }}
+        className="font-mono text-xs font-bold tabular-nums w-8 text-right"
+        style={{ color: barColor }}
       >
         {score}
       </span>
@@ -1190,50 +1173,23 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 function TariffBadge({ risk }: { risk: TariffInfo }) {
-  const colors = {
-    HIGH: { bg: '#fef2f2', border: '#fca5a5', text: '#b91c1c' },
-    MEDIUM: { bg: '#fffbeb', border: '#fcd34d', text: '#b45309' },
-    LOW: { bg: '#f0fdf4', border: '#86efac', text: '#15803d' },
+  const styles: Record<TariffInfo['level'], string> = {
+    HIGH: 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/20 dark:border-red-900 dark:text-red-400',
+    MEDIUM:
+      'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-900 dark:text-amber-400',
+    LOW: 'bg-green-50 border-green-200 text-green-700 dark:bg-green-950/20 dark:border-green-900 dark:text-green-400',
   }
-  const c = colors[risk.level]
   return (
     <div
-      style={{
-        marginTop: '10px',
-        padding: '8px 12px',
-        background: c.bg,
-        border: `1px solid ${c.border}`,
-        borderRadius: '3px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '8px',
-      }}
+      className={cn(
+        'mt-3 px-3 py-2 border rounded-lg flex items-start gap-2 text-xs',
+        styles[risk.level],
+      )}
     >
-      <span style={{ fontSize: '10px', marginTop: '2px' }}>⚠️</span>
+      <span className="mt-0.5 shrink-0">⚠️</span>
       <div>
-        <span
-          style={{
-            fontFamily: "'Courier New', monospace",
-            fontSize: '10px',
-            fontWeight: '700',
-            color: c.text,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-          }}
-        >
-          Tariff Risk: {risk.level}
-        </span>
-        <p
-          style={{
-            margin: '2px 0 0',
-            fontFamily: "'Courier New', monospace",
-            fontSize: '11px',
-            color: c.text,
-            lineHeight: '1.5',
-          }}
-        >
-          {risk.note}
-        </p>
+        <span className="font-bold uppercase tracking-wide">Tariff Risk: {risk.level} — </span>
+        <span className="leading-relaxed">{risk.note}</span>
       </div>
     </div>
   )
@@ -1243,28 +1199,9 @@ function ProvinceNote({ province, marketName }: { province: string; marketName: 
   const note = PROVINCE_CONTEXT[province]?.[marketName]
   if (!note) return null
   return (
-    <div
-      style={{
-        marginTop: '8px',
-        padding: '7px 12px',
-        background: '#eff6ff',
-        border: '1px solid #bfdbfe',
-        borderRadius: '3px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '7px',
-      }}
-    >
-      <span style={{ fontSize: '11px', marginTop: '1px' }}>📍</span>
-      <p
-        style={{
-          margin: 0,
-          fontFamily: "'Courier New', monospace",
-          fontSize: '11px',
-          color: '#1d4ed8',
-          lineHeight: '1.5',
-        }}
-      >
+    <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900 rounded-lg flex items-start gap-2 text-xs">
+      <span className="mt-0.5 shrink-0">📍</span>
+      <p className="text-blue-700 dark:text-blue-400 leading-relaxed">
         <strong>From {province}:</strong> {note}
       </p>
     </div>
@@ -1285,106 +1222,49 @@ function MarketCard({
   province: string
 }) {
   const ta = type === 'international' ? TRADE_AGREEMENTS[market.name] : null
-  const tariff =
-    type === 'international' && industry ? TARIFF_RISK[industry]?.[market.name] : null
+  const tariff = type === 'international' && industry ? TARIFF_RISK[industry]?.[market.name] : null
+
   return (
     <div
-      style={{
-        background: '#faf8f4',
-        border: '1px solid #e2d9cc',
-        borderRadius: '4px',
-        padding: '18px 20px',
-        animation: `fadeUp 0.4s ease ${index * 0.07}s both`,
-      }}
+      className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating card p-5 border border-gray-100 dark:border-zinc-700"
+      style={{ animationDelay: `${index * 60}ms` }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '10px',
-        }}
-      >
+      <div className="flex justify-between items-start mb-3">
         <div>
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}
-          >
-            {market.flag && <span style={{ fontSize: '20px' }}>{market.flag}</span>}
-            <span
-              style={{
-                fontFamily: "'Georgia', serif",
-                fontSize: '17px',
-                fontWeight: '700',
-                color: '#1a1410',
-                letterSpacing: '-0.3px',
-              }}
-            >
+          <div className="flex items-center gap-2 mb-0.5">
+            {market.flag && <span className="text-xl leading-none">{market.flag}</span>}
+            <span className="font-bold text-gray-800 dark:text-gray-100 text-base">
               {market.name}
             </span>
           </div>
           {market.pop && (
-            <span
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontSize: '11px',
-                color: '#9b8b7a',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}
-            >
+            <span className="text-xs font-mono text-gray-400 dark:text-gray-500 uppercase tracking-wide">
               Pop. {market.pop}
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+
+        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-3">
           {index === 0 && (
-            <span
-              style={{
-                background: '#c8102e',
-                color: 'white',
-                fontSize: '10px',
-                fontFamily: "'Courier New', monospace",
-                fontWeight: '700',
-                letterSpacing: '1px',
-                padding: '2px 7px',
-                borderRadius: '2px',
-                textTransform: 'uppercase',
-              }}
-            >
-              TOP PICK
+            <span className="bg-brand-blue-500 text-white text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-md">
+              Top Pick
             </span>
           )}
           {ta && (
             <span
-              style={{
-                border: `1px solid ${ta.color}`,
-                color: ta.color,
-                fontSize: '10px',
-                fontFamily: "'Courier New', monospace",
-                fontWeight: '600',
-                letterSpacing: '0.5px',
-                padding: '2px 7px',
-                borderRadius: '2px',
-              }}
+              className="text-xs font-mono font-semibold px-2 py-0.5 rounded-md border"
+              style={{ color: ta.color, borderColor: ta.color, background: `${ta.color}10` }}
             >
               {ta.name}
             </span>
           )}
         </div>
       </div>
+
       <ScoreBar score={market.score} />
-      <p
-        style={{
-          fontFamily: "'Georgia', serif",
-          fontSize: '13.5px',
-          color: '#5a4a3a',
-          lineHeight: '1.6',
-          marginTop: '10px',
-          marginBottom: 0,
-        }}
-      >
-        {market.note}
-      </p>
+
+      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{market.note}</p>
+
       {province && <ProvinceNote province={province} marketName={market.name} />}
       {tariff && <TariffBadge risk={tariff} />}
     </div>
@@ -1414,357 +1294,183 @@ export default function CanadianMarketFinder() {
   const allMarkets = data ? (activeTab === 'domestic' ? data.domestic : data.international) : []
   const visibleMarkets = allMarkets.filter((m) => !(hideUS && m.usMarket))
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#f5f0e8', fontFamily: 'Georgia, serif' }}>
-      <style>{`
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes ctaReveal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        select:focus { outline: 2px solid #c8102e; outline-offset: 0; }
-        .tab-btn:hover { background: #e8dfd4 !important; }
-      `}</style>
+  const selectClass =
+    'w-full px-4 py-2.5 bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 rounded-lg text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue-500 focus:border-transparent transition cursor-pointer appearance-none'
 
-      {/* Header */}
-      <div style={{ background: '#1a0a06', borderBottom: '3px solid #c8102e', padding: '0 24px' }}>
-        <div style={{ maxWidth: '840px', margin: '0 auto', padding: '28px 0 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '8px' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                background: '#c8102e',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                flexShrink: 0,
-              }}
-            >
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-zinc-900">
+      {/* ── Page hero ── */}
+      <section className="bg-brand-blue-600 text-white">
+        <div className="container mx-auto px-6 py-14">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">
               🍁
             </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: '10px',
-                  letterSpacing: '3px',
-                  color: '#c8102e',
-                  textTransform: 'uppercase',
-                  marginBottom: '2px',
-                }}
-              >
-                Canadian Trade Intelligence
-              </div>
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: '26px',
-                  fontWeight: '700',
-                  color: '#f5f0e8',
-                  letterSpacing: '-0.5px',
-                  lineHeight: 1.1,
-                }}
-              >
-                Market Finder
-              </h1>
-            </div>
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-blue-200">
+              Canadian Trade Intelligence
+            </span>
           </div>
-          <p
-            style={{
-              margin: 0,
-              color: '#a89882',
-              fontSize: '14px',
-              lineHeight: '1.5',
-              maxWidth: '560px',
-            }}
-          >
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-3">
+            Market Finder
+          </h1>
+          <p className="text-blue-100 max-w-xl leading-relaxed">
             Find where to sell your goods — by province or globally. Built for Canadian businesses
             navigating today&apos;s trade shifts.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div style={{ maxWidth: '840px', margin: '0 auto', padding: '32px 24px' }}>
-        {/* Controls */}
-        <div
-          style={{
-            background: 'white',
-            border: '1px solid #ddd4c4',
-            borderRadius: '6px',
-            padding: '22px',
-            marginBottom: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '14px',
-              marginBottom: '18px',
-            }}
-          >
+      <div className="container mx-auto px-6 py-10 max-w-3xl">
+        {/* ── Controls ── */}
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating p-6 mb-6">
+          <div className="grid sm:grid-cols-2 gap-4 mb-5">
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: '10px',
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: '#9b8b7a',
-                  marginBottom: '7px',
-                }}
-              >
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1.5">
                 Industry / Sector
               </label>
-              <select
-                value={selectedIndustry}
-                onChange={(e) => {
-                  setSelectedIndustry(e.target.value)
-                  setHasSearched(false)
-                  setShowCTA(false)
-                }}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  background: '#faf8f4',
-                  border: '1.5px solid #ddd4c4',
-                  borderRadius: '4px',
-                  fontFamily: 'Georgia, serif',
-                  fontSize: '14px',
-                  color: selectedIndustry ? '#1a1410' : '#9b8b7a',
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b8b7a' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 12px center',
-                }}
-              >
-                <option value="">Select your sector…</option>
-                {INDUSTRIES.map((ind) => (
-                  <option key={ind} value={ind}>
-                    {ind}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={selectedIndustry}
+                  onChange={(e) => {
+                    setSelectedIndustry(e.target.value)
+                    setHasSearched(false)
+                    setShowCTA(false)
+                  }}
+                  className={selectClass}
+                >
+                  <option value="">Select your sector…</option>
+                  {INDUSTRIES.map((ind) => (
+                    <option key={ind} value={ind}>
+                      {ind}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
             </div>
+
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: '10px',
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: '#9b8b7a',
-                  marginBottom: '7px',
-                }}
-              >
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1.5">
                 Your Province{' '}
-                <span style={{ fontWeight: '400', color: '#c8b89a', fontSize: '9px' }}>
-                  (personalizes logistics)
-                </span>
+                <span className="normal-case font-normal text-gray-400">(personalizes logistics)</span>
               </label>
-              <select
-                value={selectedProvince}
-                onChange={(e) => setSelectedProvince(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  background: '#faf8f4',
-                  border: '1.5px solid #ddd4c4',
-                  borderRadius: '4px',
-                  fontFamily: 'Georgia, serif',
-                  fontSize: '14px',
-                  color: selectedProvince ? '#1a1410' : '#9b8b7a',
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b8b7a' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 12px center',
-                }}
-              >
-                <option value="">All provinces</option>
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={selectedProvince}
+                  onChange={(e) => setSelectedProvince(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">All provinces</option>
+                  {PROVINCES.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            {/* US Toggle */}
-            <div
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* US toggle */}
+            <button
+              type="button"
               onClick={() => setHideUS(!hideUS)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}
+              className="flex items-center gap-3 group"
             >
               <div
-                style={{
-                  width: '40px',
-                  height: '22px',
-                  borderRadius: '11px',
-                  position: 'relative',
-                  background: hideUS ? '#c8102e' : '#ddd4c4',
-                  transition: 'background 0.2s',
-                  flexShrink: 0,
-                }}
+                className={cn(
+                  'relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0',
+                  hideUS ? 'bg-brand-blue-500' : 'bg-gray-200 dark:bg-zinc-600',
+                )}
               >
                 <div
-                  style={{
-                    position: 'absolute',
-                    top: '3px',
-                    left: hideUS ? '21px' : '3px',
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '50%',
-                    background: 'white',
-                    transition: 'left 0.2s',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                  }}
+                  className={cn(
+                    'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
+                    hideUS ? 'left-5' : 'left-0.5',
+                  )}
                 />
               </div>
-              <div>
+              <div className="text-left">
                 <div
-                  style={{
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    color: hideUS ? '#c8102e' : '#5a4a3a',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                  }}
+                  className={cn(
+                    'text-xs font-semibold uppercase tracking-wide transition-colors',
+                    hideUS
+                      ? 'text-brand-blue-600 dark:text-brand-blue-400'
+                      : 'text-gray-600 dark:text-gray-400',
+                  )}
                 >
                   {hideUS ? '🚫 US Markets Hidden' : 'Hide US Markets'}
                 </div>
-                <div
-                  style={{
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '10px',
-                    color: '#9b8b7a',
-                    marginTop: '1px',
-                  }}
-                >
+                <div className="text-xs text-gray-400 dark:text-gray-500">
                   Show only non-US opportunities
                 </div>
               </div>
-            </div>
+            </button>
 
             <button
               onClick={handleFind}
               disabled={!selectedIndustry}
-              style={{
-                padding: '11px 30px',
-                background: selectedIndustry ? '#c8102e' : '#ddd4c4',
-                color: selectedIndustry ? 'white' : '#9b8b7a',
-                border: 'none',
-                borderRadius: '4px',
-                fontFamily: "'Courier New', monospace",
-                fontSize: '12px',
-                fontWeight: '700',
-                letterSpacing: '1.5px',
-                textTransform: 'uppercase',
-                cursor: selectedIndustry ? 'pointer' : 'not-allowed',
-                transition: 'all 0.2s',
-              }}
+              className={cn(
+                'font-bold py-2.5 px-7 rounded-lg text-sm transition-all transform',
+                selectedIndustry
+                  ? 'bg-brand-blue-500 text-white shadow-floating hover:bg-brand-blue-600 hover:scale-105'
+                  : 'bg-gray-100 dark:bg-zinc-700 text-gray-400 cursor-not-allowed',
+              )}
             >
               Find Markets →
             </button>
           </div>
         </div>
 
-        {/* US Dependency Warning */}
+        {/* ── US dependency warning ── */}
         {hasSearched && isUSDependentSector && (
-          <div
-            style={{
-              marginBottom: '18px',
-              padding: '14px 18px',
-              background: '#fef2f2',
-              border: '1px solid #fca5a5',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              animation: 'slideIn 0.3s ease both',
-            }}
-          >
-            <span style={{ fontSize: '20px', flexShrink: 0 }}>🚨</span>
+          <div className="mb-5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-2xl p-4 flex items-start gap-3">
+            <span className="text-xl shrink-0">🚨</span>
             <div>
-              <div
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  color: '#b91c1c',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px',
-                }}
-              >
+              <p className="text-xs font-bold uppercase tracking-wide text-red-700 dark:text-red-400 mb-1">
                 High US Trade Dependency Detected
-              </div>
-              <p
-                style={{
-                  margin: 0,
-                  fontFamily: 'Georgia, serif',
-                  fontSize: '13.5px',
-                  color: '#7f1d1d',
-                  lineHeight: '1.6',
-                }}
-              >
+              </p>
+              <p className="text-sm text-red-700 dark:text-red-400 leading-relaxed">
                 <strong>{selectedIndustry}</strong> has historically relied heavily on US market
-                access. Current tariff conditions and trade uncertainty make diversification a
-                priority. Use the &quot;Hide US Markets&quot; toggle above to see your best pivot
-                options.
+                access. Current tariff conditions make diversification a priority. Use the{' '}
+                <strong>Hide US Markets</strong> toggle above to see your best pivot options.
               </p>
             </div>
           </div>
         )}
 
-        {/* Results */}
+        {/* ── Results ── */}
         {hasSearched && data && (
-          <div style={{ animation: 'slideIn 0.4s ease both' }}>
-            {/* FTA Legend */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                alignItems: 'center',
-                marginBottom: '14px',
-                padding: '11px 14px',
-                background: 'white',
-                border: '1px solid #ddd4c4',
-                borderRadius: '5px',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: '10px',
-                  letterSpacing: '1.5px',
-                  textTransform: 'uppercase',
-                  color: '#9b8b7a',
-                  marginRight: '2px',
-                }}
-              >
+          <div>
+            {/* FTA legend */}
+            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-floating px-4 py-3 mb-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-mono font-semibold text-gray-400 uppercase tracking-wide mr-1">
                 FTAs:
               </span>
               {[
@@ -1775,96 +1481,44 @@ export default function CanadianMarketFinder() {
               ].map((ta) => (
                 <span
                   key={ta.name}
-                  style={{
-                    fontSize: '11px',
-                    fontFamily: "'Courier New', monospace",
-                    color: ta.color,
-                    border: `1px solid ${ta.color}`,
-                    padding: '2px 7px',
-                    borderRadius: '2px',
-                  }}
+                  className="text-xs font-mono font-semibold px-2 py-0.5 rounded border"
+                  style={{ color: ta.color, borderColor: ta.color, background: `${ta.color}12` }}
                 >
                   {ta.name}
                 </span>
               ))}
               {selectedProvince && (
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '11px',
-                    color: '#1d4ed8',
-                    background: '#eff6ff',
-                    border: '1px solid #bfdbfe',
-                    padding: '2px 8px',
-                    borderRadius: '2px',
-                  }}
-                >
+                <span className="ml-auto text-xs font-mono font-medium text-brand-blue-600 dark:text-brand-blue-400 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 px-2 py-0.5 rounded">
                   📍 {selectedProvince} logistics
                 </span>
               )}
             </div>
 
             {/* Section header */}
-            <div style={{ marginBottom: '12px' }}>
-              <h2
-                style={{
-                  margin: '0 0 3px',
-                  fontSize: '22px',
-                  fontWeight: '700',
-                  color: '#1a1410',
-                  letterSpacing: '-0.4px',
-                }}
-              >
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 {selectedIndustry}
               </h2>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '12px',
-                  color: '#9b8b7a',
-                  fontFamily: "'Courier New', monospace",
-                }}
-              >
+              <p className="text-xs font-mono text-gray-400 mt-0.5">
                 Ranked by opportunity score · demand, FTA access, trade policy & market alignment
               </p>
             </div>
 
             {/* Tabs */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '2px',
-                marginBottom: '12px',
-                background: '#e8dfd4',
-                padding: '3px',
-                borderRadius: '5px',
-                width: 'fit-content',
-              }}
-            >
+            <div className="inline-flex bg-gray-100 dark:bg-zinc-700 rounded-xl p-1 mb-4">
               {[
                 { key: 'international', label: '🌐 International' },
                 { key: 'domestic', label: '🍁 Canadian Provinces' },
               ].map(({ key, label }) => (
                 <button
                   key={key}
-                  className="tab-btn"
                   onClick={() => setActiveTab(key)}
-                  style={{
-                    padding: '8px 20px',
-                    border: 'none',
-                    borderRadius: '3px',
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    background: activeTab === key ? 'white' : 'transparent',
-                    color: activeTab === key ? '#c8102e' : '#7a6a5a',
-                    boxShadow: activeTab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  }}
+                  className={cn(
+                    'px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all',
+                    activeTab === key
+                      ? 'bg-white dark:bg-zinc-800 text-brand-blue-600 shadow-floating'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+                  )}
                 >
                   {label}
                 </button>
@@ -1873,31 +1527,14 @@ export default function CanadianMarketFinder() {
 
             {/* Cards */}
             {visibleMarkets.length === 0 ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '40px',
-                  background: 'white',
-                  border: '1px solid #ddd4c4',
-                  borderRadius: '6px',
-                }}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🚫</div>
-                <p
-                  style={{
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: '11px',
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    color: '#9b8b7a',
-                    margin: 0,
-                  }}
-                >
+              <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating p-10 text-center">
+                <div className="text-4xl mb-3">🚫</div>
+                <p className="text-xs font-mono font-semibold uppercase tracking-wide text-gray-400">
                   All markets filtered out. Try switching to Domestic or disable the US filter.
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="flex flex-col gap-3">
                 {visibleMarkets.map((market, i) => (
                   <MarketCard
                     key={market.name}
@@ -1911,104 +1548,30 @@ export default function CanadianMarketFinder() {
               </div>
             )}
 
-            {/* Lead Gen CTA */}
+            {/* ── Lead Gen CTA ── */}
             {showCTA && (
-              <div
-                style={{
-                  marginTop: '28px',
-                  background: '#1a0a06',
-                  border: '2px solid #3a1a0e',
-                  borderRadius: '8px',
-                  padding: '28px',
-                  animation: 'ctaReveal 0.7s cubic-bezier(0.16,1,0.3,1) both',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '20px',
-                  }}
-                >
-                  <div style={{ flex: '1', minWidth: '260px' }}>
-                    <div
-                      style={{
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: '10px',
-                        letterSpacing: '3px',
-                        color: '#c8102e',
-                        textTransform: 'uppercase',
-                        marginBottom: '8px',
-                      }}
-                    >
+              <div className="mt-8 bg-brand-blue-500 text-white rounded-2xl shadow-floating-lg p-8 md:p-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div className="flex-1">
+                    <p className="text-xs font-mono font-semibold uppercase tracking-widest text-blue-200 mb-2">
                       Inspiria Designs · Free Consultation
-                    </div>
-                    <h3
-                      style={{
-                        margin: '0 0 10px',
-                        fontSize: '21px',
-                        fontWeight: '700',
-                        color: '#f5f0e8',
-                        letterSpacing: '-0.3px',
-                        lineHeight: 1.2,
-                      }}
-                    >
+                    </p>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-3 leading-snug">
                       Ready to enter a new market?
                     </h3>
-                    <p
-                      style={{
-                        margin: '0 0 6px',
-                        fontFamily: 'Georgia, serif',
-                        fontSize: '14px',
-                        color: '#a89882',
-                        lineHeight: '1.65',
-                      }}
-                    >
+                    <p className="text-blue-100 leading-relaxed max-w-lg">
                       We help Canadian businesses build the online presence they need to compete in
-                      new markets — whether that&apos;s a US pivot, a global push, or capturing more
-                      of Canada.
-                    </p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontFamily: 'Georgia, serif',
-                        fontSize: '14px',
-                        color: '#a89882',
-                        lineHeight: '1.65',
-                      }}
-                    >
-                      <strong style={{ color: '#f5f0e8' }}>Free trade readiness consultation</strong>{' '}
-                      — no commitment, just a clear picture of where your business stands.
+                      new markets.{' '}
+                      <strong className="text-white">Free trade readiness consultation</strong> — no
+                      commitment, just a clear picture of where your business stands.
                     </p>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px',
-                      minWidth: '190px',
-                    }}
-                  >
+                  <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
                     <a
                       href="https://inspiria.ca/contact"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        display: 'block',
-                        padding: '13px 24px',
-                        background: '#c8102e',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '4px',
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        letterSpacing: '1.5px',
-                        textTransform: 'uppercase',
-                        textAlign: 'center',
-                      }}
+                      className="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating text-sm text-center hover:bg-gray-50 transition-all transform hover:scale-105"
                     >
                       Book Free Call →
                     </a>
@@ -2016,21 +1579,7 @@ export default function CanadianMarketFinder() {
                       href="https://inspiria.ca"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        display: 'block',
-                        padding: '10px 24px',
-                        background: 'transparent',
-                        color: '#a89882',
-                        textDecoration: 'none',
-                        borderRadius: '4px',
-                        border: '1px solid #3a2a1e',
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        letterSpacing: '1px',
-                        textTransform: 'uppercase',
-                        textAlign: 'center',
-                      }}
+                      className="border border-white/30 text-white/80 font-semibold py-2.5 px-8 rounded-lg text-sm text-center hover:bg-white/10 transition-all"
                     >
                       Learn More
                     </a>
@@ -2040,62 +1589,37 @@ export default function CanadianMarketFinder() {
             )}
 
             {/* Disclaimer */}
-            <div
-              style={{
-                marginTop: '18px',
-                padding: '13px 16px',
-                border: '1px solid #ddd4c4',
-                borderRadius: '4px',
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '11.5px',
-                  color: '#9b8b7a',
-                  fontFamily: "'Courier New', monospace",
-                  lineHeight: '1.7',
-                }}
+            <p className="mt-5 text-xs text-gray-400 dark:text-gray-500 leading-relaxed font-mono">
+              Opportunity scores reflect relative market potential based on trade volume, FTA access,
+              demand trends, and sector alignment. Tariff data reflects conditions as of early 2025
+              and may change rapidly. Not financial or legal advice. Verify with{' '}
+              <a
+                href="https://www.tradecommissioner.gc.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-blue-500 hover:underline"
               >
-                Opportunity scores reflect relative market potential based on trade volume, FTA
-                access, demand trends, and sector alignment. Tariff data reflects conditions as of
-                early 2025 and may change rapidly. Not financial or legal advice. Verify with{' '}
-                <a
-                  href="https://www.tradecommissioner.gc.ca"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#c8102e' }}
-                >
-                  Trade Commissioner Service
-                </a>{' '}
-                and{' '}
-                <a
-                  href="https://www.international.gc.ca"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#c8102e' }}
-                >
-                  Global Affairs Canada
-                </a>
-                .
-              </p>
-            </div>
+                Trade Commissioner Service
+              </a>{' '}
+              and{' '}
+              <a
+                href="https://www.international.gc.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-blue-500 hover:underline"
+              >
+                Global Affairs Canada
+              </a>
+              .
+            </p>
           </div>
         )}
 
-        {/* Empty state */}
+        {/* ── Empty state ── */}
         {!hasSearched && (
-          <div style={{ textAlign: 'center', padding: '52px 24px', color: '#9b8b7a' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
-            <p
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontSize: '12px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                margin: 0,
-              }}
-            >
+          <div className="text-center py-20 text-gray-400 dark:text-gray-600">
+            <div className="text-5xl mb-4">🗺️</div>
+            <p className="text-xs font-mono font-semibold uppercase tracking-widest">
               Select your sector to explore markets
             </p>
           </div>
