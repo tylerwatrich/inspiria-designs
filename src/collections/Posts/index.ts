@@ -151,13 +151,92 @@ export const Posts: CollectionConfig<'posts'> = {
               hasMany: true,
               relationTo: 'categories',
             },
+            {
+              name: 'funnelStage',
+              type: 'select',
+              label: 'Funnel Stage',
+              admin: {
+                description: 'Where in the buyer journey does this post target?',
+              },
+              options: [
+                { label: 'Awareness', value: 'awareness' },
+                { label: 'Consideration', value: 'consideration' },
+                { label: 'Conversion', value: 'conversion' },
+              ],
+            },
+            {
+              name: 'aiGenerated',
+              type: 'checkbox',
+              label: 'AI-Generated',
+              defaultValue: false,
+              admin: {
+                description: 'Check if this post was written or heavily drafted by AI.',
+              },
+            },
           ],
           label: 'Meta',
+        },
+        {
+          label: 'Demographics',
+          fields: [
+            {
+              name: 'articleType',
+              type: 'relationship',
+              relationTo: 'article-types',
+              hasMany: false,
+              label: 'Article Type',
+              admin: {
+                description: 'The content format of this post (Guide, Pain Point, Listicle, etc.)',
+              },
+            },
+            {
+              name: 'targetIndustry',
+              type: 'relationship',
+              relationTo: 'target-audience',
+              hasMany: true,
+              label: 'Target Industry',
+              admin: {
+                description: 'Which industry vertical(s) is this post written for?',
+              },
+            },
+            {
+              name: 'targetBusinessSize',
+              type: 'select',
+              hasMany: true,
+              label: 'Target Business Size',
+              admin: {
+                description: 'Which business size(s) within that industry does this post address?',
+              },
+              options: [
+                { label: 'Solo / Freelancer (1)', value: 'solo' },
+                { label: 'Micro (2–10 employees)', value: 'micro' },
+                { label: 'Small (11–50 employees)', value: 'small' },
+                { label: 'Medium (51–250 employees)', value: 'medium' },
+                { label: 'Large (250+ employees)', value: 'large' },
+              ],
+            },
+          ],
         },
         {
           name: 'meta',
           label: 'SEO',
           fields: [
+            {
+              name: 'primaryKeyword',
+              type: 'text',
+              label: 'Primary Keyword',
+              admin: {
+                description: 'The main SEO keyword this post is targeting. Used for reporting and content gap analysis.',
+              },
+            },
+            {
+              name: 'targetKeyword',
+              type: 'text',
+              label: 'Target Keyword',
+              admin: {
+                description: 'The specific search query you want this post to rank for.',
+              },
+            },
             OverviewField({
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
