@@ -274,7 +274,7 @@ export default function CanadianMarketFinder() {
                 <div className="space-y-1">
                   <h4 className="font-bold text-red-900 dark:text-red-200 text-sm uppercase tracking-wider">High US Dependency Warning</h4>
                   <p className="text-sm text-red-800 dark:text-red-300/80 leading-relaxed">
-                    <strong>{selectedIndustry}</strong> relies heavily on the US market. Given current trade volatility, we recommend exploring the "Hide US Markets" pivot options.
+                    <strong>{selectedIndustry}</strong> relies heavily on the US market. Given current trade volatility, we recommend exploring the &ldquo;Hide US Markets&rdquo; pivot options.
                   </p>
                 </div>
               </div>
