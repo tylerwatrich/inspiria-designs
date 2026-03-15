@@ -155,6 +155,55 @@ export const Posts: CollectionConfig<'posts'> = {
           label: 'Meta',
         },
         {
+          label: 'Demographics',
+          fields: [
+            {
+              name: 'articleType',
+              type: 'relationship',
+              relationTo: 'article-types',
+              hasMany: false,
+              label: 'Article Type',
+              admin: {
+                description: 'The content format of this post (Guide, Pain Point, Listicle, etc.)',
+              },
+            },
+            {
+              name: 'targetIndustry',
+              type: 'relationship',
+              relationTo: 'target-audience',
+              hasMany: true,
+              label: 'Target Industry',
+              admin: {
+                description: 'Which industry vertical(s) is this post written for?',
+              },
+            },
+            {
+              name: 'targetBusinessSize',
+              type: 'select',
+              hasMany: true,
+              label: 'Target Business Size',
+              admin: {
+                description: 'Which business size(s) within that industry does this post address?',
+              },
+              options: [
+                { label: 'Solo / Freelancer (1)', value: 'solo' },
+                { label: 'Micro (2–10 employees)', value: 'micro' },
+                { label: 'Small (11–50 employees)', value: 'small' },
+                { label: 'Medium (51–250 employees)', value: 'medium' },
+                { label: 'Large (250+ employees)', value: 'large' },
+              ],
+            },
+            {
+              name: 'primaryKeyword',
+              type: 'text',
+              label: 'Primary Keyword',
+              admin: {
+                description: 'The main SEO keyword this post is targeting. Used for reporting and content gap analysis.',
+              },
+            },
+          ],
+        },
+        {
           name: 'meta',
           label: 'SEO',
           fields: [
