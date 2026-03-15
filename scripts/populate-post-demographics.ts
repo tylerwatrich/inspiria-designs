@@ -136,7 +136,9 @@ async function populatePostDemographics() {
         data: {
           targetIndustry: entry.targetIndustry,
           targetBusinessSize: entry.targetBusinessSize,
-          primaryKeyword: entry.primaryKeyword,
+          meta: {
+            primaryKeyword: entry.primaryKeyword,
+          },
           _status: 'published',
         },
       })
