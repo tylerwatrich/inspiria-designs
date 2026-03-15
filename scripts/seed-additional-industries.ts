@@ -125,7 +125,8 @@ async function seedAdditionalIndustries() {
       continue
     }
 
-    const record = await payload.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const record = await (payload.create as any)({
       collection: 'target-audience',
       data: {
         industry: entry.industry,

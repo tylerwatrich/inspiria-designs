@@ -12,6 +12,7 @@ import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 
 import { ArticleTypes } from './collections/ArticleTypes'
 import { Categories } from './collections/Categories'
+import { Industries } from './collections/Industries'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Home } from './globals/Home'
@@ -99,7 +100,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes],
+  collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes, Industries],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, Home],
   plugins: [

@@ -151,6 +151,28 @@ export const Posts: CollectionConfig<'posts'> = {
               hasMany: true,
               relationTo: 'categories',
             },
+            {
+              name: 'funnelStage',
+              type: 'select',
+              label: 'Funnel Stage',
+              admin: {
+                description: 'Where in the buyer journey does this post target?',
+              },
+              options: [
+                { label: 'Awareness', value: 'awareness' },
+                { label: 'Consideration', value: 'consideration' },
+                { label: 'Conversion', value: 'conversion' },
+              ],
+            },
+            {
+              name: 'aiGenerated',
+              type: 'checkbox',
+              label: 'AI-Generated',
+              defaultValue: false,
+              admin: {
+                description: 'Check if this post was written or heavily drafted by AI.',
+              },
+            },
           ],
           label: 'Meta',
         },
@@ -193,6 +215,12 @@ export const Posts: CollectionConfig<'posts'> = {
                 { label: 'Large (250+ employees)', value: 'large' },
               ],
             },
+          ],
+        },
+        {
+          name: 'meta',
+          label: 'SEO',
+          fields: [
             {
               name: 'primaryKeyword',
               type: 'text',
@@ -201,12 +229,14 @@ export const Posts: CollectionConfig<'posts'> = {
                 description: 'The main SEO keyword this post is targeting. Used for reporting and content gap analysis.',
               },
             },
-          ],
-        },
-        {
-          name: 'meta',
-          label: 'SEO',
-          fields: [
+            {
+              name: 'targetKeyword',
+              type: 'text',
+              label: 'Target Keyword',
+              admin: {
+                description: 'The specific search query you want this post to rank for.',
+              },
+            },
             OverviewField({
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
