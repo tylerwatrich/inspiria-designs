@@ -361,7 +361,9 @@ async function populateAll() {
           articleType: post.articleType,
           targetIndustry: post.targetIndustry,
           targetBusinessSize: post.targetBusinessSize,
-          primaryKeyword: post.primaryKeyword,
+          meta: {
+            primaryKeyword: post.primaryKeyword,
+          },
           _status: 'published',
         },
       })
