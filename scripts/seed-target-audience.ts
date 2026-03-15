@@ -180,7 +180,8 @@ async function seedTargetAudience() {
       continue
     }
 
-    await payload.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (payload.create as any)({
       collection: 'target-audience',
       data: {
         industry: entry.industry,

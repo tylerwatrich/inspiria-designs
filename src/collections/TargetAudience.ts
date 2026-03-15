@@ -8,7 +8,7 @@ export const TargetAudience: CollectionConfig = {
     useAsTitle: 'industry',
     defaultColumns: ['industry', 'businessSizes', 'updatedAt'],
     description:
-      'Industries you are targeting, their business size profiles, and keyword banks for AI content generation.',
+      'Detailed targeting profile for each industry — keywords, business sizes, and linked articles.',
   },
   access: {
     create: authenticated,
@@ -16,12 +16,52 @@ export const TargetAudience: CollectionConfig = {
     read: authenticated,
     update: authenticated,
   },
+  hooks: {
+    beforeChange: [
+      async ({ data, req }) => {
+        // Keep the legacy `industry` text field in sync with the selected Industry name.
+        // This preserves useAsTitle, admin list display, and any existing references.
+        // Sync legacy text field from the related Industry name.
+        // Guard with try/catch — during hook-initiated creates the Industry record
+        // may not be visible yet in the same DB transaction.
+        if (data.industryRef && !data.industry) {
+          try {
+            const industry = await req.payload.findByID({
+              collection: 'industries',
+              id: data.industryRef,
+            })
+            if (industry?.name) {
+              data.industry = industry.name
+            }
+          } catch {
+            // Industry lookup failed — text field will be synced on next save
+          }
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     {
+      // Legacy text field — kept for useAsTitle and backward compat.
+      // Synced automatically from industryRef via beforeChange hook.
+      // Hidden in admin; use the industryRef relationship field instead.
       name: 'industry',
       type: 'text',
-      required: true,
-      label: 'Industry Name',
+      required: false,
+      admin: {
+        hidden: true,
+      },
+    },
+    {
+      name: 'industryRef',
+      type: 'relationship',
+      relationTo: 'industries',
+      hasMany: false,
+      label: 'Industry',
+      admin: {
+        description: 'Which industry does this profile belong to?',
+      },
     },
     {
       name: 'businessSizes',
