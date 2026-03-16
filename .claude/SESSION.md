@@ -48,7 +48,7 @@ Converts passive CTA clicks into captured leads stored in the CMS and notified v
 
 ## Last Action
 
-> 2026-03-15 — Added `articleSummary` (textarea) and `keyTakeaways` (array) fields to Posts collection. Rendered before `<RichText>` in the blog post template with Gemini-designed UX: left-border pull quote for summary, card with checkmark icon header and dot bullets for takeaways, divider before body copy. Needs `pnpm dev` to auto-migrate new DB columns.
+> 2026-03-16 — Added Trade Compass search query logging. New `SearchLogs` Payload collection (industry, province, hideUS, timestamps). New `/api/search-logs` POST route. `handleFind` in TradeCompass fires a non-blocking fetch on every search. Logging failure is silently caught. Collection grouped under "Analytics" in admin sidebar. Needs `pnpm dev` to auto-migrate the new `search_logs` table.
 
 ---
 
@@ -86,3 +86,4 @@ Then append a one-liner to the history below:
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
 | 2026-03-14 | Claude | Create TargetAudience collection | 2 files changed — needs pnpm dev to auto-migrate |
 | 2026-03-15 | Claude | Implement email lead capture modal | 6 files changed, resend@6.9.3 installed — needs env vars + pnpm dev to verify |
+| 2026-03-16 | Claude | Add Trade Compass search query logging | 4 files changed — needs pnpm dev to auto-migrate search_logs table |
