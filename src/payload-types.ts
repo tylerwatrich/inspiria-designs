@@ -122,11 +122,13 @@ export interface Config {
     header: Header;
     footer: Footer;
     home: Home;
+    'site-settings': SiteSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: null;
   user: User & {
@@ -1943,6 +1945,29 @@ export interface Home {
   createdAt?: string | null;
 }
 /**
+ * Global site identity used in structured data (Schema.org), SEO, and metadata.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * Your company or brand name. Used in Schema.org markup across all pages.
+   */
+  siteName: string;
+  /**
+   * One to three sentence description of your business. Used in Organization schema on the home page.
+   */
+  siteDescription?: string | null;
+  /**
+   * ISO 3166 country code (e.g. CA, US). Used in Organization schema.
+   */
+  areaServed?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -1997,6 +2022,18 @@ export interface HomeSelect<T extends boolean = true> {
   heroSubtitle?: T;
   aboutImage?: T;
   customHTML?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  siteDescription?: T;
+  areaServed?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

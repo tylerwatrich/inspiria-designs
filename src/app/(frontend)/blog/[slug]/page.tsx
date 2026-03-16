@@ -8,9 +8,10 @@ import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import Link from 'next/link'
 import RichText from '@/components/RichText'
-import type { Post, Faq } from '@/payload-types'
+import type { Post, Faq, Media } from '@/payload-types'
 import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
+import { getServerSideURL } from '@/utilities/getURL'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { Check, Zap, Info } from 'lucide-react'
@@ -54,8 +55,69 @@ export default async function Post({ params: paramsPromise }: Args) {
     (f): f is Faq => typeof f === 'object' && f !== null,
   )
 
+  const [siteSettings] = await Promise.all([getSiteSettings()])
+  const siteUrl = getServerSideURL()
+  const postUrl = `${siteUrl}/blog/${decodedSlug}`
+  const heroImageUrl =
+    post.heroImage && typeof post.heroImage === 'object'
+      ? (post.heroImage as Media).url ?? undefined
+      : undefined
+
+  const organization = {
+    '@type': 'Organization',
+    name: siteSettings.siteName,
+    url: siteUrl,
+  }
+
+  const articleSchema = {
+    '@type': 'Article',
+    headline: post.title,
+    ...(post.articleSummary || post.meta?.description
+      ? { description: post.articleSummary || post.meta?.description }
+      : {}),
+    url: postUrl,
+    ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
+    dateModified: post.updatedAt,
+    author: organization,
+    publisher: organization,
+    ...(heroImageUrl ? { image: heroImageUrl } : {}),
+    ...(post.populatedAuthors && post.populatedAuthors.length > 0
+      ? {
+          author: post.populatedAuthors.map((a) => ({
+            '@type': 'Person',
+            name: a.name,
+          })),
+        }
+      : { author: organization }),
+  }
+
+  const schemaGraph: object[] = [articleSchema]
+
+  if (populatedFaqs.length > 0) {
+    schemaGraph.push({
+      '@type': 'FAQPage',
+      mainEntity: populatedFaqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    })
+  }
+
+  const ldJson = {
+    '@context': 'https://schema.org',
+    '@graph': schemaGraph,
+  }
+
   return (
     <article className="bg-light-bg dark:bg-zinc-900 pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+      />
       <PageClient />
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
@@ -225,6 +287,11 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
     collection: 'posts',
   })
 }
+
+const getSiteSettings = cache(async () => {
+  const payload = await getPayload({ config: configPromise })
+  return payload.findGlobal({ slug: 'site-settings' })
+})
 
 // Accept draft as a parameter instead of calling draftMode() again
 const queryPostBySlug = cache(async ({ slug, draft }: { slug: string; draft: boolean }) => {
