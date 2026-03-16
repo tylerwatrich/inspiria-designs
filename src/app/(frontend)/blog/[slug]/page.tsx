@@ -78,7 +78,6 @@ export default async function Post({ params: paramsPromise }: Args) {
     url: postUrl,
     ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
     dateModified: post.updatedAt,
-    author: organization,
     publisher: organization,
     ...(heroImageUrl ? { image: heroImageUrl } : {}),
     ...(post.populatedAuthors && post.populatedAuthors.length > 0
