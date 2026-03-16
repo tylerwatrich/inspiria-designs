@@ -75,6 +75,7 @@ export interface Config {
     'target-audience': TargetAudience;
     'article-types': ArticleType;
     industries: Industry;
+    leads: Lead;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -100,6 +101,7 @@ export interface Config {
     'target-audience': TargetAudienceSelect<false> | TargetAudienceSelect<true>;
     'article-types': ArticleTypesSelect<false> | ArticleTypesSelect<true>;
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
+    leads: LeadsSelect<false> | LeadsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -875,6 +877,18 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads".
+ */
+export interface Lead {
+  id: number;
+  email: string;
+  name?: string | null;
+  source?: ('homepage' | 'trade-compass') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1094,6 +1108,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'industries';
         value: number | Industry;
+      } | null)
+    | ({
+        relationTo: 'leads';
+        value: number | Lead;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1502,6 +1520,17 @@ export interface ArticleTypesSelect<T extends boolean = true> {
 export interface IndustriesSelect<T extends boolean = true> {
   name?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads_select".
+ */
+export interface LeadsSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }
