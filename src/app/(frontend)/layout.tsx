@@ -7,6 +7,7 @@ import { GeistSans } from 'geist/font/sans'
 import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
+import { PageTracker } from '@/components/PageTracker'
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/Header/Component'
 import { Providers } from '@/providers'
@@ -39,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
       <body className={`${inter.className} dark:bg-zinc-900`}>
         <Providers>
+          <PageTracker />
           <AdminBar
             adminBarProps={{
               preview: isEnabled,
