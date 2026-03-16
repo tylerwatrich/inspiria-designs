@@ -11,6 +11,7 @@ import config from '@payload-config'
 import { Media } from '@/components/Media'
 import { Media as MediaType } from '@/payload-types'
 import { LeadCaptureModal } from '@/components/LeadCaptureModal'
+import { getServerSideURL } from '@/utilities/getURL'
 
 // --- Data for mapping ---
 const servicesData = [
@@ -327,10 +328,38 @@ const ContactCTA = () => (
 
 export default async function HomePage() {
   const payload = await getPayload({ config })
-  const home = await payload.findGlobal({ slug: 'home' })
+  const [home, siteSettings] = await Promise.all([
+    payload.findGlobal({ slug: 'home' }),
+    payload.findGlobal({ slug: 'site-settings' }),
+  ])
+
+  const siteUrl = getServerSideURL()
+
+  const ldJson = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: siteSettings.siteName,
+        url: siteUrl,
+        ...(siteSettings.siteDescription ? { description: siteSettings.siteDescription } : {}),
+        ...(siteSettings.areaServed ? { areaServed: siteSettings.areaServed } : {}),
+        knowsAbout: ['Web Design', 'Web Development', 'Brand Identity', 'UI/UX Design', 'SEO', 'Digital Strategy'],
+      },
+      {
+        '@type': 'WebSite',
+        name: siteSettings.siteName,
+        url: siteUrl,
+      },
+    ],
+  }
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+      />
       <div className="bg-light-bg dark:bg-zinc-900 text-gray-800 dark:text-gray-300 font-sans">
         {/* <Header /> */}
         <main className="container mx-auto px-6 py-12 md:py-20">

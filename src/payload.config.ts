@@ -23,6 +23,7 @@ import { FAQs } from './collections/FAQs'
 import { Leads } from './collections/Leads'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
+import { SiteSettings } from './globals/SiteSettings'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
@@ -40,7 +41,7 @@ const storagePlugin = process.env.VERCEL_ENV
   : undefined
 
 const generateTitle: GenerateTitle = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Inspiria Designs` : 'Inspiria Designs'
+  return doc?.title ? `${doc.title} | Inspiria Digital` : 'Inspiria Digital'
 }
 
 const generateURL: GenerateURL = ({ doc, collectionConfig }) => {
@@ -104,7 +105,7 @@ export default buildConfig({
   }),
   collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes, Industries, Leads, FAQs],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, Home],
+  globals: [Header, Footer, Home, SiteSettings],
   plugins: [
     ...plugins,
     ...(storagePlugin ? [storagePlugin] : []),
