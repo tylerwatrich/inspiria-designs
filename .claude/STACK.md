@@ -38,6 +38,8 @@
 | `payload.config.ts` | Main Payload config — collections registered here, admin user set here |
 | `.env` | `PAYLOAD_PUBLIC_SERVER_URL`, `DATABASE_URI` — both critical |
 | `test-fetch.ts` | Manual DB row verification script |
+| `src/app/(frontend)/blog/[slug]/page.tsx` | ⚠️ **The actual blog post template** — posts are served at `/blog/[slug]`, NOT `/posts/[slug]` |
+| `src/app/(frontend)/posts/[slug]/page.tsx` | Legacy/unused post route — do NOT edit this for blog post UI changes |
 
 ---
 

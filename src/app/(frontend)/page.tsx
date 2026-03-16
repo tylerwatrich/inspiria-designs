@@ -10,6 +10,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Media } from '@/components/Media'
 import { Media as MediaType } from '@/payload-types'
+import { LeadCaptureModal } from '@/components/LeadCaptureModal'
 
 // --- Data for mapping ---
 const servicesData = [
@@ -316,12 +317,11 @@ const ContactCTA = () => (
     <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-8">
       {'Tell us about your business and where you want to take it. Free consultation, no pressure.'}
     </p>
-    <a
-      href="mailto:tyler@inspiriadesigns.com"
-      className="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
-    >
-      Contact Us Now
-    </a>
+    <LeadCaptureModal
+      triggerLabel="Contact Us Now"
+      triggerClassName="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
+      source="homepage"
+    />
   </section>
 )
 

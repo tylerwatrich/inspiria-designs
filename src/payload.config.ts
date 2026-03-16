@@ -19,6 +19,7 @@ import { Home } from './globals/Home'
 import { Posts } from './collections/Posts'
 import { TargetAudience } from './collections/TargetAudience'
 import { Users } from './collections/Users'
+import { Leads } from './collections/Leads'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -100,7 +101,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes, Industries],
+  collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes, Industries, Leads],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, Home],
   plugins: [
