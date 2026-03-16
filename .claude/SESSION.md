@@ -6,24 +6,25 @@
 ## Current Objective
 
 **What we're trying to do:**
-`TargetAudience` collection created — next step is running `payload generate:types` so TypeScript picks up the new schema, then populating the first few industry records.
+Email lead capture modal implemented — intercepts "Contact Us" and "Book Strategy Call" CTAs on homepage and Trade Compass with a modal form that saves to a `Leads` Payload collection and sends a Resend notification email.
 
 **Why it matters:**
-This collection is the data source AI will query when generating industry-targeted articles. Needs to be seeded before the AI pipeline can use it.
+Converts passive CTA clicks into captured leads stored in the CMS and notified via email.
 
 ---
 
 ## Current State
 
-**Stage:** New Collection — Needs Migration + Seed Data
-**Status:** 🟡 Needs `payload generate:types` and DB migration
+**Stage:** Implementation complete — needs env vars + dev server to verify
+**Status:** 🟡 Awaiting `RESEND_API_KEY` and `NOTIFICATION_EMAIL` in `.env`
 
-**Blocker:** None — but collection won't appear in DB until Payload runs its migration on next dev server start.
+**Blocker:** None in code — Resend emails are no-op if env vars are absent (won't crash). Leads still persist to DB.
 
 **Next Action:**
-1. Start dev server (`pnpm dev`) — Payload will auto-migrate the new table
-2. Run `pnpm payload generate:types` to update `payload-types.ts`
-3. Populate initial industry records in the admin UI
+1. Add `RESEND_API_KEY` and `NOTIFICATION_EMAIL` to `.env`
+2. Start dev server (`pnpm dev`) — Payload will auto-migrate the new `leads` table
+3. Run `pnpm payload generate:types` to update `payload-types.ts`
+4. Test: homepage → "Contact Us Now" → modal → submit → check `/admin` Leads collection
 
 ---
 
@@ -84,3 +85,4 @@ Then append a one-liner to the history below:
 | 2026-03-10 | Gemini → Claude | Initial orchestration system designed | CLAUDE.md, STACK.md, SESSION.md, BRAIN.md created |
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
 | 2026-03-14 | Claude | Create TargetAudience collection | 2 files changed — needs pnpm dev to auto-migrate |
+| 2026-03-15 | Claude | Implement email lead capture modal | 6 files changed, resend@6.9.3 installed — needs env vars + pnpm dev to verify |
