@@ -179,7 +179,7 @@ export default function CanadianMarketFinder() {
           </div>
           <div className="space-y-2">
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
-              Trade <span className="text-red-600">Compass</span>
+              Canadian Trade <span className="text-red-600">Compass</span>
             </h1>
             <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
               Real-time trade intelligence for Canadian exporters. Identify the best domestic and international markets for your specific sector.
