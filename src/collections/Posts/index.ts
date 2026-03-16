@@ -173,6 +173,19 @@ export const Posts: CollectionConfig<'posts'> = {
                 description: 'Check if this post was written or heavily drafted by AI.',
               },
             },
+            {
+              name: 'cta',
+              type: 'select',
+              label: 'CTA',
+              defaultValue: 'blue',
+              admin: {
+                description: 'Which call-to-action to show on this post.',
+              },
+              options: [
+                { label: 'Strategy Call (blue)', value: 'blue' },
+                { label: 'Trade Compass (red)', value: 'trade-compass' },
+              ],
+            },
           ],
           label: 'Meta',
         },
