@@ -77,6 +77,9 @@ export interface Config {
     industries: Industry;
     leads: Lead;
     faqs: Faq;
+    'page-views': PageView;
+    'page-visits': PageVisit;
+    'tracking-events': TrackingEvent;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -104,6 +107,9 @@ export interface Config {
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
+    'page-views': PageViewsSelect<false> | PageViewsSelect<true>;
+    'page-visits': PageVisitsSelect<false> | PageVisitsSelect<true>;
+    'tracking-events': TrackingEventsSelect<false> | TrackingEventsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -929,6 +935,162 @@ export interface Lead {
   createdAt: string;
 }
 /**
+ * One record per anonymous visitor — identity, device, location, attribution, and full activity history.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views".
+ */
+export interface PageView {
+  id: number;
+  /**
+   * UUID stored in the visitor's localStorage
+   */
+  visitorId: string;
+  /**
+   * Stable browser fingerprint — persists across localStorage clears
+   */
+  fingerprintId?: string | null;
+  /**
+   * Device category parsed from user-agent
+   */
+  deviceType?: ('desktop' | 'mobile' | 'tablet') | null;
+  /**
+   * Browser name and major version (e.g. "Chrome 124")
+   */
+  browser?: string | null;
+  /**
+   * Operating system (e.g. "macOS 14", "Windows 11")
+   */
+  os?: string | null;
+  /**
+   * IP address at time of last visit
+   */
+  ipAddress?: string | null;
+  /**
+   * 2-letter country code from Vercel edge headers
+   */
+  country?: string | null;
+  city?: string | null;
+  /**
+   * Region/state/province code
+   */
+  region?: string | null;
+  /**
+   * Total number of pages visited (maintained automatically)
+   */
+  pageCount?: number | null;
+  /**
+   * Number of distinct browser sessions
+   */
+  sessionCount?: number | null;
+  lastVisit?: string | null;
+  /**
+   * Raw browser/device user agent string
+   */
+  userAgent?: string | null;
+  /**
+   * Referrer domain on the very first visit
+   */
+  firstSource?: string | null;
+  firstUtmSource?: string | null;
+  firstUtmMedium?: string | null;
+  firstUtmCampaign?: string | null;
+  /**
+   * Every page this visitor has viewed
+   */
+  pages?:
+    | {
+        /**
+         * URL path (e.g. /blog/some-post)
+         */
+        path?: string | null;
+        /**
+         * Page title at time of visit
+         */
+        title?: string | null;
+        visitedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Flat log of every individual page visit with behavioral and attribution data.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-visits".
+ */
+export interface PageVisit {
+  id: number;
+  path: string;
+  title?: string | null;
+  visitedAt?: string | null;
+  /**
+   * Matches the visitorId in the Page Views collection
+   */
+  visitorId?: string | null;
+  /**
+   * UUID from sessionStorage — groups all pages in a single browser session
+   */
+  sessionId?: string | null;
+  /**
+   * True if this is the first page of a new session
+   */
+  isNewSession?: boolean | null;
+  /**
+   * Seconds spent on this page (recorded on the following navigation)
+   */
+  timeOnPage?: number | null;
+  /**
+   * Max scroll depth reached (0–100%)
+   */
+  scrollDepth?: number | null;
+  /**
+   * document.referrer at time of visit
+   */
+  referrer?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  ipAddress?: string | null;
+  country?: string | null;
+  city?: string | null;
+  region?: string | null;
+  userAgent?: string | null;
+}
+/**
+ * Custom event log — button clicks, form interactions, video plays, etc.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tracking-events".
+ */
+export interface TrackingEvent {
+  id: number;
+  /**
+   * Category of event (e.g. "click", "form_start", "form_submit", "video_play")
+   */
+  eventType: string;
+  /**
+   * Descriptive label (e.g. "CTA Click - Contact Us")
+   */
+  eventName: string;
+  /**
+   * JSON string of additional key-value data for this event
+   */
+  properties?: string | null;
+  visitorId?: string | null;
+  fingerprintId?: string | null;
+  sessionId?: string | null;
+  /**
+   * URL path where the event occurred
+   */
+  path?: string | null;
+  occurredAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -1157,6 +1319,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'faqs';
         value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'page-views';
+        value: number | PageView;
+      } | null)
+    | ({
+        relationTo: 'page-visits';
+        value: number | PageVisit;
+      } | null)
+    | ({
+        relationTo: 'tracking-events';
+        value: number | TrackingEvent;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1597,6 +1771,78 @@ export interface FaqsSelect<T extends boolean = true> {
   answer?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views_select".
+ */
+export interface PageViewsSelect<T extends boolean = true> {
+  visitorId?: T;
+  fingerprintId?: T;
+  deviceType?: T;
+  browser?: T;
+  os?: T;
+  ipAddress?: T;
+  country?: T;
+  city?: T;
+  region?: T;
+  pageCount?: T;
+  sessionCount?: T;
+  lastVisit?: T;
+  userAgent?: T;
+  firstSource?: T;
+  firstUtmSource?: T;
+  firstUtmMedium?: T;
+  firstUtmCampaign?: T;
+  pages?:
+    | T
+    | {
+        path?: T;
+        title?: T;
+        visitedAt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-visits_select".
+ */
+export interface PageVisitsSelect<T extends boolean = true> {
+  path?: T;
+  title?: T;
+  visitedAt?: T;
+  visitorId?: T;
+  sessionId?: T;
+  isNewSession?: T;
+  timeOnPage?: T;
+  scrollDepth?: T;
+  referrer?: T;
+  utmSource?: T;
+  utmMedium?: T;
+  utmCampaign?: T;
+  utmContent?: T;
+  utmTerm?: T;
+  ipAddress?: T;
+  country?: T;
+  city?: T;
+  region?: T;
+  userAgent?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tracking-events_select".
+ */
+export interface TrackingEventsSelect<T extends boolean = true> {
+  eventType?: T;
+  eventName?: T;
+  properties?: T;
+  visitorId?: T;
+  fingerprintId?: T;
+  sessionId?: T;
+  path?: T;
+  occurredAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
