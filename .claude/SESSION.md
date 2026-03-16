@@ -6,25 +6,24 @@
 ## Current Objective
 
 **What we're trying to do:**
-Email lead capture modal implemented — intercepts "Contact Us" and "Book Strategy Call" CTAs on homepage and Trade Compass with a modal form that saves to a `Leads` Payload collection and sends a Resend notification email.
+Neon production DB reset to match local — 38 clean published posts, correct schema with FAQs and key takeaways, no duplicates.
 
 **Why it matters:**
-Converts passive CTA clicks into captured leads stored in the CMS and notified via email.
+Neon had 74 posts with duplicates and stale data. Local is the source of truth.
 
 ---
 
 ## Current State
 
-**Stage:** Implementation complete — needs env vars + dev server to verify
-**Status:** 🟡 Awaiting `RESEND_API_KEY` and `NOTIFICATION_EMAIL` in `.env`
+**Stage:** Complete — Neon reset, Vercel redeploy triggered (branch: key-takeaways-and-faq)
+**Status:** 🟢 Done
 
-**Blocker:** None in code — Resend emails are no-op if env vars are absent (won't crash). Leads still persist to DB.
+**Blocker:** None
 
 **Next Action:**
-1. Add `RESEND_API_KEY` and `NOTIFICATION_EMAIL` to `.env`
-2. Start dev server (`pnpm dev`) — Payload will auto-migrate the new `leads` table
-3. Run `pnpm payload generate:types` to update `payload-types.ts`
-4. Test: homepage → "Contact Us Now" → modal → submit → check `/admin` Leads collection
+- Monitor Vercel deploy for successful build
+- Verify production site shows correct post count
+- Note: Vercel's `DATABASE_URI` env var must point to Neon (not localhost) — confirm in Vercel dashboard if prod still behaves oddly
 
 ---
 
@@ -86,3 +85,4 @@ Then append a one-liner to the history below:
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
 | 2026-03-14 | Claude | Create TargetAudience collection | 2 files changed — needs pnpm dev to auto-migrate |
 | 2026-03-15 | Claude | Implement email lead capture modal | 6 files changed, resend@6.9.3 installed — needs env vars + pnpm dev to verify |
+| 2026-03-16 | Claude | Reset Neon prod DB from local | Wiped Neon (74 posts), restored local dump (38 clean posts), all migrations intact, Vercel redeploy triggered |
