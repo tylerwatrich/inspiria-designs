@@ -11,8 +11,8 @@ export const PageViews: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'visitorId',
-    defaultColumns: ['visitorId', 'ipAddress', 'country', 'city', 'pageCount', 'lastVisit'],
-    description: 'Tracks every visitor, pages they visited, and their location.',
+    defaultColumns: ['visitorId', 'deviceType', 'browser', 'country', 'city', 'pageCount', 'sessionCount', 'lastVisit'],
+    description: 'One record per visitor. Aggregates pages viewed, device info, and attribution.',
   },
   fields: [
     {
@@ -21,7 +21,37 @@ export const PageViews: CollectionConfig = {
       required: true,
       index: true,
       admin: {
-        description: 'Unique ID stored in the visitor\'s localStorage',
+        description: 'UUID stored in the visitor\'s localStorage',
+      },
+    },
+    {
+      name: 'fingerprintId',
+      type: 'text',
+      index: true,
+      admin: {
+        description: 'Stable browser fingerprint — persists across localStorage clears',
+      },
+    },
+    {
+      name: 'deviceType',
+      type: 'select',
+      options: ['desktop', 'mobile', 'tablet'],
+      admin: {
+        description: 'Device category parsed from user-agent',
+      },
+    },
+    {
+      name: 'browser',
+      type: 'text',
+      admin: {
+        description: 'Browser name and major version (e.g. "Chrome 124")',
+      },
+    },
+    {
+      name: 'os',
+      type: 'text',
+      admin: {
+        description: 'Operating system (e.g. "macOS 14", "Windows 11")',
       },
     },
     {
@@ -58,6 +88,14 @@ export const PageViews: CollectionConfig = {
       },
     },
     {
+      name: 'sessionCount',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Number of distinct browser sessions',
+      },
+    },
+    {
       name: 'lastVisit',
       type: 'date',
       admin: {
@@ -70,8 +108,28 @@ export const PageViews: CollectionConfig = {
       name: 'userAgent',
       type: 'text',
       admin: {
-        description: 'Browser/device user agent string',
+        description: 'Raw browser/device user agent string',
       },
+    },
+    // First-touch attribution — set on record create, never overwritten
+    {
+      name: 'firstSource',
+      type: 'text',
+      admin: {
+        description: 'Referrer domain on the very first visit',
+      },
+    },
+    {
+      name: 'firstUtmSource',
+      type: 'text',
+    },
+    {
+      name: 'firstUtmMedium',
+      type: 'text',
+    },
+    {
+      name: 'firstUtmCampaign',
+      type: 'text',
     },
     {
       name: 'pages',
