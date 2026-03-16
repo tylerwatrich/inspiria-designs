@@ -134,7 +134,7 @@ export default function VisitorActivityTab({ doc }: { doc?: Record<string, unkno
           Visitor UUID:{' '}
         </span>
         {visitorId}
-        {doc.userAgent && (
+        {!!doc.userAgent && (
           <>
             <br />
             <span style={{ color: 'var(--theme-elevation-500)', fontFamily: 'sans-serif' }}>
