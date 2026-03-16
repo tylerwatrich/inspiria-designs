@@ -1,35 +1,17 @@
 import React from 'react'
 
-type PageVisit = {
-  id: string
-  path: string
+type PageEntry = {
+  path?: string
   title?: string
   visitedAt?: string
-  sessionId?: string
-  isNewSession?: boolean
-  timeOnPage?: number
-  scrollDepth?: number
-  referrer?: string
-  utmSource?: string
-  utmMedium?: string
-  utmCampaign?: string
 }
 
-type TrackingEvent = {
-  id: string
-  eventType: string
-  eventName: string
-  properties?: string
-  path?: string
-  occurredAt?: string
-}
-
-type StatCard = {
+type StatCardProps = {
   label: string
   value: string | number
 }
 
-function StatCard({ label, value }: StatCard) {
+function StatCard({ label, value }: StatCardProps) {
   return (
     <div
       style={{
@@ -50,36 +32,17 @@ function StatCard({ label, value }: StatCard) {
       >
         {label}
       </div>
-      <div
-        style={{
-          fontSize: '15px',
-          fontWeight: 600,
-          color: 'var(--theme-text)',
-        }}
-      >
+      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--theme-text)' }}>
         {String(value)}
       </div>
     </div>
   )
 }
 
-// Payload passes the full document + payload instance as props to custom document views
-export default async function VisitorActivityTab({
-  doc,
-  payload,
-}: {
-  doc?: Record<string, unknown>
-  payload?: {
-    find: (args: {
-      collection: string
-      where?: Record<string, unknown>
-      limit?: number
-      sort?: string
-      overrideAccess?: boolean
-    }) => Promise<{ docs: unknown[] }>
-  }
-}) {
-  if (!doc || !payload) {
+// Payload injects `doc` (the full document) directly as a prop on custom document views.
+// No additional fetching needed — all visit history lives in doc.pages.
+export default function VisitorActivityTab({ doc }: { doc?: Record<string, unknown> }) {
+  if (!doc) {
     return <div style={{ padding: '2rem', color: 'var(--theme-text)' }}>Unable to load profile.</div>
   }
 
@@ -92,30 +55,10 @@ export default async function VisitorActivityTab({
     )
   }
 
-  const [visitsResult, eventsResult] = await Promise.all([
-    payload.find({
-      collection: 'page-visits',
-      where: { visitorId: { equals: visitorId } },
-      limit: 200,
-      sort: '-visitedAt',
-      overrideAccess: true,
-    }),
-    payload.find({
-      collection: 'tracking-events',
-      where: { visitorId: { equals: visitorId } },
-      limit: 100,
-      sort: '-occurredAt',
-      overrideAccess: true,
-    }),
-  ])
-
-  const visits = visitsResult.docs as PageVisit[]
-  const events = eventsResult.docs as TrackingEvent[]
-
-  const timeline = [
-    ...visits.map((v) => ({ type: 'visit' as const, time: v.visitedAt || '', data: v })),
-    ...events.map((e) => ({ type: 'event' as const, time: e.occurredAt || '', data: e })),
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+  // doc.pages is the raw Payload array — entries may have an 'id' field prepended by Payload
+  const pages = ((doc.pages as PageEntry[]) || [])
+    .slice()
+    .sort((a, b) => new Date(b.visitedAt || 0).getTime() - new Date(a.visitedAt || 0).getTime())
 
   const location = doc.city
     ? `${doc.city}, ${doc.country}`
@@ -123,25 +66,28 @@ export default async function VisitorActivityTab({
       ? String(doc.country)
       : '—'
 
-  const firstSeen = doc.createdAt
-    ? new Date(doc.createdAt as string).toLocaleDateString('en-CA', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    : '—'
+  const fmt = (iso: string | undefined) =>
+    iso
+      ? new Date(iso).toLocaleDateString('en-CA', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : '—'
 
-  const lastVisit = doc.lastVisit
-    ? new Date(doc.lastVisit as string).toLocaleDateString('en-CA', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    : '—'
+  const fmtTime = (iso: string | undefined) =>
+    iso
+      ? new Date(iso).toLocaleString('en-CA', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : ''
 
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: '960px' }}>
-      {/* Profile stat grid */}
+      {/* Stats grid */}
       <div
         style={{
           display: 'grid',
@@ -150,8 +96,8 @@ export default async function VisitorActivityTab({
           marginBottom: '2rem',
         }}
       >
-        <StatCard label="Pages Visited" value={String(doc.pageCount ?? 0)} />
-        <StatCard label="Sessions" value={String(doc.sessionCount ?? 0)} />
+        <StatCard label="Pages Visited" value={String(doc.pageCount ?? pages.length)} />
+        <StatCard label="Sessions" value={String(doc.sessionCount ?? '—')} />
         <StatCard label="Device" value={String(doc.deviceType ?? '—')} />
         <StatCard label="Browser" value={String(doc.browser ?? '—')} />
         <StatCard label="OS" value={String(doc.os ?? '—')} />
@@ -159,9 +105,9 @@ export default async function VisitorActivityTab({
         <StatCard label="First Source" value={String(doc.firstSource || 'Direct')} />
         <StatCard label="First UTM Source" value={String(doc.firstUtmSource || '—')} />
         <StatCard label="First Campaign" value={String(doc.firstUtmCampaign || '—')} />
-        <StatCard label="First Seen" value={firstSeen} />
-        <StatCard label="Last Visit" value={lastVisit} />
-        <StatCard label="Total Events" value={events.length} />
+        <StatCard label="First Seen" value={fmt(doc.createdAt as string)} />
+        <StatCard label="Last Visit" value={fmt(doc.lastVisit as string)} />
+        <StatCard label="IP Address" value={String(doc.ipAddress || '—')} />
       </div>
 
       {/* Fingerprint IDs */}
@@ -176,7 +122,7 @@ export default async function VisitorActivityTab({
           fontFamily: 'monospace',
           color: 'var(--theme-elevation-600)',
           wordBreak: 'break-all',
-          lineHeight: 1.8,
+          lineHeight: 2,
         }}
       >
         <span style={{ color: 'var(--theme-elevation-500)', fontFamily: 'sans-serif' }}>
@@ -188,9 +134,18 @@ export default async function VisitorActivityTab({
           Visitor UUID:{' '}
         </span>
         {visitorId}
+        {doc.userAgent && (
+          <>
+            <br />
+            <span style={{ color: 'var(--theme-elevation-500)', fontFamily: 'sans-serif' }}>
+              User-Agent:{' '}
+            </span>
+            <span style={{ color: 'var(--theme-elevation-400)' }}>{String(doc.userAgent)}</span>
+          </>
+        )}
       </div>
 
-      {/* Activity timeline */}
+      {/* Page visit timeline */}
       <div
         style={{
           fontSize: '13px',
@@ -201,147 +156,43 @@ export default async function VisitorActivityTab({
           letterSpacing: '0.05em',
         }}
       >
-        Activity — {timeline.length} item{timeline.length !== 1 ? 's' : ''}
+        Page Visits — {pages.length} visit{pages.length !== 1 ? 's' : ''}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {timeline.map((item, idx) => (
+        {pages.map((page, idx) => (
           <div
             key={idx}
             style={{
               display: 'flex',
               gap: '12px',
               padding: '10px 14px',
-              background: item.type === 'event' ? 'var(--theme-elevation-50)' : 'transparent',
               border: '1px solid var(--theme-elevation-100)',
               borderRadius: '6px',
               alignItems: 'flex-start',
             }}
           >
-            {/* Icon */}
             <div style={{ fontSize: '14px', lineHeight: '1.6', userSelect: 'none', flexShrink: 0 }}>
-              {item.type === 'visit' ? '📄' : '⚡'}
+              📄
             </div>
-
-            {/* Main content */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              {item.type === 'visit' ? (
-                <>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: 'var(--theme-text)',
-                      marginBottom: '4px',
-                      wordBreak: 'break-all',
-                      display: 'flex',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '6px',
-                    }}
-                  >
-                    <span style={{ fontSize: '14px' }}>{(item.data as PageVisit).path}</span>
-                    {(item.data as PageVisit).isNewSession && (
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          background: 'var(--theme-success-50)',
-                          color: 'var(--theme-success-500)',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em',
-                          flexShrink: 0,
-                        }}
-                      >
-                        New Session
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--theme-elevation-500)',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '10px',
-                    }}
-                  >
-                    {(item.data as PageVisit).timeOnPage != null && (
-                      <span>⏱ {(item.data as PageVisit).timeOnPage}s on page</span>
-                    )}
-                    {(item.data as PageVisit).scrollDepth != null && (
-                      <span>↕ {(item.data as PageVisit).scrollDepth}% scrolled</span>
-                    )}
-                    {(item.data as PageVisit).utmSource && (
-                      <span>
-                        📎{' '}
-                        {[
-                          (item.data as PageVisit).utmSource,
-                          (item.data as PageVisit).utmMedium,
-                          (item.data as PageVisit).utmCampaign,
-                        ]
-                          .filter(Boolean)
-                          .join(' / ')}
-                      </span>
-                    )}
-                    {(item.data as PageVisit).referrer && (
-                      <span>↩ {(item.data as PageVisit).referrer}</span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: 'var(--theme-text)',
-                      marginBottom: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        background: 'var(--theme-elevation-100)',
-                        color: 'var(--theme-elevation-800)',
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {(item.data as TrackingEvent).eventType}
-                    </span>
-                    <span style={{ fontSize: '14px' }}>{(item.data as TrackingEvent).eventName}</span>
-                  </div>
-                  {(item.data as TrackingEvent).properties && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--theme-elevation-500)',
-                        fontFamily: 'monospace',
-                        marginBottom: '4px',
-                      }}
-                    >
-                      {(item.data as TrackingEvent).properties}
-                    </div>
-                  )}
-                  {(item.data as TrackingEvent).path && (
-                    <div style={{ fontSize: '12px', color: 'var(--theme-elevation-400)' }}>
-                      {(item.data as TrackingEvent).path}
-                    </div>
-                  )}
-                </>
+              <div
+                style={{
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  color: 'var(--theme-text)',
+                  wordBreak: 'break-all',
+                  marginBottom: page.title ? '3px' : 0,
+                }}
+              >
+                {page.path || '—'}
+              </div>
+              {page.title && (
+                <div style={{ fontSize: '12px', color: 'var(--theme-elevation-500)' }}>
+                  {page.title}
+                </div>
               )}
             </div>
-
-            {/* Timestamp */}
             <div
               style={{
                 fontSize: '11px',
@@ -351,20 +202,13 @@ export default async function VisitorActivityTab({
                 paddingTop: '2px',
               }}
             >
-              {item.time
-                ? new Date(item.time).toLocaleString('en-CA', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : ''}
+              {fmtTime(page.visitedAt)}
             </div>
           </div>
         ))}
       </div>
 
-      {timeline.length === 0 && (
+      {pages.length === 0 && (
         <div
           style={{
             color: 'var(--theme-elevation-500)',
@@ -375,7 +219,7 @@ export default async function VisitorActivityTab({
             borderRadius: '6px',
           }}
         >
-          No activity recorded yet.
+          No pages recorded yet.
         </div>
       )}
     </div>
