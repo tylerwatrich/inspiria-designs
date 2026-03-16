@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import CanadianMarketFinder from '@/components/MarketFinder'
+import TradeCompass from '@/components/TradeCompass'
 
 export const metadata: Metadata = {
   title: 'Canadian Trade Compass | Inspiria Designs',
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function TradeCompassPage() {
-  return <CanadianMarketFinder />
+  return <TradeCompass />
 }
