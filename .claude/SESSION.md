@@ -48,7 +48,7 @@ Converts passive CTA clicks into captured leads stored in the CMS and notified v
 
 ## Last Action
 
-> 2026-03-14 — Created `TargetAudience` collection (`src/collections/TargetAudience.ts`) and registered it in `payload.config.ts`. Fields: industry (title), businessSizes (multi-select), keywords (array), relatedPosts (relationship → posts), notes (textarea).
+> 2026-03-15 — Added lead capture CTA to blog post template (`src/app/(frontend)/blog/[slug]/page.tsx`). Note: posts are served at `/blog/[slug]` — the `/posts/[slug]` route is unused.
 
 ---
 
