@@ -22,11 +22,30 @@ export async function POST(req: Request) {
     const region = req.headers.get('x-vercel-ip-country-region') || ''
     const userAgent = req.headers.get('user-agent') || ''
 
+    const now = new Date().toISOString()
+
     const newPage = {
       path,
       title: title || '',
-      visitedAt: new Date().toISOString(),
+      visitedAt: now,
     }
+
+    // Always write a flat visit log entry
+    await payload.create({
+      collection: 'page-visits',
+      data: {
+        path,
+        title: title || '',
+        visitedAt: now,
+        visitorId: visitorId || '',
+        ipAddress,
+        country,
+        city,
+        region,
+        userAgent,
+      },
+      overrideAccess: true,
+    })
 
     // If we have a visitorId, try to find and update the existing record
     if (visitorId) {
