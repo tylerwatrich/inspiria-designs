@@ -66,7 +66,7 @@ export function LeadCaptureModal({ triggerLabel, triggerClassName, source }: Lea
           onClick={handleClose}
         >
           <div
-            className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-floating-lg p-8 w-full max-w-md mx-4"
+            className="relative bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-100 rounded-2xl shadow-floating-lg p-8 w-full max-w-md mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
