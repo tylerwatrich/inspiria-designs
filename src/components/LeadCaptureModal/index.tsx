@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 interface LeadCaptureModalProps {
   triggerLabel: string
   triggerClassName?: string
-  source: 'homepage' | 'trade-compass'
+  source: 'homepage' | 'trade-compass' | 'post'
 }
 
 export function LeadCaptureModal({ triggerLabel, triggerClassName, source }: LeadCaptureModalProps) {
