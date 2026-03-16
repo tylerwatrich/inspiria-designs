@@ -6,25 +6,25 @@
 ## Current Objective
 
 **What we're trying to do:**
-Email lead capture modal implemented — intercepts "Contact Us" and "Book Strategy Call" CTAs on homepage and Trade Compass with a modal form that saves to a `Leads` Payload collection and sends a Resend notification email.
+User tracking system implemented — every site visitor is recorded in a `PageViews` Payload collection with their IP address, location (country/city/region from Vercel edge headers), and a full log of every page they visit.
 
 **Why it matters:**
-Converts passive CTA clicks into captured leads stored in the CMS and notified via email.
+First-party analytics stored directly in the CMS — no third-party dependency for visitor data.
 
 ---
 
 ## Current State
 
-**Stage:** Implementation complete — needs env vars + dev server to verify
-**Status:** 🟡 Awaiting `RESEND_API_KEY` and `NOTIFICATION_EMAIL` in `.env`
+**Stage:** Implementation complete — needs `pnpm dev` to auto-migrate the new `page_views` table
+**Status:** 🟡 Ready to test
 
-**Blocker:** None in code — Resend emails are no-op if env vars are absent (won't crash). Leads still persist to DB.
+**Blocker:** None — tracking failures are silently caught and never break the site.
 
 **Next Action:**
-1. Add `RESEND_API_KEY` and `NOTIFICATION_EMAIL` to `.env`
-2. Start dev server (`pnpm dev`) — Payload will auto-migrate the new `leads` table
-3. Run `pnpm payload generate:types` to update `payload-types.ts`
-4. Test: homepage → "Contact Us Now" → modal → submit → check `/admin` Leads collection
+1. Start dev server (`pnpm dev`) — Payload will auto-migrate the new `page-views` table
+2. Run `pnpm payload generate:types` to update `payload-types.ts`
+3. Visit any page → check `/admin/collections/page-views` for the record
+4. Note: IP geolocation headers (`x-vercel-ip-*`) only populate on Vercel — local dev will show blank country/city
 
 ---
 
@@ -48,7 +48,7 @@ Converts passive CTA clicks into captured leads stored in the CMS and notified v
 
 ## Last Action
 
-> 2026-03-15 — Added `articleSummary` (textarea) and `keyTakeaways` (array) fields to Posts collection. Rendered before `<RichText>` in the blog post template with Gemini-designed UX: left-border pull quote for summary, card with checkmark icon header and dot bullets for takeaways, divider before body copy. Needs `pnpm dev` to auto-migrate new DB columns.
+> 2026-03-16 — Added `PageViews` collection and user tracking system. 4 files created/modified: `src/collections/PageViews.ts` (collection), `src/app/api/track/route.ts` (upsert endpoint), `src/components/PageTracker/index.tsx` (client component), registered in `payload.config.ts`, added to `(frontend)/layout.tsx`. Tracks: visitorId (localStorage UUID), IP, country/city/region (Vercel edge headers), pageCount, full pages array with path/title/timestamp. Needs `pnpm dev` to auto-migrate.
 
 ---
 
@@ -86,3 +86,4 @@ Then append a one-liner to the history below:
 | 2026-03-11 | Claude + Gemini | Debug empty admin posts list | Root cause found and fixed — commit 6cfab19 |
 | 2026-03-14 | Claude | Create TargetAudience collection | 2 files changed — needs pnpm dev to auto-migrate |
 | 2026-03-15 | Claude | Implement email lead capture modal | 6 files changed, resend@6.9.3 installed — needs env vars + pnpm dev to verify |
+| 2026-03-16 | Claude | Implement user/page tracking system | PageViews collection + /api/track + PageTracker component — needs pnpm dev to migrate |
