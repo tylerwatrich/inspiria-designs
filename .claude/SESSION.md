@@ -48,7 +48,7 @@ Converts passive CTA clicks into captured leads stored in the CMS and notified v
 
 ## Last Action
 
-> 2026-03-15 — Added lead capture CTA to blog post template (`src/app/(frontend)/blog/[slug]/page.tsx`). Note: posts are served at `/blog/[slug]` — the `/posts/[slug]` route is unused.
+> 2026-03-15 — Added `articleSummary` (textarea) and `keyTakeaways` (array) fields to Posts collection. Rendered before `<RichText>` in the blog post template with Gemini-designed UX: left-border pull quote for summary, card with checkmark icon header and dot bullets for takeaways, divider before body copy. Needs `pnpm dev` to auto-migrate new DB columns.
 
 ---
 

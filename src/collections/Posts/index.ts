@@ -105,6 +105,30 @@ export const Posts: CollectionConfig<'posts'> = {
               required: true,
             },
             {
+              name: 'articleSummary',
+              type: 'textarea',
+              label: 'Article Summary',
+              admin: {
+                description: 'A brief overview of what this article covers. Displayed at the top of the post.',
+              },
+            },
+            {
+              name: 'keyTakeaways',
+              type: 'array',
+              label: 'Key Takeaways',
+              admin: {
+                description: 'Bullet points summarizing the main insights of this article.',
+              },
+              fields: [
+                {
+                  name: 'point',
+                  type: 'text',
+                  label: 'Takeaway',
+                  required: true,
+                },
+              ],
+            },
+            {
               name: 'url',
               type: 'text',
               admin: {
@@ -126,6 +150,16 @@ export const Posts: CollectionConfig<'posts'> = {
         },
         {
           fields: [
+            {
+              name: 'faqs',
+              type: 'relationship',
+              relationTo: 'faqs',
+              hasMany: true,
+              label: 'FAQs',
+              admin: {
+                description: 'Assign FAQ entries to display on this post.',
+              },
+            },
             {
               name: 'relatedPosts',
               type: 'relationship',
