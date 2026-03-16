@@ -24,6 +24,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/utilities/ui'
+import { LeadCaptureModal } from '@/components/LeadCaptureModal'
 import {
   ExternalLink,
   MapPin,
@@ -193,7 +194,7 @@ export default function TradeCompass() {
   const visibleMarkets = allMarkets.filter((m) => !(hideUS && m.usMarket))
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-900 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header Section */}
         <header className="text-center space-y-4 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
@@ -434,7 +435,7 @@ export default function TradeCompass() {
             {/* CTA Section */}
             {showCTA && (
               <div className="mt-12 overflow-hidden relative bg-zinc-900 dark:bg-black border border-zinc-800 rounded-3xl p-8 md:p-12 animate-in fade-in zoom-in-95 duration-700 fill-both shadow-2xl shadow-red-900/10">
-                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+                <div className="absolute top-0 right-0 p-8 opacity-40 rotate-12">
                   <ShieldCheck className="w-64 h-64 text-red-600" />
                 </div>
 
@@ -460,18 +461,11 @@ export default function TradeCompass() {
                   </div>
 
                   <div className="flex flex-col gap-3 w-full sm:w-auto min-w-[240px]">
-                    <Button
-                      asChild
-                      className="h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-red-600/20 active:scale-95 transition-all"
-                    >
-                      <a
-                        href="https://inspiriadigital.com/contact"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Book Strategy Call <ArrowRight className="ml-2 w-4 h-4" />
-                      </a>
-                    </Button>
+                    <LeadCaptureModal
+                      triggerLabel="Book Strategy Call"
+                      triggerClassName="h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-red-600/20 active:scale-95 transition-all w-full"
+                      source="trade-compass"
+                    />
                     <Button
                       variant="outline"
                       asChild
