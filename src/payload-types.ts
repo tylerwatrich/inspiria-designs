@@ -259,6 +259,10 @@ export interface Post {
    */
   aiGenerated?: boolean | null;
   /**
+   * Which call-to-action to show on this post.
+   */
+  cta?: ('blue' | 'trade-compass') | null;
+  /**
    * The content format of this post (Guide, Pain Point, Listicle, etc.)
    */
   articleType?: (number | null) | ArticleType;
@@ -1322,6 +1326,7 @@ export interface PostsSelect<T extends boolean = true> {
   categories?: T;
   funnelStage?: T;
   aiGenerated?: T;
+  cta?: T;
   articleType?: T;
   targetIndustry?: T;
   targetBusinessSize?: T;
