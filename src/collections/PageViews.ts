@@ -12,7 +12,22 @@ export const PageViews: CollectionConfig = {
   admin: {
     useAsTitle: 'visitorId',
     defaultColumns: ['visitorId', 'deviceType', 'browser', 'country', 'city', 'pageCount', 'sessionCount', 'lastVisit'],
-    description: 'One record per visitor. Aggregates pages viewed, device info, and attribution.',
+    description: 'One record per anonymous visitor — identity, device, location, attribution, and full activity history.',
+    components: {
+      views: {
+        edit: {
+          activityFeed: {
+            Component: '@/components/VisitorActivityTab',
+            path: '/activity',
+            tab: {
+              label: 'Activity',
+              href: '/activity',
+              order: 200,
+            },
+          },
+        },
+      },
+    },
   },
   fields: [
     {
