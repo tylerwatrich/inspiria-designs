@@ -8,11 +8,12 @@ import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import Link from 'next/link'
 import RichText from '@/components/RichText'
-import type { Post } from '@/payload-types'
+import type { Post, Faq } from '@/payload-types'
 import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { Check, Zap, Info } from 'lucide-react'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -49,6 +50,10 @@ export default async function Post({ params: paramsPromise }: Args) {
 
   if (!post) return <PayloadRedirects url={url} />
 
+  const populatedFaqs = (post.faqs ?? []).filter(
+    (f): f is Faq => typeof f === 'object' && f !== null,
+  )
+
   return (
     <article className="bg-light-bg dark:bg-zinc-900 pb-24">
       <PageClient />
@@ -60,6 +65,43 @@ export default async function Post({ params: paramsPromise }: Args) {
 
       <div className="container pt-12">
         <div className="max-w-[52rem] mx-auto">
+          {/* Article Summary & Takeaways above the article block */}
+          <div className="space-y-6 mb-10">
+            {/* Article Summary (Hidden from view but present for SEO/AI) */}
+            {post.articleSummary && (
+              <div className="hidden">
+                <p>{post.articleSummary}</p>
+              </div>
+            )}
+
+            {/* Key Takeaways */}
+            {post.keyTakeaways && post.keyTakeaways.length > 0 && (
+              <section className="bg-zinc-900 dark:bg-black rounded-2xl p-6 md:p-8 text-white shadow-floating-lg overflow-hidden relative animate-in fade-in slide-in-from-top-4 duration-700 delay-100 fill-both">
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+                  <Zap className="w-48 h-48" />
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-brand-blue-500 p-1.5 rounded-lg">
+                      <Zap className="w-4 h-4 text-white fill-current" />
+                    </div>
+                    <h2 className="text-xs font-black uppercase tracking-[0.2em]">Key Insights</h2>
+                  </div>
+                  <ul className="grid sm:grid-cols-2 gap-6">
+                    {post.keyTakeaways.map((item, i) => (
+                      <li key={i} className="flex gap-3">
+                        <Check className="w-5 h-5 text-brand-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-sm md:text-base font-semibold leading-snug text-zinc-100">
+                          {item.point}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+          </div>
+
           <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating px-8 py-10 md:px-14 md:py-14">
             {post.cta === 'trade-compass' && (
               <div className="mb-8 border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
@@ -87,6 +129,7 @@ export default async function Post({ params: paramsPromise }: Args) {
                 </Link>
               </div>
             )}
+            {/* RichText content */}
             <RichText data={post.content} enableGutter={false} />
           </div>
 
@@ -120,6 +163,36 @@ export default async function Post({ params: paramsPromise }: Args) {
                 triggerClassName="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
                 source="post"
               />
+            </section>
+          )}
+
+          {/* FAQ Section */}
+          {populatedFaqs.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 mb-6">
+                Frequently Asked Questions
+              </h2>
+              <div className="divide-y divide-zinc-200 dark:divide-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-2xl overflow-hidden bg-white dark:bg-zinc-800 shadow-floating">
+                {populatedFaqs.map((faq) => (
+                  <details key={faq.id} className="group">
+                    <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-100 text-base leading-snug">
+                        {faq.question}
+                      </span>
+                      <span className="shrink-0 w-5 h-5 rounded-full border border-zinc-300 dark:border-zinc-600 flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-open:rotate-45 transition-transform duration-200">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </span>
+                    </summary>
+                    <div className="px-6 pb-5 pt-1">
+                      <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed text-sm md:text-base">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </details>
+                ))}
+              </div>
             </section>
           )}
         </div>
@@ -163,6 +236,7 @@ const queryPostBySlug = cache(async ({ slug, draft }: { slug: string; draft: boo
     limit: 1,
     overrideAccess: draft,
     pagination: false,
+    depth: 2,
     where: {
       slug: {
         equals: slug,

@@ -76,6 +76,7 @@ export interface Config {
     'article-types': ArticleType;
     industries: Industry;
     leads: Lead;
+    faqs: Faq;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -102,6 +103,7 @@ export interface Config {
     'article-types': ArticleTypesSelect<false> | ArticleTypesSelect<true>;
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -247,7 +249,24 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  /**
+   * A brief overview of what this article covers. Displayed at the top of the post.
+   */
+  articleSummary?: string | null;
+  /**
+   * Bullet points summarizing the main insights of this article.
+   */
+  keyTakeaways?:
+    | {
+        point: string;
+        id?: string | null;
+      }[]
+    | null;
   url?: string | null;
+  /**
+   * Assign FAQ entries to display on this post.
+   */
+  faqs?: (number | Faq)[] | null;
   relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
   /**
@@ -419,6 +438,22 @@ export interface FolderInterface {
     totalDocs?: number;
   };
   folderType?: 'media'[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reusable FAQ entries that can be assigned to one or more posts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  /**
+   * Plain-text answer. Keep it concise — one to four sentences.
+   */
+  answer: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1118,6 +1153,10 @@ export interface PayloadLockedDocument {
         value: number | Lead;
       } | null)
     | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
         relationTo: 'redirects';
         value: number | Redirect;
       } | null)
@@ -1321,7 +1360,15 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
+  articleSummary?: T;
+  keyTakeaways?:
+    | T
+    | {
+        point?: T;
+        id?: T;
+      };
   url?: T;
+  faqs?: T;
   relatedPosts?: T;
   categories?: T;
   funnelStage?: T;
@@ -1536,6 +1583,16 @@ export interface LeadsSelect<T extends boolean = true> {
   email?: T;
   name?: T;
   source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
   updatedAt?: T;
   createdAt?: T;
 }
