@@ -176,10 +176,10 @@ Return a JSON array of story objects:
 Only include stories with actual sources you found. Do not fabricate.`
 
   const raw = await callResearch(prompt, SYSTEM)
-  const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
+  const match = raw.match(/\[[\s\S]*\]/)
 
   try {
-    const parsed = JSON.parse(clean)
+    const parsed = JSON.parse(match ? match[0] : raw)
     return Array.isArray(parsed) ? parsed : []
   } catch (e) {
     console.error('[research] Failed to parse scanForStories response:', e, '\nRaw:', raw)
@@ -225,10 +225,10 @@ Return a JSON array:
 Include an entry for every story in the list.`
 
   const raw = await callResearch(prompt, SYSTEM)
-  const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
+  const match = raw.match(/\[[\s\S]*\]/)
 
   try {
-    const parsed = JSON.parse(clean)
+    const parsed = JSON.parse(match ? match[0] : raw)
     return Array.isArray(parsed) ? parsed : []
   } catch (e) {
     console.error('[research] Failed to parse rePrioritize response:', e)
@@ -269,10 +269,10 @@ If the story checks out, corrections can be an empty array.
 If sources are unavailable or story can't be verified, set verified: false and explain in corrections.`
 
   const raw = await callResearch(prompt, SYSTEM)
-  const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
+  const match = raw.match(/\{[\s\S]*\}/)
 
   try {
-    return JSON.parse(clean) as FactCheckResult
+    return JSON.parse(match ? match[0] : raw) as FactCheckResult
   } catch (e) {
     console.error('[research] Failed to parse factCheck response:', e)
     return {
