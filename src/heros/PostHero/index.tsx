@@ -10,19 +10,20 @@ import { formatAuthors } from '@/utilities/formatAuthors'
 export const PostHero: React.FC<{
   post: Post
 }> = ({ post }) => {
-  const { categories, heroImage, populatedAuthors, publishedAt, title } = post
+  const { categories, heroImage, heroImageUrl, populatedAuthors, publishedAt, title } = post
 
   const hasAuthors =
     populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
 
   const hasCategories = categories && categories.length > 0
+  const hasHeroImage = (heroImage && typeof heroImage !== 'string') || !!heroImageUrl
 
   return (
     <div className="bg-light-bg dark:bg-zinc-900 pt-8 pb-2">
       <div className="container">
         <div
           className={
-            heroImage ? 'grid lg:grid-cols-[1fr_420px] gap-10 items-center' : 'grid grid-cols-1'
+            hasHeroImage ? 'grid lg:grid-cols-[1fr_420px] gap-10 items-center' : 'grid grid-cols-1'
           }
         >
           {/* Left Column */}
@@ -93,11 +94,20 @@ export const PostHero: React.FC<{
           </div>
 
           {/* Right Column */}
-          {heroImage && typeof heroImage !== 'string' && (
+          {heroImage && typeof heroImage !== 'string' ? (
             <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-floating-lg mt-10 lg:mt-0">
               <Media fill priority resource={heroImage} imgClassName="object-cover" />
             </div>
-          )}
+          ) : heroImageUrl ? (
+            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-floating-lg mt-10 lg:mt-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroImageUrl}
+                alt={title}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

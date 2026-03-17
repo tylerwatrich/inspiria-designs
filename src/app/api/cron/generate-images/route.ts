@@ -1,7 +1,8 @@
 /**
  * CRON — Image Generator
  *
- * Finds published posts with no heroImageUrl and generates one via BFL Flux.
+ * Finds published posts with no heroImage and generates + saves one to Payload media.
+ * Also backfills posts that have a heroImageUrl (temporary BFL link) but no heroImage.
  * Processes up to 3 posts per run to stay within Vercel function limits.
  *
  * Schedule: Daily, or after write-post runs (e.g. Mon/Wed/Fri at 11am UTC)
@@ -12,7 +13,7 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { generateArticleImage } from '@/lib/imageGenerator'
+import { generateArticleImage, saveImageToMedia } from '@/lib/imageGenerator'
 
 export const maxDuration = 300
 
@@ -33,8 +34,8 @@ export async function GET(req: NextRequest) {
         { _status: { equals: 'published' } },
         {
           or: [
-            { heroImageUrl: { exists: false } },
-            { heroImageUrl: { equals: '' } },
+            { heroImage: { exists: false } },
+            { heroImage: { equals: null } },
           ],
         },
       ],
@@ -51,13 +52,28 @@ export async function GET(req: NextRequest) {
   console.log(`[generate-images] ${posts.length} post(s) queued for image generation`)
 
   after(async () => {
+    const { token } = await payload.login({
+      collection: 'users',
+      data: {
+        email: process.env.PAYLOAD_ADMIN_EMAIL!,
+        password: process.env.PAYLOAD_ADMIN_PASSWORD!,
+      },
+    })
+
     for (const post of posts) {
-      console.log(`[generate-images] Generating image for "${post.title}" (id: ${post.id})`)
+      console.log(`[generate-images] Processing "${post.title}" (id: ${post.id})`)
 
-      const imageUrl = await generateArticleImage(post.title, '')
+      // If a temporary BFL URL exists, download it directly instead of regenerating
+      const bflUrl = post.heroImageUrl ?? await generateArticleImage(post.title, '')
 
-      if (!imageUrl) {
-        console.error(`[generate-images] Failed for "${post.title}" — skipping`)
+      if (!bflUrl) {
+        console.error(`[generate-images] No image URL for "${post.title}" — skipping`)
+        continue
+      }
+
+      const mediaId = await saveImageToMedia(bflUrl, post.title, { token: token! })
+      if (!mediaId) {
+        console.error(`[generate-images] Media save failed for "${post.title}" — skipping`)
         continue
       }
 
@@ -65,11 +81,11 @@ export async function GET(req: NextRequest) {
         await payload.update({
           collection: 'posts',
           id: post.id,
-          data: { heroImageUrl: imageUrl },
+          data: { heroImage: mediaId },
         })
-        console.log(`[generate-images] Updated "${post.title}" with image`)
+        console.log(`[generate-images] Updated "${post.title}" with media id: ${mediaId}`)
       } catch (e) {
-        console.error(`[generate-images] Failed to save image URL for "${post.title}":`, e)
+        console.error(`[generate-images] Failed to update post "${post.title}":`, e)
       }
     }
 
