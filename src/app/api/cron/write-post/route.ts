@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
 
     console.log('[write-post] Generating hero image...')
     const bflUrl = await generateArticleImage(article.title, chosen.vertical)
-    let heroImageId: string | number | null = null
+    let heroImageId: number | null = null
     if (bflUrl) {
       const { token: adminToken } = await payload.login({
         collection: 'users',
