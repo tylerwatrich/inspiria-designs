@@ -13,11 +13,12 @@ type Post = {
   title: string
   content: any
   articleUpdates?: {
-    updateNumber: number
-    updatedAt: string
-    summary: string
-    updateText: string
-  }[]
+    updateNumber?: number | null
+    updatedAt?: string | null
+    summary?: string | null
+    updateText?: string | null
+    id?: string | null
+  }[] | null
 }
 
 type UpdateResult = {
@@ -43,7 +44,7 @@ export async function runUpdatePass(
       continue
     }
 
-    const existingUpdates = (post.articleUpdates ?? []).map((u) => u.summary)
+    const existingUpdates = (post.articleUpdates ?? []).map((u) => u.summary ?? '').filter(Boolean)
 
     let check
     try {
