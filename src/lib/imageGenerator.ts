@@ -116,7 +116,7 @@ export async function saveImageToMedia(
 
     const formData = new FormData()
     formData.append('_payload', JSON.stringify({ alt: title }))
-    formData.append('file', new Blob([buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)], { type: 'image/jpeg' }), filename)
+    formData.append('file', new Blob([new Uint8Array(buffer)], { type: 'image/jpeg' }), filename)
 
     const authHeaders: Record<string, string> =
       'cookie' in auth ? { Cookie: auth.cookie } : { Authorization: `JWT ${auth.token}` }
