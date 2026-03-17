@@ -9,9 +9,10 @@ export function GenerateImageButton() {
   const [success, setSuccess] = useState(false)
 
   const { id } = useDocumentInfo()
-  const { value: heroImageUrl, setValue: setHeroImageUrl } = useField<string>({ path: 'heroImageUrl' })
+  // heroImage is an upload field — its value is the media ID (or object) when set
+  const { value: heroImage } = useField<string | object>({ path: 'heroImage' })
 
-  const hasImage = Boolean(heroImageUrl)
+  const hasImage = Boolean(heroImage)
   const disabled = hasImage || loading || !id
 
   async function handleGenerate() {
@@ -27,7 +28,6 @@ export function GenerateImageButton() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Unknown error')
-      setHeroImageUrl(data.heroImageUrl)
       setSuccess(true)
     } catch (e) {
       setError(String(e))
@@ -48,7 +48,7 @@ export function GenerateImageButton() {
             ✦ Flux Image
           </span>
           <span style={{ fontSize: '12px', color: '#6b7280' }}>
-            {hasImage ? 'Hero image already generated' : 'Generate AI header image via BFL Flux'}
+            {hasImage ? 'Hero image saved to media' : 'Generate AI header image via BFL Flux'}
           </span>
         </div>
         <button
@@ -66,13 +66,10 @@ export function GenerateImageButton() {
           {loading ? 'Generating…' : hasImage ? 'Already generated' : 'Generate Image'}
         </button>
       </div>
-      {heroImageUrl && (
-        <div style={{ fontSize: '11px', color: '#6b7280', wordBreak: 'break-all' }}>
-          {heroImageUrl}
-        </div>
-      )}
       {success && !error && (
-        <div style={{ fontSize: '12px', color: '#34d399' }}>Image generated — save the post to persist it.</div>
+        <div style={{ fontSize: '12px', color: '#34d399' }}>
+          Image generated and saved to media — refresh the page to see it.
+        </div>
       )}
       {error && (
         <div style={{ fontSize: '12px', color: '#f87171' }}>Error: {error}</div>

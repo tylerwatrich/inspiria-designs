@@ -13,7 +13,7 @@ import { deliberate } from '@/lib/editorialQueue'
 import { factCheckAndEnrich } from '@/lib/geminiResearch'
 import { writeArticleFromSuggestion, articleToPayload } from '@/lib/aiWriter'
 import { automationGuard } from '@/lib/automationGuard'
-import { generateArticleImage } from '@/lib/imageGenerator'
+import { generateArticleImage, saveImageToMedia } from '@/lib/imageGenerator'
 
 export const maxDuration = 300
 
@@ -134,11 +134,22 @@ export async function GET(req: NextRequest) {
     // ─── Step 4: Generate hero image ──────────────────────────────────────────
 
     console.log('[write-post] Generating hero image...')
-    const heroImageUrl = await generateArticleImage(article.title, chosen.vertical)
-    if (heroImageUrl) {
-      console.log('[write-post] Hero image generated:', heroImageUrl)
+    const bflUrl = await generateArticleImage(article.title, chosen.vertical)
+    let heroImageId: string | number | null = null
+    if (bflUrl) {
+      const { token: adminToken } = await payload.login({
+        collection: 'users',
+        data: {
+          email: process.env.PAYLOAD_ADMIN_EMAIL!,
+          password: process.env.PAYLOAD_ADMIN_PASSWORD!,
+        },
+      })
+      heroImageId = await saveImageToMedia(bflUrl, article.title, { token: adminToken! })
+      if (!heroImageId) {
+        console.log('[write-post] Media save failed — proceeding without image')
+      }
     } else {
-      console.log('[write-post] Hero image generation skipped or failed — proceeding without image')
+      console.log('[write-post] Image generation skipped or failed — proceeding without image')
     }
 
     // ─── Step 5: Publish to Posts ─────────────────────────────────────────────
@@ -152,7 +163,7 @@ export async function GET(req: NextRequest) {
         data: {
           ...articleToPayload(article),
           _status: status,
-          ...(heroImageUrl ? { heroImageUrl } : {}),
+          ...(heroImageId ? { heroImage: heroImageId } : {}),
         },
       })
       console.log(`[write-post] ${status === 'published' ? 'Published' : 'Saved as draft'}: "${post.title}" (id: ${post.id})`)

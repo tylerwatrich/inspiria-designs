@@ -77,6 +77,73 @@ function httpsRequest(
   })
 }
 
+function downloadImage(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url)
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: parsed.pathname + parsed.search,
+        method: 'GET',
+        timeout: REQUEST_TIMEOUT_MS,
+      },
+      (res) => {
+        const chunks: Buffer[] = []
+        res.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
+        res.on('end', () => resolve(Buffer.concat(chunks)))
+      },
+    )
+    req.on('timeout', () => req.destroy(new Error('Download timed out')))
+    req.on('error', reject)
+    req.end()
+  })
+}
+
+export async function saveImageToMedia(
+  bflUrl: string,
+  title: string,
+  auth: { cookie: string } | { token: string },
+): Promise<string | number | null> {
+  const filename =
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) + '-hero.jpg'
+
+  try {
+    const buffer = await downloadImage(bflUrl)
+
+    const formData = new FormData()
+    formData.append('_payload', JSON.stringify({ alt: title }))
+    formData.append('file', new Blob([buffer], { type: 'image/jpeg' }), filename)
+
+    const authHeaders: Record<string, string> =
+      'cookie' in auth ? { Cookie: auth.cookie } : { Authorization: `JWT ${auth.token}` }
+
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
+    const response = await fetch(`${serverUrl}/api/media`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.error(`[imageGenerator] REST upload failed (${response.status}):`, text)
+      return null
+    }
+
+    const result = await response.json()
+    const id = result.doc?.id
+    console.log(`[imageGenerator] Saved to media: ${id} (${filename})`)
+    return id ?? null
+  } catch (e) {
+    console.error('[imageGenerator] Failed to save image to media:', e)
+    return null
+  }
+}
+
 export async function generateArticleImage(
   title: string,
   vertical: string,
