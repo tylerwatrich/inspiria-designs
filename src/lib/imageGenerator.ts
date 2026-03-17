@@ -81,7 +81,9 @@ export async function saveImageToMedia(
     const authHeaders: Record<string, string> =
       'cookie' in auth ? { Cookie: auth.cookie } : { Authorization: `JWT ${auth.token}` }
 
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
+    const serverUrl =
+      process.env.NEXT_PUBLIC_SERVER_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
     const response = await fetch(`${serverUrl}/api/media`, {
       method: 'POST',
       headers: authHeaders,
