@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
       const pendingAndApproved = await payload.find({
         collection: 'article-suggestions',
         where: { status: { in: ['pending', 'approved'] } },
-        limit: 50,
+        limit: 20,
         sort: '-discoveredAt',
       })
 
