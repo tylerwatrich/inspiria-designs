@@ -91,6 +91,15 @@ export const Posts: CollectionConfig<'posts'> = {
               relationTo: 'media',
             },
             {
+              name: 'heroImageUrl',
+              type: 'text',
+              label: 'Hero Image URL (AI-generated)',
+              admin: {
+                readOnly: true,
+                description: 'Auto-populated by the write-post cron via Black Forest Labs Flux. Requires BFL_API_KEY env var.',
+              },
+            },
+            {
               name: 'content',
               type: 'richText',
               editor: lexicalEditor({
