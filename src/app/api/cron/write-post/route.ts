@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Quick DB check — bail early if nothing to write
-  const { docs: approved } = await payload.find({
+  let { docs: approved } = await payload.find({
     collection: 'article-suggestions',
     where: { status: { equals: 'approved' } },
     limit: 15,
@@ -38,11 +38,22 @@ export async function GET(req: NextRequest) {
   })
 
   if (!approved.length) {
-    console.log('[write-post] No approved suggestions. Nothing to write.')
-    return NextResponse.json({ success: true, message: 'No approved suggestions' })
+    console.log('[write-post] No approved suggestions — falling back to pending queue')
+    const fallback = await payload.find({
+      collection: 'article-suggestions',
+      where: { status: { equals: 'pending' } },
+      limit: 15,
+      sort: '-priority',
+    })
+    approved = fallback.docs
   }
 
-  console.log(`[write-post] ${approved.length} approved suggestions in queue`)
+  if (!approved.length) {
+    console.log('[write-post] No suggestions in queue (approved or pending). Nothing to write.')
+    return NextResponse.json({ success: true, message: 'No suggestions in queue' })
+  }
+
+  console.log(`[write-post] ${approved.length} suggestions in queue`)
 
   // Return immediately so cron-job.org doesn't time out — heavy work runs in background
   after(async () => {
