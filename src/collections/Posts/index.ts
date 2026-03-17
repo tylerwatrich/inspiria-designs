@@ -49,11 +49,6 @@ export const Posts: CollectionConfig<'posts'> = {
   },
   admin: {
     defaultColumns: ['title', 'slug', 'qualityAudit.flag', 'qualityAudit.score', 'updatedAt'],
-    components: {
-      beforeFields: [
-        '/src/components/admin/AIWriteButton#AIWriteButton',
-      ],
-    },
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -75,6 +70,15 @@ export const Posts: CollectionConfig<'posts'> = {
       name: 'title',
       type: 'text',
       required: true,
+    },
+    {
+      type: 'ui',
+      name: 'aiWriteButton',
+      admin: {
+        components: {
+          Field: '/src/components/admin/AIWriteButton#AIWriteButton',
+        },
+      },
     },
     {
       type: 'tabs',

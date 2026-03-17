@@ -10,21 +10,22 @@ function makeText(text: string) {
 }
 
 export function toLexical(blocks: Block[]) {
+  const direction = 'ltr' as 'ltr' | 'rtl' | null
   const children = blocks.map((block) => {
     if (block.type === 'heading') {
       return {
         children: [makeText(block.text)],
-        direction: 'ltr', format: '', indent: 0,
+        direction, format: '' as const, indent: 0,
         tag: `h${block.level}`, type: 'heading', version: 1,
       }
     }
     return {
       children: [makeText(block.text)],
-      direction: 'ltr', format: '', indent: 0,
+      direction, format: '' as const, indent: 0,
       type: 'paragraph', version: 1,
     }
   })
   return {
-    root: { children, direction: 'ltr', format: '', indent: 0, type: 'root', version: 1 },
+    root: { children, direction, format: '' as const, indent: 0, type: 'root', version: 1 },
   }
 }

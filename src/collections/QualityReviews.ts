@@ -5,7 +5,6 @@ export const QualityReviews: CollectionConfig = {
   admin: {
     useAsTitle: 'runLabel',
     defaultColumns: ['runLabel', 'scannedAt', 'totalScanned', 'flagged', 'avgScore'],
-    disableDuplicate: true,
   },
   access: {
     create: () => false,
