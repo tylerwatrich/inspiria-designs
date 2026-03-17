@@ -77,6 +77,7 @@ export interface Config {
     industries: Industry;
     leads: Lead;
     faqs: Faq;
+    'search-logs': SearchLog;
     'page-views': PageView;
     'page-visits': PageVisit;
     'tracking-events': TrackingEvent;
@@ -107,6 +108,7 @@ export interface Config {
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
+    'search-logs': SearchLogsSelect<false> | SearchLogsSelect<true>;
     'page-views': PageViewsSelect<false> | PageViewsSelect<true>;
     'page-visits': PageVisitsSelect<false> | PageVisitsSelect<true>;
     'tracking-events': TrackingEventsSelect<false> | TrackingEventsSelect<true>;
@@ -935,6 +937,18 @@ export interface Lead {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-logs".
+ */
+export interface SearchLog {
+  id: number;
+  industry: string;
+  province?: string | null;
+  hideUS?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * One record per anonymous visitor — identity, device, location, attribution, and full activity history.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1319,6 +1333,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'faqs';
         value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'search-logs';
+        value: number | SearchLog;
       } | null)
     | ({
         relationTo: 'page-views';
@@ -1769,6 +1787,17 @@ export interface LeadsSelect<T extends boolean = true> {
 export interface FaqsSelect<T extends boolean = true> {
   question?: T;
   answer?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-logs_select".
+ */
+export interface SearchLogsSelect<T extends boolean = true> {
+  industry?: T;
+  province?: T;
+  hideUS?: T;
   updatedAt?: T;
   createdAt?: T;
 }

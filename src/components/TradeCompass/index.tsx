@@ -184,6 +184,14 @@ export default function TradeCompass() {
     setShowCTA(false)
     setTimeout(() => setShowCTA(true), 1500)
 
+    fetch('/api/search-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ industry: selectedIndustry, province: selectedProvince, hideUS }),
+    }).catch(() => {
+      // Non-blocking — logging failure must never interrupt the user experience
+    })
+
     // Scroll results into view
     setTimeout(() => {
       document.getElementById('results-header')?.scrollIntoView({ behavior: 'smooth' })
