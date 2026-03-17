@@ -3,14 +3,17 @@
  *
  * Required env var: BFL_API_KEY
  *
- * Uses node:https directly to avoid undici's 10s connect timeout
- * that fires before AbortSignal can help.
+ * Uses node:https directly to set connectTimeout — Node.js global fetch
+ * defaults to 10s which BFL regularly exceeds on cold connections.
+ *
+ * Important: BFL returns a polling_url in the generation response that may
+ * be on a different subdomain (e.g. api.us2.bfl.ai). Always use that URL
+ * directly rather than constructing the poll path manually.
  */
 
 import https from 'node:https'
 
-const BFL_HOST = 'api.bfl.ai'
-const BFL_BASE_PATH = '/v1'
+const BFL_GENERATE_URL = 'https://api.bfl.ai/v1/flux-pro-1.1'
 const POLL_INTERVAL_MS = 2000
 const POLL_TIMEOUT_MS = 90_000
 const REQUEST_TIMEOUT_MS = 30_000
@@ -25,41 +28,44 @@ const VERTICAL_STYLE_HINTS: Record<string, string> = {
 }
 
 function httpsRequest(
-  path: string,
+  url: string,
   apiKey: string,
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<{ ok: boolean; status: number; data: any }> {
   return new Promise((resolve, reject) => {
+    const parsed = new URL(url)
     const bodyStr = body ? JSON.stringify(body) : undefined
-    const options: https.RequestOptions = {
-      hostname: BFL_HOST,
-      path: `${BFL_BASE_PATH}${path}`,
-      method,
-      timeout: REQUEST_TIMEOUT_MS,
-      headers: {
-        'X-Key': apiKey,
-        ...(bodyStr
-          ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) }
-          : {}),
-      },
-    }
 
-    const req = https.request(options, (res) => {
-      let raw = ''
-      res.on('data', (chunk) => { raw += chunk })
-      res.on('end', () => {
-        try {
-          resolve({
-            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-            status: res.statusCode ?? 0,
-            data: JSON.parse(raw),
-          })
-        } catch {
-          reject(new Error(`Failed to parse response: ${raw}`))
-        }
-      })
-    })
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: parsed.pathname + parsed.search,
+        method,
+        timeout: REQUEST_TIMEOUT_MS,
+        headers: {
+          'X-Key': apiKey,
+          ...(bodyStr
+            ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) }
+            : {}),
+        },
+      },
+      (res) => {
+        let raw = ''
+        res.on('data', (chunk) => { raw += chunk })
+        res.on('end', () => {
+          try {
+            resolve({
+              ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+              status: res.statusCode ?? 0,
+              data: JSON.parse(raw),
+            })
+          } catch {
+            reject(new Error(`Failed to parse response: ${raw}`))
+          }
+        })
+      },
+    )
 
     req.on('timeout', () => {
       req.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`))
@@ -87,9 +93,9 @@ export async function generateArticleImage(
     `${styleHint}. High-quality digital art or photorealistic. ` +
     `No text, no words, no logos, no overlays. Wide format, clean composition, professional publication quality.`
 
-  let generationId: string
+  let pollingUrl: string
   try {
-    const { ok, status, data } = await httpsRequest('/flux-pro-1.1', apiKey, 'POST', {
+    const { ok, status, data } = await httpsRequest(BFL_GENERATE_URL, apiKey, 'POST', {
       prompt,
       width: 1216,
       height: 640,
@@ -100,12 +106,12 @@ export async function generateArticleImage(
       return null
     }
 
-    generationId = data.id
-    if (!generationId) {
-      console.error('[imageGenerator] No ID in generation response:', data)
+    pollingUrl = data.polling_url
+    if (!pollingUrl) {
+      console.error('[imageGenerator] No polling_url in generation response:', data)
       return null
     }
-    console.log(`[imageGenerator] Generation started, id: ${generationId}`)
+    console.log(`[imageGenerator] Generation started, polling: ${pollingUrl}`)
   } catch (e) {
     console.error('[imageGenerator] Failed to start image generation:', e)
     return null
@@ -117,13 +123,10 @@ export async function generateArticleImage(
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
 
     try {
-      const { ok, status, data } = await httpsRequest(
-        `/get_result?id=${generationId}`,
-        apiKey,
-      )
+      const { ok, status, data } = await httpsRequest(pollingUrl, apiKey)
 
       if (!ok) {
-        console.error(`[imageGenerator] Poll failed (${status}) for id: ${generationId}`)
+        console.error(`[imageGenerator] Poll failed (${status}): ${pollingUrl}`)
         continue
       }
 
@@ -148,8 +151,6 @@ export async function generateArticleImage(
     }
   }
 
-  console.error(
-    `[imageGenerator] Timed out after ${POLL_TIMEOUT_MS / 1000}s. id: ${generationId}`,
-  )
+  console.error(`[imageGenerator] Timed out after ${POLL_TIMEOUT_MS / 1000}s`)
   return null
 }
