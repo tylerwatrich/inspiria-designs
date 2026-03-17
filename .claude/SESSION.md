@@ -56,6 +56,8 @@ Neon had 74 posts with duplicates and stale data. Local is the source of truth.
 
 ## Last Action
 
+> 2026-03-17 — Added BFL Flux image generation. New `src/lib/imageGenerator.ts` with `generateArticleImage(title, vertical)`. write-post cron now calls it after writing the article and passes the URL into `heroImageUrl` on the post. New `heroImageUrl` text field (readOnly) added to Posts collection. Requires `BFL_API_KEY` env var. Image failure is non-blocking — publish proceeds with null. Needs `pnpm dev` to auto-migrate the new `hero_image_url` column.
+
 > 2026-03-16 — Added Trade Compass search query logging. New `SearchLogs` Payload collection (industry, province, hideUS, timestamps). New `/api/search-logs` POST route. `handleFind` in TradeCompass fires a non-blocking fetch on every search. Logging failure is silently caught. Collection grouped under "Analytics" in admin sidebar. Needs `pnpm dev` to auto-migrate the new `search_logs` table.
 > 2026-03-16 — Added `PageViews` collection and user tracking system. 4 files created/modified: `src/collections/PageViews.ts` (collection), `src/app/api/track/route.ts` (upsert endpoint), `src/components/PageTracker/index.tsx` (client component), registered in `payload.config.ts`, added to `(frontend)/layout.tsx`. Tracks: visitorId (localStorage UUID), IP, country/city/region (Vercel edge headers), pageCount, full pages array with path/title/timestamp. Needs `pnpm dev` to auto-migrate.
 
@@ -98,3 +100,4 @@ Then append a one-liner to the history below:
 | 2026-03-16 | Claude | Add Trade Compass search query logging | 4 files changed — needs pnpm dev to auto-migrate search_logs table |
 | 2026-03-16 | Claude | Implement user/page tracking system | PageViews collection + /api/track + PageTracker component — needs pnpm dev to migrate |
 | 2026-03-16 | Claude | Reset Neon prod DB from local | Wiped Neon (74 posts), restored local dump (38 clean posts), all migrations intact, Vercel redeploy triggered |
+| 2026-03-17 | Claude | Add BFL Flux hero image generation | imageGenerator.ts created, write-post cron updated, heroImageUrl field added to Posts — needs pnpm dev to migrate |
