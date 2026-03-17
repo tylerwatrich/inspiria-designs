@@ -91,8 +91,8 @@ export async function generateArticleImage(
   try {
     const { ok, status, data } = await httpsRequest('/flux-pro-1.1', apiKey, 'POST', {
       prompt,
-      width: 1200,
-      height: 630,
+      width: 1216,
+      height: 640,
     })
 
     if (!ok) {
