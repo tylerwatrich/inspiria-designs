@@ -23,3 +23,4 @@ posts_export.sql
 .vscode/settings.json
 scripts/assign-images.mjs
 neon-export-20260312-141611.sql
+.env.production
