@@ -13,7 +13,7 @@ export const AutomationSettings: GlobalConfig = {
       name: 'statusNote',
       admin: {
         components: {
-          Field: '/src/components/admin/AutomationStatusBanner#AutomationStatusBanner',
+          Field: '@/components/admin/AutomationStatusBanner#AutomationStatusBanner',
         },
       },
     },

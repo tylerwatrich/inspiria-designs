@@ -76,7 +76,7 @@ export const Posts: CollectionConfig<'posts'> = {
       name: 'aiWriteButton',
       admin: {
         components: {
-          Field: '/src/components/admin/AIWriteButton#AIWriteButton',
+          Field: '@/components/admin/AIWriteButton#AIWriteButton',
         },
       },
     },
