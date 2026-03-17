@@ -18,6 +18,19 @@ export const AutomationSettings: GlobalConfig = {
       },
     },
     {
+      name: 'researchProvider',
+      type: 'select',
+      label: 'Research Provider',
+      defaultValue: 'claude',
+      admin: {
+        description: 'Which AI provider to use for web search (news scanning, fact-checking, re-prioritization). Claude requires no extra API key.',
+      },
+      options: [
+        { label: 'Claude Web Search — no extra API key needed', value: 'claude' },
+        { label: 'Gemini — requires GEMINI_API_KEY', value: 'gemini' },
+      ],
+    },
+    {
       type: 'collapsible',
       label: '📡 News Scanner (Cron A — every 3 hours)',
       fields: [
@@ -27,7 +40,7 @@ export const AutomationSettings: GlobalConfig = {
           type: 'checkbox',
           defaultValue: true,
           admin: {
-            description: 'Gemini scans Canadian biz/tech news and creates article suggestions.',
+            description: 'Scans Canadian biz/tech news and creates article suggestions.',
           },
         },
         {
@@ -36,7 +49,7 @@ export const AutomationSettings: GlobalConfig = {
           type: 'checkbox',
           defaultValue: true,
           admin: {
-            description: 'During each scan, Gemini re-scores existing pending/approved suggestions as stories develop.',
+            description: 'During each scan, re-scores existing pending/approved suggestions as stories develop.',
           },
         },
       ],

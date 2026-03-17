@@ -1,13 +1,79 @@
 /**
- * Gemini research helper — search grounding via Google AI API.
+ * Research helper — web search via Claude (default) or Gemini (opt-in).
+ * Provider is selected at runtime via the automation-settings global.
  * Used for: news scanning, priority re-scoring, fact verification.
  */
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+// ─── Provider detection ────────────────────────────────────────────────────────
+
+async function getResearchProvider(): Promise<'claude' | 'gemini'> {
+  try {
+    const payload = await getPayload({ config })
+    const settings = await payload.findGlobal({ slug: 'automation-settings' })
+    const provider = (settings as any).researchProvider
+    if (provider === 'gemini' && process.env.GEMINI_API_KEY) return 'gemini'
+    return 'claude'
+  } catch {
+    return 'claude'
+  }
+}
+
+// ─── Claude web search ─────────────────────────────────────────────────────────
+
+async function callClaude(prompt: string, systemPrompt?: string): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
+
+  const messages: { role: string; content: string }[] = [
+    { role: 'user', content: prompt },
+  ]
+
+  const body: Record<string, unknown> = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    messages,
+  }
+
+  if (systemPrompt) {
+    body.system = systemPrompt
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'web-search-2025-03-05',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Claude API error ${res.status}: ${err}`)
+  }
+
+  const data = await res.json()
+
+  // Extract the last text block from the response content array
+  const textBlocks = (data.content ?? []).filter((c: any) => c.type === 'text')
+  return textBlocks[textBlocks.length - 1]?.text ?? ''
+}
+
+// ─── Gemini web search ─────────────────────────────────────────────────────────
+
 const GEMINI_MODEL = 'gemini-2.0-flash'
-const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
+const GEMINI_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
 async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
+
   const body: Record<string, unknown> = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     tools: [{ google_search: {} }],
@@ -18,7 +84,7 @@ async function callGemini(prompt: string, systemPrompt?: string): Promise<string
     body.system_instruction = { parts: [{ text: systemPrompt }] }
   }
 
-  const res = await fetch(`${BASE_URL}?key=${GEMINI_API_KEY}`, {
+  const res = await fetch(`${GEMINI_BASE_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -31,6 +97,16 @@ async function callGemini(prompt: string, systemPrompt?: string): Promise<string
 
   const data = await res.json()
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+}
+
+// ─── Unified call dispatcher ───────────────────────────────────────────────────
+
+async function callResearch(prompt: string, systemPrompt?: string): Promise<string> {
+  const provider = await getResearchProvider()
+  if (provider === 'gemini') {
+    return callGemini(prompt, systemPrompt)
+  }
+  return callClaude(prompt, systemPrompt)
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -99,14 +175,14 @@ Return a JSON array of story objects:
 
 Only include stories with actual sources you found. Do not fabricate.`
 
-  const raw = await callGemini(prompt, SYSTEM)
+  const raw = await callResearch(prompt, SYSTEM)
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
 
   try {
     const parsed = JSON.parse(clean)
     return Array.isArray(parsed) ? parsed : []
   } catch (e) {
-    console.error('[gemini] Failed to parse scanForStories response:', e, '\nRaw:', raw)
+    console.error('[research] Failed to parse scanForStories response:', e, '\nRaw:', raw)
     return []
   }
 }
@@ -148,14 +224,14 @@ Return a JSON array:
 
 Include an entry for every story in the list.`
 
-  const raw = await callGemini(prompt, SYSTEM)
+  const raw = await callResearch(prompt, SYSTEM)
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
 
   try {
     const parsed = JSON.parse(clean)
     return Array.isArray(parsed) ? parsed : []
   } catch (e) {
-    console.error('[gemini] Failed to parse rePrioritize response:', e)
+    console.error('[research] Failed to parse rePrioritize response:', e)
     return []
   }
 }
@@ -192,16 +268,16 @@ Search for current sources. Return:
 If the story checks out, corrections can be an empty array.
 If sources are unavailable or story can't be verified, set verified: false and explain in corrections.`
 
-  const raw = await callGemini(prompt, SYSTEM)
+  const raw = await callResearch(prompt, SYSTEM)
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
 
   try {
     return JSON.parse(clean) as FactCheckResult
   } catch (e) {
-    console.error('[gemini] Failed to parse factCheck response:', e)
+    console.error('[research] Failed to parse factCheck response:', e)
     return {
       verified: false,
-      corrections: ['Gemini fact-check failed to parse'],
+      corrections: ['Research fact-check failed to parse'],
       additionalContext: geminiContext,
       updatedKeyPoints: keyPoints,
     }

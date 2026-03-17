@@ -2479,11 +2479,15 @@ export interface SiteSetting {
 export interface AutomationSetting {
   id: number;
   /**
-   * Gemini scans Canadian biz/tech news and creates article suggestions.
+   * Which AI provider to use for web search (news scanning, fact-checking, re-prioritization). Claude requires no extra API key.
+   */
+  researchProvider?: ('claude' | 'gemini') | null;
+  /**
+   * Scans Canadian biz/tech news and creates article suggestions.
    */
   scanNewsEnabled?: boolean | null;
   /**
-   * During each scan, Gemini re-scores existing pending/approved suggestions as stories develop.
+   * During each scan, re-scores existing pending/approved suggestions as stories develop.
    */
   rePrioritizeEnabled?: boolean | null;
   /**
@@ -2585,6 +2589,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
  * via the `definition` "automation-settings_select".
  */
 export interface AutomationSettingsSelect<T extends boolean = true> {
+  researchProvider?: T;
   scanNewsEnabled?: T;
   rePrioritizeEnabled?: T;
   autoWriteEnabled?: T;
