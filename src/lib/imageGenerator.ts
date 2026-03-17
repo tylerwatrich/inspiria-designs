@@ -3,20 +3,15 @@
  *
  * Required env var: BFL_API_KEY
  *
- * Uses node:https directly to set connectTimeout — Node.js global fetch
- * defaults to 10s which BFL regularly exceeds on cold connections.
- *
  * Important: BFL returns a polling_url in the generation response that may
  * be on a different subdomain (e.g. api.us2.bfl.ai). Always use that URL
  * directly rather than constructing the poll path manually.
  */
 
-import https from 'node:https'
-
 const BFL_GENERATE_URL = 'https://api.bfl.ai/v1/flux-pro-1.1'
 const POLL_INTERVAL_MS = 2000
 const POLL_TIMEOUT_MS = 90_000
-const REQUEST_TIMEOUT_MS = 30_000
+const REQUEST_TIMEOUT_MS = 60_000
 
 const VERTICAL_STYLE_HINTS: Record<string, string> = {
   nuclear: 'industrial and technical, power plant infrastructure, clean energy engineering',
@@ -27,83 +22,48 @@ const VERTICAL_STYLE_HINTS: Record<string, string> = {
   'deep-tech': 'futuristic and scientific, quantum computing, advanced laboratory, circuit patterns',
 }
 
-function httpsRequest(
+async function bflFetch(
   url: string,
   apiKey: string,
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<{ ok: boolean; status: number; data: any }> {
-  return new Promise((resolve, reject) => {
-    const parsed = new URL(url)
-    const bodyStr = body ? JSON.stringify(body) : undefined
-
-    const req = https.request(
-      {
-        hostname: parsed.hostname,
-        path: parsed.pathname + parsed.search,
-        method,
-        timeout: REQUEST_TIMEOUT_MS,
-        headers: {
-          'X-Key': apiKey,
-          ...(bodyStr
-            ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) }
-            : {}),
-        },
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    const res = await fetch(url, {
+      method,
+      signal: controller.signal,
+      headers: {
+        'X-Key': apiKey,
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
-      (res) => {
-        let raw = ''
-        res.on('data', (chunk) => { raw += chunk })
-        res.on('end', () => {
-          try {
-            resolve({
-              ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-              status: res.statusCode ?? 0,
-              data: JSON.parse(raw),
-            })
-          } catch {
-            reject(new Error(`Failed to parse response: ${raw}`))
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`))
+      body: body ? JSON.stringify(body) : undefined,
     })
-    req.on('error', reject)
-
-    if (bodyStr) req.write(bodyStr)
-    req.end()
-  })
+    const data = await res.json()
+    return { ok: res.ok, status: res.status, data }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
-function downloadImage(url: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const parsed = new URL(url)
-    const req = https.request(
-      {
-        hostname: parsed.hostname,
-        path: parsed.pathname + parsed.search,
-        method: 'GET',
-        timeout: REQUEST_TIMEOUT_MS,
-      },
-      (res) => {
-        const chunks: Buffer[] = []
-        res.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
-        res.on('end', () => resolve(Buffer.concat(chunks)))
-      },
-    )
-    req.on('timeout', () => req.destroy(new Error('Download timed out')))
-    req.on('error', reject)
-    req.end()
-  })
+async function downloadImage(url: string): Promise<Buffer> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+    return Buffer.from(await res.arrayBuffer())
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 export async function saveImageToMedia(
   bflUrl: string,
   title: string,
   auth: { cookie: string } | { token: string },
-): Promise<string | number | null> {
+): Promise<number | null> {
   const filename =
     title
       .toLowerCase()
@@ -116,12 +76,14 @@ export async function saveImageToMedia(
 
     const formData = new FormData()
     formData.append('_payload', JSON.stringify({ alt: title }))
-    formData.append('file', new Blob([buffer], { type: 'image/jpeg' }), filename)
+    formData.append('file', new Blob([new Uint8Array(buffer)], { type: 'image/jpeg' }), filename)
 
     const authHeaders: Record<string, string> =
       'cookie' in auth ? { Cookie: auth.cookie } : { Authorization: `JWT ${auth.token}` }
 
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
+    const serverUrl =
+      process.env.NEXT_PUBLIC_SERVER_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
     const response = await fetch(`${serverUrl}/api/media`, {
       method: 'POST',
       headers: authHeaders,
@@ -135,9 +97,13 @@ export async function saveImageToMedia(
     }
 
     const result = await response.json()
-    const id = result.doc?.id
+    const id: number = Number(result.doc?.id)
+    if (!id) {
+      console.error('[imageGenerator] REST upload returned no id:', result)
+      return null
+    }
     console.log(`[imageGenerator] Saved to media: ${id} (${filename})`)
-    return id ?? null
+    return id
   } catch (e) {
     console.error('[imageGenerator] Failed to save image to media:', e)
     return null
@@ -162,7 +128,7 @@ export async function generateArticleImage(
 
   let pollingUrl: string
   try {
-    const { ok, status, data } = await httpsRequest(BFL_GENERATE_URL, apiKey, 'POST', {
+    const { ok, status, data } = await bflFetch(BFL_GENERATE_URL, apiKey, 'POST', {
       prompt,
       width: 1216,
       height: 640,
@@ -190,7 +156,7 @@ export async function generateArticleImage(
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
 
     try {
-      const { ok, status, data } = await httpsRequest(pollingUrl, apiKey)
+      const { ok, status, data } = await bflFetch(pollingUrl, apiKey)
 
       if (!ok) {
         console.error(`[imageGenerator] Poll failed (${status}): ${pollingUrl}`)
