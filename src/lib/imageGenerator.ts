@@ -9,7 +9,7 @@
 
 import https from 'node:https'
 
-const BFL_HOST = 'api.bfl.ml'
+const BFL_HOST = 'api.bfl.ai'
 const BFL_BASE_PATH = '/v1'
 const POLL_INTERVAL_MS = 2000
 const POLL_TIMEOUT_MS = 90_000
