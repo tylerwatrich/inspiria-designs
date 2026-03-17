@@ -13,6 +13,7 @@ import { deliberate } from '@/lib/editorialQueue'
 import { factCheckAndEnrich } from '@/lib/geminiResearch'
 import { writeArticleFromSuggestion, articleToPayload } from '@/lib/aiWriter'
 import { automationGuard } from '@/lib/automationGuard'
+import { generateArticleImage } from '@/lib/imageGenerator'
 
 export const maxDuration = 300
 
@@ -130,7 +131,17 @@ export async function GET(req: NextRequest) {
       return
     }
 
-    // ─── Step 4: Publish to Posts ─────────────────────────────────────────────
+    // ─── Step 4: Generate hero image ──────────────────────────────────────────
+
+    console.log('[write-post] Generating hero image...')
+    const heroImageUrl = await generateArticleImage(article.title, chosen.vertical)
+    if (heroImageUrl) {
+      console.log('[write-post] Hero image generated:', heroImageUrl)
+    } else {
+      console.log('[write-post] Hero image generation skipped or failed — proceeding without image')
+    }
+
+    // ─── Step 5: Publish to Posts ─────────────────────────────────────────────
 
     const status = guard.check('autoPublishEnabled') ? 'published' : 'draft'
 
@@ -138,7 +149,11 @@ export async function GET(req: NextRequest) {
     try {
       post = await payload.create({
         collection: 'posts',
-        data: { ...articleToPayload(article), _status: status },
+        data: {
+          ...articleToPayload(article),
+          _status: status,
+          ...(heroImageUrl ? { heroImageUrl } : {}),
+        },
       })
       console.log(`[write-post] ${status === 'published' ? 'Published' : 'Saved as draft'}: "${post.title}" (id: ${post.id})`)
     } catch (e) {
@@ -146,7 +161,7 @@ export async function GET(req: NextRequest) {
       return
     }
 
-    // ─── Step 5: Mark suggestion as published ────────────────────────────────
+    // ─── Step 6: Mark suggestion as published ────────────────────────────────
 
     await payload.update({
       collection: 'article-suggestions',
