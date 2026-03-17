@@ -2,17 +2,19 @@
  * CRON B — Writer
  *
  * Schedule: Mon/Wed/Fri at 10am and 3pm UTC (0 10,15 * * 1,3,5)
- * URL: https://inspiria.ca/api/cron/write-post
+ * URL: https://inspiriadigital.com/api/cron/write-post
  * Header: Authorization: Bearer YOUR_CRON_SECRET
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { deliberate } from '@/lib/editorialQueue'
 import { factCheckAndEnrich } from '@/lib/geminiResearch'
 import { writeArticleFromSuggestion, articleToPayload } from '@/lib/aiWriter'
 import { automationGuard } from '@/lib/automationGuard'
+
+export const maxDuration = 300
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -27,8 +29,7 @@ export async function GET(req: NextRequest) {
     return guard.pausedResponse('Autonomous writing is paused.')
   }
 
-  // ─── Step 1: Fetch approved suggestions ────────────────────────────────────
-
+  // Quick DB check — bail early if nothing to write
   const { docs: approved } = await payload.find({
     collection: 'article-suggestions',
     where: { status: { equals: 'approved' } },
@@ -43,125 +44,122 @@ export async function GET(req: NextRequest) {
 
   console.log(`[write-post] ${approved.length} approved suggestions in queue`)
 
-  // ─── Step 2: Claude deliberates ────────────────────────────────────────────
+  // Return immediately so cron-job.org doesn't time out — heavy work runs in background
+  after(async () => {
+    // ─── Step 1: Claude deliberates ──────────────────────────────────────────
 
-  const decision = await deliberate(
-    approved.map((d: any) => ({
-      id: String(d.id),
-      headline: d.headline,
-      summary: d.summary,
-      vertical: d.vertical,
-      priority: d.priority,
-      priorityReason: d.priorityReason,
-      keyPoints: d.keyPoints ?? [],
-      discoveredAt: d.discoveredAt,
-      scheduledFor: d.scheduledFor,
-    }))
-  )
-
-  if (!decision) {
-    return NextResponse.json({ success: true, message: 'No eligible suggestions (all scheduled for future)' })
-  }
-
-  console.log(`[write-post] Claude selected: "${decision.selectedId}" — ${decision.reasoning}`)
-
-  const chosen = approved.find((d: any) => String(d.id) === decision.selectedId)
-  if (!chosen) {
-    return NextResponse.json({ success: false, error: 'Claude selected an ID not in the approved list' }, { status: 500 })
-  }
-
-  for (const skip of decision.skipped) {
-    try {
-      await payload.update({
-        collection: 'article-suggestions',
-        id: skip.id,
-        data: { claudeEditorialNote: `Skipped this run: ${skip.reason}` },
-      })
-    } catch { /* non-fatal */ }
-  }
-
-  // ─── Step 3: Gemini fact-checks the chosen story ───────────────────────────
-
-  console.log(`[write-post] Fact-checking "${chosen.headline}"...`)
-
-  let factCheck = {
-    verified: true,
-    corrections: [] as string[],
-    additionalContext: '',
-    updatedKeyPoints: (chosen.keyPoints ?? []).map((k: any) => k.point),
-  }
-
-  try {
-    factCheck = await factCheckAndEnrich(
-      chosen.headline,
-      (chosen.keyPoints ?? []).map((k: any) => k.point),
-      chosen.geminiContext ?? ''
+    const decision = await deliberate(
+      approved.map((d: any) => ({
+        id: String(d.id),
+        headline: d.headline,
+        summary: d.summary,
+        vertical: d.vertical,
+        priority: d.priority,
+        priorityReason: d.priorityReason,
+        keyPoints: d.keyPoints ?? [],
+        discoveredAt: d.discoveredAt,
+        scheduledFor: d.scheduledFor,
+      }))
     )
-    console.log(`[write-post] Fact-check complete. Verified: ${factCheck.verified}`)
-    if (factCheck.corrections.length) {
-      console.log('[write-post] Corrections:', factCheck.corrections)
+
+    if (!decision) {
+      console.log('[write-post] No eligible suggestions (all scheduled for future)')
+      return
     }
-  } catch (e) {
-    console.error('[write-post] Fact-check failed (proceeding with original context):', e)
-  }
 
-  // ─── Step 4: Claude writes the article ─────────────────────────────────────
+    console.log(`[write-post] Claude selected: "${decision.selectedId}" — ${decision.reasoning}`)
 
-  console.log('[write-post] Writing article...')
+    const chosen = approved.find((d: any) => String(d.id) === decision.selectedId)
+    if (!chosen) {
+      console.error('[write-post] Claude selected an ID not in the approved list')
+      return
+    }
 
-  let article
-  try {
-    article = await writeArticleFromSuggestion({
-      headline: chosen.headline,
-      summary: chosen.summary,
-      keyPoints: factCheck.updatedKeyPoints,
-      geminiContext: chosen.geminiContext ?? '',
-      additionalContext: factCheck.additionalContext,
-      editorial: decision.reasoning,
-      vertical: chosen.vertical,
+    for (const skip of decision.skipped) {
+      try {
+        await payload.update({
+          collection: 'article-suggestions',
+          id: skip.id,
+          data: { claudeEditorialNote: `Skipped this run: ${skip.reason}` },
+        })
+      } catch { /* non-fatal */ }
+    }
+
+    // ─── Step 2: Fact-check the chosen story ─────────────────────────────────
+
+    console.log(`[write-post] Fact-checking "${chosen.headline}"...`)
+
+    let factCheck = {
+      verified: true,
+      corrections: [] as string[],
+      additionalContext: '',
+      updatedKeyPoints: (chosen.keyPoints ?? []).map((k: any) => k.point),
+    }
+
+    try {
+      factCheck = await factCheckAndEnrich(
+        chosen.headline,
+        (chosen.keyPoints ?? []).map((k: any) => k.point),
+        chosen.geminiContext ?? ''
+      )
+      console.log(`[write-post] Fact-check complete. Verified: ${factCheck.verified}`)
+      if (factCheck.corrections.length) {
+        console.log('[write-post] Corrections:', factCheck.corrections)
+      }
+    } catch (e) {
+      console.error('[write-post] Fact-check failed (proceeding with original context):', e)
+    }
+
+    // ─── Step 3: Claude writes the article ───────────────────────────────────
+
+    console.log('[write-post] Writing article...')
+
+    let article
+    try {
+      article = await writeArticleFromSuggestion({
+        headline: chosen.headline,
+        summary: chosen.summary,
+        keyPoints: factCheck.updatedKeyPoints,
+        geminiContext: chosen.geminiContext ?? '',
+        additionalContext: factCheck.additionalContext,
+        editorial: decision.reasoning,
+        vertical: chosen.vertical,
+      })
+    } catch (e) {
+      console.error('[write-post] Article writing failed:', e)
+      return
+    }
+
+    // ─── Step 4: Publish to Posts ─────────────────────────────────────────────
+
+    const status = guard.check('autoPublishEnabled') ? 'published' : 'draft'
+
+    let post
+    try {
+      post = await payload.create({
+        collection: 'posts',
+        data: { ...articleToPayload(article), _status: status },
+      })
+      console.log(`[write-post] ${status === 'published' ? 'Published' : 'Saved as draft'}: "${post.title}" (id: ${post.id})`)
+    } catch (e) {
+      console.error('[write-post] Failed to publish post:', e)
+      return
+    }
+
+    // ─── Step 5: Mark suggestion as published ────────────────────────────────
+
+    await payload.update({
+      collection: 'article-suggestions',
+      id: chosen.id,
+      data: {
+        status: 'published',
+        publishedPost: post.id,
+        claudeEditorialNote: decision.reasoning,
+      },
     })
-  } catch (e) {
-    console.error('[write-post] Article writing failed:', e)
-    return NextResponse.json({ success: false, error: `writeArticle: ${String(e)}` }, { status: 500 })
-  }
 
-  // ─── Step 5: Publish to Posts ──────────────────────────────────────────────
-
-  const status = guard.check('autoPublishEnabled') ? 'published' : 'draft'
-
-  let post
-  try {
-    post = await payload.create({
-      collection: 'posts',
-      data: { ...articleToPayload(article), _status: status },
-    })
-    console.log(`[write-post] ${status === 'published' ? 'Published' : 'Saved as draft'}: "${post.title}" (id: ${post.id})`)
-  } catch (e) {
-    console.error('[write-post] Failed to publish post:', e)
-    return NextResponse.json({ success: false, error: `publishPost: ${String(e)}` }, { status: 500 })
-  }
-
-  // ─── Step 6: Mark suggestion as published ──────────────────────────────────
-
-  await payload.update({
-    collection: 'article-suggestions',
-    id: chosen.id,
-    data: {
-      status: 'published',
-      publishedPost: post.id,
-      claudeEditorialNote: decision.reasoning,
-    },
+    console.log(`[write-post] Done — "${post.title}" saved as ${status}`)
   })
 
-  return NextResponse.json({
-    success: true,
-    published: {
-      title: post.title,
-      id: post.id,
-      status,
-      suggestion: chosen.headline,
-      factCheckVerified: factCheck.verified,
-      corrections: factCheck.corrections,
-    },
-  })
+  return NextResponse.json({ success: true, message: 'Writing started' })
 }
