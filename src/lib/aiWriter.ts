@@ -30,6 +30,8 @@ export type ArticleJSON = {
   slug: string
   excerpt: string
   category: string
+  articleSummary?: string
+  keyTakeaways?: string[]
   content: Array<
     | { type: 'paragraph'; text: string }
     | { type: 'heading'; level: 2 | 3; text: string }
@@ -63,6 +65,13 @@ Return JSON:
   "slug": "url-friendly-slug",
   "excerpt": "2-sentence summary for the article card (max 60 words)",
   "category": "${input.vertical}",
+  "articleSummary": "1–2 sentence plain-text summary of the article for SEO and AI readers",
+  "keyTakeaways": [
+    "First key insight from this article",
+    "Second key insight",
+    "Third key insight",
+    "Fourth key insight"
+  ],
   "content": [
     { "type": "paragraph", "text": "Opening paragraph..." },
     { "type": "heading", "level": 2, "text": "Section heading" },
@@ -70,7 +79,7 @@ Return JSON:
   ]
 }
 
-Write 7–10 content blocks, 600–900 words total. Lead with the most newsworthy element. No marketing language.`
+Write 7–10 content blocks, 600–900 words total. Lead with the most newsworthy element. No marketing language. Provide exactly 4 key takeaways — short, punchy, actionable insights (max 20 words each).`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -99,6 +108,10 @@ export function articleToPayload(article: ArticleJSON) {
     slug: article.slug,
     content: toLexical(article.content),
     _status: 'published' as const,
+    ...(article.articleSummary ? { articleSummary: article.articleSummary } : {}),
+    ...(article.keyTakeaways?.length
+      ? { keyTakeaways: article.keyTakeaways.map((point) => ({ point })) }
+      : {}),
   }
 }
 
@@ -121,6 +134,13 @@ Return JSON:
   "slug": "url-friendly-slug",
   "excerpt": "2-sentence summary (max 60 words)",
   "category": "one of: nuclear | ai-cloud | construction-tech | finance | trade | deep-tech | general",
+  "articleSummary": "1–2 sentence plain-text summary of the article for SEO and AI readers",
+  "keyTakeaways": [
+    "First key insight from this article",
+    "Second key insight",
+    "Third key insight",
+    "Fourth key insight"
+  ],
   "content": [
     { "type": "paragraph", "text": "Opening paragraph..." },
     { "type": "heading", "level": 2, "text": "Section heading" },
@@ -128,7 +148,7 @@ Return JSON:
   ]
 }
 
-Write 7–10 content blocks, 600–900 words total. Lead with the most newsworthy element. No marketing language. No speculation presented as fact.`
+Write 7–10 content blocks, 600–900 words total. Lead with the most newsworthy element. No marketing language. No speculation presented as fact. Provide exactly 4 key takeaways — short, punchy, actionable insights (max 20 words each).`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
