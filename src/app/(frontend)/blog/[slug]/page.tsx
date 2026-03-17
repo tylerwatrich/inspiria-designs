@@ -163,6 +163,21 @@ export default async function Post({ params: paramsPromise }: Args) {
             )}
           </div>
 
+          {/* Last Updated badge */}
+          {post.articleUpdates && post.articleUpdates.length > 0 && (() => {
+            const latestUpdate = post.articleUpdates[post.articleUpdates.length - 1]
+            return (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+                Last updated:{' '}
+                {new Date(latestUpdate.updatedAt as string).toLocaleDateString('en-CA', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </p>
+            )
+          })()}
+
           <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating px-8 py-10 md:px-14 md:py-14">
             {post.cta === 'trade-compass' && (
               <div className="mb-8 border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
