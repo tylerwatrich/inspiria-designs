@@ -56,6 +56,8 @@ Neon had 74 posts with duplicates and stale data. Local is the source of truth.
 
 ## Last Action
 
+> 2026-03-17 — Fixed imageGenerator.ts connect timeout: replaced global fetch with undici request() to set connectTimeout=30s (undici default is 10s). Added generate-images cron route (/api/cron/generate-images) that batches 3 posts per run.
+
 > 2026-03-17 — Added BFL Flux image generation. New `src/lib/imageGenerator.ts` with `generateArticleImage(title, vertical)`. write-post cron now calls it after writing the article and passes the URL into `heroImageUrl` on the post. New `heroImageUrl` text field (readOnly) added to Posts collection. Requires `BFL_API_KEY` env var. Image failure is non-blocking — publish proceeds with null. Needs `pnpm dev` to auto-migrate the new `hero_image_url` column.
 
 > 2026-03-16 — Added Trade Compass search query logging. New `SearchLogs` Payload collection (industry, province, hideUS, timestamps). New `/api/search-logs` POST route. `handleFind` in TradeCompass fires a non-blocking fetch on every search. Logging failure is silently caught. Collection grouped under "Analytics" in admin sidebar. Needs `pnpm dev` to auto-migrate the new `search_logs` table.
