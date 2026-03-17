@@ -103,7 +103,7 @@ export async function saveImageToMedia(
   bflUrl: string,
   title: string,
   auth: { cookie: string } | { token: string },
-): Promise<string | number | null> {
+): Promise<number | null> {
   const filename =
     title
       .toLowerCase()
@@ -135,9 +135,13 @@ export async function saveImageToMedia(
     }
 
     const result = await response.json()
-    const id = result.doc?.id
+    const id: number = Number(result.doc?.id)
+    if (!id) {
+      console.error('[imageGenerator] REST upload returned no id:', result)
+      return null
+    }
     console.log(`[imageGenerator] Saved to media: ${id} (${filename})`)
-    return id ?? null
+    return id
   } catch (e) {
     console.error('[imageGenerator] Failed to save image to media:', e)
     return null
