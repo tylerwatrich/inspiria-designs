@@ -81,6 +81,15 @@ export const Posts: CollectionConfig<'posts'> = {
       },
     },
     {
+      type: 'ui',
+      name: 'generateImageButton',
+      admin: {
+        components: {
+          Field: '@/components/admin/GenerateImageButton#GenerateImageButton',
+        },
+      },
+    },
+    {
       type: 'tabs',
       tabs: [
         {
