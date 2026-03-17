@@ -250,6 +250,10 @@ export interface Post {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
+  /**
+   * Auto-populated by the write-post cron via Black Forest Labs Flux. Requires BFL_API_KEY env var.
+   */
+  heroImageUrl?: string | null;
   content: {
     root: {
       type: string;
@@ -1695,6 +1699,7 @@ export interface FormBlockSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
+  heroImageUrl?: T;
   content?: T;
   articleSummary?: T;
   keyTakeaways?:

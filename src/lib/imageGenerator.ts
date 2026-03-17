@@ -6,7 +6,8 @@
 
 const BFL_BASE = 'https://api.bfl.ml/v1'
 const POLL_INTERVAL_MS = 2000
-const TIMEOUT_MS = 30_000
+const TIMEOUT_MS = 60_000
+const FETCH_TIMEOUT_MS = 30_000
 
 const VERTICAL_STYLE_HINTS: Record<string, string> = {
   nuclear: 'industrial and technical, power plant infrastructure, clean energy engineering',
@@ -46,6 +47,7 @@ export async function generateArticleImage(
         width: 1200,
         height: 630,
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
 
     if (!res.ok) {
@@ -73,6 +75,7 @@ export async function generateArticleImage(
     try {
       const pollRes = await fetch(`${BFL_BASE}/get_result?id=${generationId}`, {
         headers: { 'X-Key': apiKey },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       })
 
       if (!pollRes.ok) {
