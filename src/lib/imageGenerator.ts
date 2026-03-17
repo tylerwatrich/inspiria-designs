@@ -3,13 +3,14 @@
  *
  * Required env var: BFL_API_KEY
  *
- * Uses undici's request() directly to set connectTimeout — Node.js global
- * fetch defaults to 10s connect timeout which BFL's API regularly exceeds.
+ * Uses node:https directly to avoid undici's 10s connect timeout
+ * that fires before AbortSignal can help.
  */
 
-import { request } from 'undici'
+import https from 'node:https'
 
-const BFL_BASE = 'https://api.bfl.ml/v1'
+const BFL_HOST = 'api.bfl.ml'
+const BFL_BASE_PATH = '/v1'
 const POLL_INTERVAL_MS = 2000
 const POLL_TIMEOUT_MS = 90_000
 const REQUEST_TIMEOUT_MS = 30_000
@@ -23,26 +24,51 @@ const VERTICAL_STYLE_HINTS: Record<string, string> = {
   'deep-tech': 'futuristic and scientific, quantum computing, advanced laboratory, circuit patterns',
 }
 
-async function bflRequest(
+function httpsRequest(
   path: string,
   apiKey: string,
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<{ ok: boolean; status: number; data: any }> {
-  const { statusCode, body: responseBody } = await request(`${BFL_BASE}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Key': apiKey,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    headersTimeout: REQUEST_TIMEOUT_MS,
-    bodyTimeout: REQUEST_TIMEOUT_MS,
-    connectTimeout: REQUEST_TIMEOUT_MS,
-  })
+  return new Promise((resolve, reject) => {
+    const bodyStr = body ? JSON.stringify(body) : undefined
+    const options: https.RequestOptions = {
+      hostname: BFL_HOST,
+      path: `${BFL_BASE_PATH}${path}`,
+      method,
+      timeout: REQUEST_TIMEOUT_MS,
+      headers: {
+        'X-Key': apiKey,
+        ...(bodyStr
+          ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) }
+          : {}),
+      },
+    }
 
-  const data = await responseBody.json()
-  return { ok: statusCode >= 200 && statusCode < 300, status: statusCode, data }
+    const req = https.request(options, (res) => {
+      let raw = ''
+      res.on('data', (chunk) => { raw += chunk })
+      res.on('end', () => {
+        try {
+          resolve({
+            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+            status: res.statusCode ?? 0,
+            data: JSON.parse(raw),
+          })
+        } catch {
+          reject(new Error(`Failed to parse response: ${raw}`))
+        }
+      })
+    })
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`))
+    })
+    req.on('error', reject)
+
+    if (bodyStr) req.write(bodyStr)
+    req.end()
+  })
 }
 
 export async function generateArticleImage(
@@ -63,7 +89,7 @@ export async function generateArticleImage(
 
   let generationId: string
   try {
-    const { ok, status, data } = await bflRequest('/flux-pro-1.1', apiKey, 'POST', {
+    const { ok, status, data } = await httpsRequest('/flux-pro-1.1', apiKey, 'POST', {
       prompt,
       width: 1200,
       height: 630,
@@ -91,7 +117,7 @@ export async function generateArticleImage(
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
 
     try {
-      const { ok, status, data } = await bflRequest(
+      const { ok, status, data } = await httpsRequest(
         `/get_result?id=${generationId}`,
         apiKey,
       )
