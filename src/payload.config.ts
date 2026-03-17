@@ -21,6 +21,7 @@ import { TargetAudience } from './collections/TargetAudience'
 import { Users } from './collections/Users'
 import { FAQs } from './collections/FAQs'
 import { Leads } from './collections/Leads'
+import { SearchLogs } from './collections/SearchLogs'
 import { PageViews } from './collections/PageViews'
 import { PageVisits } from './collections/PageVisits'
 import { TrackingEvents } from './collections/TrackingEvents'
@@ -106,7 +107,22 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users, TargetAudience, ArticleTypes, Industries, Leads, FAQs, PageViews, PageVisits, TrackingEvents],
+  collections: [
+    Pages,
+    Posts,
+    Media,
+    Categories,
+    Users,
+    TargetAudience,
+    ArticleTypes,
+    Industries,
+    Leads,
+    FAQs,
+    SearchLogs,
+    PageViews,
+    PageVisits,
+    TrackingEvents,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, Home, SiteSettings],
   plugins: [
