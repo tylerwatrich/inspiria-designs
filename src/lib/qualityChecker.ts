@@ -66,7 +66,7 @@ Return JSON:
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 800,
+      max_tokens: 2048,
       system: SYSTEM,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -74,10 +74,10 @@ Return JSON:
 
   const data = await res.json()
   const raw = data.content[0].text.trim()
-  const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
+  const match = raw.match(/\{[\s\S]*\}/)
 
   try {
-    return JSON.parse(clean) as QualityResult
+    return JSON.parse(match ? match[0] : raw) as QualityResult
   } catch (e) {
     console.error('[reviewArticle] Parse failed:', e, '\nRaw:', raw)
     return {
