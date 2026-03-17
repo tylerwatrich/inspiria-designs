@@ -6,7 +6,7 @@ import {
   HeadingFeature,
   HorizontalRuleFeature,
   InlineToolbarFeature,
-  UnorderedListFeature, // Import for bullet points
+  UnorderedListFeature,
   OrderedListFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
@@ -36,9 +36,6 @@ export const Posts: CollectionConfig<'posts'> = {
     read: authenticatedOrPublished,
     update: authenticated,
   },
-  // This config controls what's populated by default when a post is referenced
-  // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
-  // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'posts'>
   defaultPopulate: {
     title: true,
     slug: true,
@@ -51,7 +48,7 @@ export const Posts: CollectionConfig<'posts'> = {
     },
   },
   admin: {
-    defaultColumns: ['title', 'slug', 'updatedAt'],
+    defaultColumns: ['title', 'slug', 'qualityAudit.flag', 'qualityAudit.score', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -73,6 +70,15 @@ export const Posts: CollectionConfig<'posts'> = {
       name: 'title',
       type: 'text',
       required: true,
+    },
+    {
+      type: 'ui',
+      name: 'aiWriteButton',
+      admin: {
+        components: {
+          Field: '@/components/admin/AIWriteButton#AIWriteButton',
+        },
+      },
     },
     {
       type: 'tabs',
@@ -133,12 +139,11 @@ export const Posts: CollectionConfig<'posts'> = {
               type: 'text',
               admin: {
                 readOnly: true,
-                position: 'sidebar', // optional: keeps it out of the main form
+                position: 'sidebar',
               },
               hooks: {
                 afterRead: [
                   ({ originalDoc }) => {
-                    // Ensure the slug exists before returning the URL
                     if (!originalDoc?.slug) return ''
                     return `/blog/${originalDoc.slug}`
                   },
@@ -295,13 +300,9 @@ export const Posts: CollectionConfig<'posts'> = {
             MetaImageField({
               relationTo: 'media',
             }),
-
             MetaDescriptionField({}),
             PreviewField({
-              // if the `generateUrl` function is configured
               hasGenerateFn: true,
-
-              // field paths to match the target field for data
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
             }),
@@ -338,9 +339,6 @@ export const Posts: CollectionConfig<'posts'> = {
       hasMany: true,
       relationTo: 'users',
     },
-    // This field is only used to populate the user data via the `populateAuthors` hook
-    // This is because the `user` collection has access control locked to protect user privacy
-    // GraphQL will also not return mutated user data that differs from the underlying schema
     {
       name: 'populatedAuthors',
       type: 'array',
@@ -371,6 +369,66 @@ export const Posts: CollectionConfig<'posts'> = {
         position: 'sidebar',
       },
     },
+    // ─── Quality Audit (populated by monthly cron) ───────────────────────────
+    {
+      name: 'qualityAudit',
+      type: 'group',
+      admin: { description: 'Populated automatically by the monthly quality scan.' },
+      fields: [
+        {
+          name: 'score',
+          type: 'number',
+          min: 0,
+          max: 100,
+          admin: { description: '0–100. 80+ is solid. 60–79 needs attention. Below 60 is flagged.', readOnly: true },
+        },
+        {
+          name: 'flag',
+          type: 'select',
+          options: [
+            { label: '✅ Clean', value: 'clean' },
+            { label: '⚠️ Needs Attention', value: 'needs-attention' },
+            { label: '🚨 AI Slop', value: 'ai-slop' },
+            { label: '🚨 Incoherent', value: 'incoherent' },
+            { label: '🚨 Both', value: 'both' },
+          ],
+          admin: { readOnly: true },
+        },
+        {
+          name: 'issues',
+          type: 'array',
+          admin: { readOnly: true },
+          fields: [{ name: 'issue', type: 'text' }],
+        },
+        {
+          name: 'reviewNote',
+          type: 'textarea',
+          admin: { readOnly: true, rows: 4 },
+        },
+        {
+          name: 'lastReviewedAt',
+          type: 'date',
+          admin: { readOnly: true },
+        },
+      ],
+    },
+    // ─── Article Updates (populated by weekly/monthly update crons) ──────────
+    {
+      name: 'lastCheckedForUpdates',
+      type: 'date',
+      admin: { readOnly: true },
+    },
+    {
+      name: 'articleUpdates',
+      type: 'array',
+      admin: { readOnly: true },
+      fields: [
+        { name: 'updateNumber', type: 'number', admin: { readOnly: true } },
+        { name: 'updatedAt', type: 'date', admin: { readOnly: true } },
+        { name: 'summary', type: 'text', admin: { readOnly: true } },
+        { name: 'updateText', type: 'textarea', admin: { readOnly: true, rows: 4 } },
+      ],
+    },
   ],
   hooks: {
     // afterChange: [revalidatePost],
@@ -380,7 +438,7 @@ export const Posts: CollectionConfig<'posts'> = {
   versions: {
     drafts: {
       autosave: {
-        interval: 100, // We set this interval for optimal live preview
+        interval: 100,
       },
       schedulePublish: true,
     },
