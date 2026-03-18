@@ -78,6 +78,7 @@ export async function GET(req: NextRequest) {
             vertical: story.vertical,
             priority: story.priority,
             priorityReason: story.priorityReason,
+            smbRelevance: story.smbRelevance,
             status: 'pending',
             discoveredAt: new Date().toISOString(),
           },
