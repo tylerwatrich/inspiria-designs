@@ -52,14 +52,6 @@ export async function GET(req: NextRequest) {
   console.log(`[generate-images] ${posts.length} post(s) queued for image generation`)
 
   after(async () => {
-    const { token } = await payload.login({
-      collection: 'users',
-      data: {
-        email: process.env.PAYLOAD_ADMIN_EMAIL!,
-        password: process.env.PAYLOAD_ADMIN_PASSWORD!,
-      },
-    })
-
     for (const post of posts) {
       console.log(`[generate-images] Processing "${post.title}" (id: ${post.id})`)
 
@@ -71,7 +63,7 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      const mediaId = await saveImageToMedia(bflUrl, post.title, { token: token! })
+      const mediaId = await saveImageToMedia(bflUrl, post.title, payload)
       if (!mediaId) {
         console.error(`[generate-images] Media save failed for "${post.title}" — skipping`)
         continue
