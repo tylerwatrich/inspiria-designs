@@ -33,9 +33,12 @@ export type ArticleJSON = {
   excerpt: string
   category: string
   content: Array<
-    | { type: 'paragraph'; text: string }
-    | { type: 'heading'; level: 2 | 3; text: string }
+    { type: 'paragraph'; text: string } | { type: 'heading'; level: 2 | 3; text: string }
   >
+  articleSummary: string
+  metaDescription: string
+  keyTakeaways: string[]
+  faqs: Array<{ question: string; answer: string }>
 }
 
 export async function writeArticleFromSuggestion(input: ArticleInput): Promise<ArticleJSON> {
@@ -75,10 +78,23 @@ Return JSON:
     { "type": "paragraph", "text": "Body..." },
     { "type": "heading", "level": 2, "text": "What This Means for Your Business" },
     { "type": "paragraph", "text": "Practical implications for small business owners..." }
+  ],
+  "articleSummary": "2-3 sentence overview of what this article covers. Displayed at the top of the post. Max 400 characters.",
+  "metaDescription": "SEO meta description. 150-160 characters. Value-first, no clickbait.",
+  "keyTakeaways": [
+    "Most important insight from the article",
+    "Second key point",
+    "Third key point",
+    "Fourth key point",
+    "Fifth key point",
+    "Sixth key point"
+  ],
+  "faqs": [
+    { "question": "Specific question a reader would ask after reading this article", "answer": "Direct, thorough answer in 2-4 sentences." }
   ]
 }
 
-Write 8–11 content blocks, 650–950 words total. Lead with the most newsworthy element. No marketing language.`
+Write 7–10 content blocks, 600–900 words total. Lead with the most newsworthy element. No marketing language. Include exactly 6 keyTakeaways and 3-5 faqs.`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -106,6 +122,11 @@ export function articleToPayload(article: ArticleJSON) {
     title: article.title,
     slug: article.slug,
     content: toLexical(article.content),
+    articleSummary: article.articleSummary,
+    meta: {
+      description: article.metaDescription,
+    },
+    keyTakeaways: article.keyTakeaways.slice(0, 6).map((point) => ({ point })),
     _status: 'published' as const,
   }
 }
