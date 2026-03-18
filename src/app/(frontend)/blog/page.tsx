@@ -18,7 +18,7 @@ export default async function Page() {
 
   const posts = await payload.find({
     collection: 'posts',
-    depth: 1,
+    depth: 2,
     limit: 12,
     overrideAccess: false,
     select: {
@@ -26,18 +26,24 @@ export default async function Page() {
       slug: true,
       categories: true,
       meta: true,
+      heroImage: true,
     },
   })
   return (
-    <div className="pt-24 pb-24">
+    <div className="bg-light-bg dark:bg-zinc-900 min-h-screen pb-24">
       <PageClient />
-      <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none">
-          <h1>Blog</h1>
-        </div>
+
+      {/* Hero header */}
+      <div className="container pt-24 mb-16 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+          Canadian Business <span className="text-brand-blue-500">Insights</span>
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          The latest news, trends, and analysis shaping Canadian business today.
+        </p>
       </div>
 
-      <div className="container mb-8">
+      <div className="container mb-8 text-sm text-gray-500 dark:text-gray-400">
         <PageRange
           collection="posts"
           currentPage={posts.page}
@@ -45,10 +51,12 @@ export default async function Page() {
           totalDocs={posts.totalDocs}
         />
       </div>
+
       <CollectionArchive posts={posts.docs} />
-      <div className="container">
+
+      <div className="container mt-12">
         {posts.totalPages > 1 && posts.page && (
-          <Pagination page={posts.page} totalPages={posts.totalPages} />
+          <Pagination page={posts.page} totalPages={posts.totalPages} basePath="/blog" />
         )}
       </div>
     </div>

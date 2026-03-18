@@ -26,7 +26,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, onClickLink, classNa
             key={i}
             {...link}
             appearance="headerLink"
-            className="whitespace-nowrap text-gray-600 dark:text-gray-300 hover:text-brand-blue-500 transition-colors"
+            className="block text-center md:inline md:text-left py-2 md:py-0 whitespace-nowrap font-bold md:font-normal text-gray-700 dark:text-gray-200 hover:text-brand-blue-500 transition-colors"
             onClick={onClickLink}
             size="clear"
           />
@@ -35,7 +35,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, onClickLink, classNa
       <Link
         href="#contact"
         onClick={onClickLink}
-        className="w-full text-center mt-4 md:mt-0 bg-brand-blue-500 text-white font-medium py-2 px-5 rounded-lg shadow-floating hover:bg-brand-blue-600 transition-all block"
+        className="w-full text-center mt-4 md:mt-0 bg-brand-blue-500 text-white font-bold py-2 px-5 rounded-lg shadow-floating hover:bg-brand-blue-600 transition-all block"
       >
         Get a Quote
       </Link>

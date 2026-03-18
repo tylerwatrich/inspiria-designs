@@ -72,6 +72,17 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
+    'target-audience': TargetAudience;
+    'article-types': ArticleType;
+    industries: Industry;
+    leads: Lead;
+    faqs: Faq;
+    'search-logs': SearchLog;
+    'page-views': PageView;
+    'page-visits': PageVisit;
+    'tracking-events': TrackingEvent;
+    'article-suggestions': ArticleSuggestion;
+    'quality-reviews': QualityReview;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -94,6 +105,17 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'target-audience': TargetAudienceSelect<false> | TargetAudienceSelect<true>;
+    'article-types': ArticleTypesSelect<false> | ArticleTypesSelect<true>;
+    industries: IndustriesSelect<false> | IndustriesSelect<true>;
+    leads: LeadsSelect<false> | LeadsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
+    'search-logs': SearchLogsSelect<false> | SearchLogsSelect<true>;
+    'page-views': PageViewsSelect<false> | PageViewsSelect<true>;
+    'page-visits': PageVisitsSelect<false> | PageVisitsSelect<true>;
+    'tracking-events': TrackingEventsSelect<false> | TrackingEventsSelect<true>;
+    'article-suggestions': ArticleSuggestionsSelect<false> | ArticleSuggestionsSelect<true>;
+    'quality-reviews': QualityReviewsSelect<false> | QualityReviewsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -112,11 +134,15 @@ export interface Config {
     header: Header;
     footer: Footer;
     home: Home;
+    'site-settings': SiteSetting;
+    'automation-settings': AutomationSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'automation-settings': AutomationSettingsSelect<false> | AutomationSettingsSelect<true>;
   };
   locale: null;
   user: User & {
@@ -205,10 +231,6 @@ export interface Page {
   meta?: {
     title?: string | null;
     description?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
   };
   publishedAt?: string | null;
   /**
@@ -228,6 +250,10 @@ export interface Post {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
+  /**
+   * Auto-populated by the write-post cron via Black Forest Labs Flux. Requires BFL_API_KEY env var.
+   */
+  heroImageUrl?: string | null;
   content: {
     root: {
       type: string;
@@ -243,16 +269,65 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  /**
+   * A brief overview of what this article covers. Displayed at the top of the post.
+   */
+  articleSummary?: string | null;
+  /**
+   * Bullet points summarizing the main insights of this article.
+   */
+  keyTakeaways?:
+    | {
+        point: string;
+        id?: string | null;
+      }[]
+    | null;
   url?: string | null;
+  /**
+   * Assign FAQ entries to display on this post.
+   */
+  faqs?: (number | Faq)[] | null;
   relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
+  /**
+   * Where in the buyer journey does this post target?
+   */
+  funnelStage?: ('awareness' | 'consideration' | 'conversion') | null;
+  /**
+   * Check if this post was written or heavily drafted by AI.
+   */
+  aiGenerated?: boolean | null;
+  /**
+   * Which call-to-action to show on this post.
+   */
+  cta?: ('blue' | 'trade-compass') | null;
+  /**
+   * The content format of this post (Guide, Pain Point, Listicle, etc.)
+   */
+  articleType?: (number | null) | ArticleType;
+  /**
+   * Which industry vertical(s) is this post written for?
+   */
+  targetIndustry?: (number | TargetAudience)[] | null;
+  /**
+   * Which business size(s) within that industry does this post address?
+   */
+  targetBusinessSize?: ('solo' | 'micro' | 'small' | 'medium' | 'large')[] | null;
   meta?: {
+    /**
+     * The main SEO keyword this post is targeting. Used for reporting and content gap analysis.
+     */
+    primaryKeyword?: string | null;
+    /**
+     * The specific search query you want this post to rank for.
+     */
+    targetKeyword?: string | null;
     title?: string | null;
-    description?: string | null;
     /**
      * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
      */
     image?: (number | null) | Media;
+    description?: string | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
@@ -262,11 +337,35 @@ export interface Post {
         name?: string | null;
       }[]
     | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
   slug: string;
+  /**
+   * Populated automatically by the monthly quality scan.
+   */
+  qualityAudit?: {
+    /**
+     * 0–100. 80+ is solid. 60–79 needs attention. Below 60 is flagged.
+     */
+    score?: number | null;
+    flag?: ('clean' | 'needs-attention' | 'ai-slop' | 'incoherent' | 'both') | null;
+    issues?:
+      | {
+          issue?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    reviewNote?: string | null;
+    lastReviewedAt?: string | null;
+  };
+  lastCheckedForUpdates?: string | null;
+  articleUpdates?:
+    | {
+        updateNumber?: number | null;
+        updatedAt?: string | null;
+        summary?: string | null;
+        updateText?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -391,6 +490,22 @@ export interface FolderInterface {
   createdAt: string;
 }
 /**
+ * Reusable FAQ entries that can be assigned to one or more posts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  /**
+   * Plain-text answer. Keep it concise — one to four sentences.
+   */
+  answer: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
@@ -411,6 +526,72 @@ export interface Category {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Content format categories used to classify and report on articles.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-types".
+ */
+export interface ArticleType {
+  id: number;
+  label: string;
+  /**
+   * What this article type means and when to use it.
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Detailed targeting profile for each industry — keywords, business sizes, and linked articles.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "target-audience".
+ */
+export interface TargetAudience {
+  id: number;
+  industry?: string | null;
+  /**
+   * Which industry does this profile belong to?
+   */
+  industryRef?: (number | null) | Industry;
+  businessSizes?: ('solo' | 'micro' | 'small' | 'medium' | 'large')[] | null;
+  /**
+   * Words and phrases AI uses when writing articles for this industry.
+   */
+  keywords?:
+    | {
+        keyword: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Posts written targeting this industry. Foundation for the per-industry performance dashboard.
+   */
+  relatedPosts?: (number | Post)[] | null;
+  /**
+   * Internal notes about this industry — pain points, content angles, lead patterns.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Industry verticals. Adding one here makes it available as a Target Audience profile.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "industries".
+ */
+export interface Industry {
+  id: number;
+  name: string;
+  /**
+   * Brief description of this industry vertical.
+   */
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -783,6 +964,286 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads".
+ */
+export interface Lead {
+  id: number;
+  email: string;
+  name?: string | null;
+  source?: ('homepage' | 'trade-compass') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-logs".
+ */
+export interface SearchLog {
+  id: number;
+  industry: string;
+  province?: string | null;
+  hideUS?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * One record per anonymous visitor — identity, device, location, attribution, and full activity history.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views".
+ */
+export interface PageView {
+  id: number;
+  /**
+   * UUID stored in the visitor's localStorage
+   */
+  visitorId: string;
+  /**
+   * Stable browser fingerprint — persists across localStorage clears
+   */
+  fingerprintId?: string | null;
+  /**
+   * Device category parsed from user-agent
+   */
+  deviceType?: ('desktop' | 'mobile' | 'tablet') | null;
+  /**
+   * Browser name and major version (e.g. "Chrome 124")
+   */
+  browser?: string | null;
+  /**
+   * Operating system (e.g. "macOS 14", "Windows 11")
+   */
+  os?: string | null;
+  /**
+   * IP address at time of last visit
+   */
+  ipAddress?: string | null;
+  /**
+   * 2-letter country code from Vercel edge headers
+   */
+  country?: string | null;
+  city?: string | null;
+  /**
+   * Region/state/province code
+   */
+  region?: string | null;
+  /**
+   * Total number of pages visited (maintained automatically)
+   */
+  pageCount?: number | null;
+  /**
+   * Number of distinct browser sessions
+   */
+  sessionCount?: number | null;
+  lastVisit?: string | null;
+  /**
+   * Raw browser/device user agent string
+   */
+  userAgent?: string | null;
+  /**
+   * Referrer domain on the very first visit
+   */
+  firstSource?: string | null;
+  firstUtmSource?: string | null;
+  firstUtmMedium?: string | null;
+  firstUtmCampaign?: string | null;
+  /**
+   * Every page this visitor has viewed
+   */
+  pages?:
+    | {
+        /**
+         * URL path (e.g. /blog/some-post)
+         */
+        path?: string | null;
+        /**
+         * Page title at time of visit
+         */
+        title?: string | null;
+        visitedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Flat log of every individual page visit with behavioral and attribution data.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-visits".
+ */
+export interface PageVisit {
+  id: number;
+  path: string;
+  title?: string | null;
+  visitedAt?: string | null;
+  /**
+   * Matches the visitorId in the Page Views collection
+   */
+  visitorId?: string | null;
+  /**
+   * UUID from sessionStorage — groups all pages in a single browser session
+   */
+  sessionId?: string | null;
+  /**
+   * True if this is the first page of a new session
+   */
+  isNewSession?: boolean | null;
+  /**
+   * Seconds spent on this page (recorded on the following navigation)
+   */
+  timeOnPage?: number | null;
+  /**
+   * Max scroll depth reached (0–100%)
+   */
+  scrollDepth?: number | null;
+  /**
+   * document.referrer at time of visit
+   */
+  referrer?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  ipAddress?: string | null;
+  country?: string | null;
+  city?: string | null;
+  region?: string | null;
+  userAgent?: string | null;
+}
+/**
+ * Custom event log — button clicks, form interactions, video plays, etc.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tracking-events".
+ */
+export interface TrackingEvent {
+  id: number;
+  /**
+   * Category of event (e.g. "click", "form_start", "form_submit", "video_play")
+   */
+  eventType: string;
+  /**
+   * Descriptive label (e.g. "CTA Click - Contact Us")
+   */
+  eventName: string;
+  /**
+   * JSON string of additional key-value data for this event
+   */
+  properties?: string | null;
+  visitorId?: string | null;
+  fingerprintId?: string | null;
+  sessionId?: string | null;
+  /**
+   * URL path where the event occurred
+   */
+  path?: string | null;
+  occurredAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-suggestions".
+ */
+export interface ArticleSuggestion {
+  id: number;
+  headline: string;
+  /**
+   * What the story is about — 2-3 sentences from Gemini.
+   */
+  summary: string;
+  /**
+   * Key facts Gemini surfaced.
+   */
+  keyPoints?:
+    | {
+        point?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Source URLs Gemini found.
+   */
+  sources?:
+    | {
+        url?: string | null;
+        title?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Raw research context from Gemini for use when writing.
+   */
+  geminiContext?: string | null;
+  vertical: 'nuclear' | 'ai-cloud' | 'construction-tech' | 'finance' | 'trade' | 'deep-tech';
+  /**
+   * 1–100. Gemini sets this; Claude adjusts during writing cron. 80+ = breaking, 60–79 = timely, 40–59 = evergreen, <40 = low.
+   */
+  priority: number;
+  /**
+   * Why Gemini scored it this way.
+   */
+  priorityReason?: string | null;
+  /**
+   * If set, the writing cron ignores this suggestion until this date. Leave blank for immediate queue.
+   */
+  scheduledFor?: string | null;
+  status: 'pending' | 'approved' | 'denied' | 'published' | 'stale';
+  discoveredAt?: string | null;
+  /**
+   * Set automatically when Claude writes this article.
+   */
+  publishedPost?: (number | null) | Post;
+  /**
+   * Why Claude chose (or skipped) this suggestion.
+   */
+  claudeEditorialNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quality-reviews".
+ */
+export interface QualityReview {
+  id: number;
+  /**
+   * e.g. "Monthly scan — March 2026"
+   */
+  runLabel?: string | null;
+  scannedAt?: string | null;
+  totalScanned?: number | null;
+  /**
+   * Posts with flag = needs-attention, ai-slop, incoherent, or both
+   */
+  flagged?: number | null;
+  avgScore?: number | null;
+  results?:
+    | {
+        post?: (number | null) | Post;
+        title?: string | null;
+        score?: number | null;
+        flag?: string | null;
+        issues?:
+          | {
+              issue?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        reviewNote?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Claude's overall assessment of content quality this month.
+   */
+  editorialSummary?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -992,6 +1453,50 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'target-audience';
+        value: number | TargetAudience;
+      } | null)
+    | ({
+        relationTo: 'article-types';
+        value: number | ArticleType;
+      } | null)
+    | ({
+        relationTo: 'industries';
+        value: number | Industry;
+      } | null)
+    | ({
+        relationTo: 'leads';
+        value: number | Lead;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'search-logs';
+        value: number | SearchLog;
+      } | null)
+    | ({
+        relationTo: 'page-views';
+        value: number | PageView;
+      } | null)
+    | ({
+        relationTo: 'page-visits';
+        value: number | PageVisit;
+      } | null)
+    | ({
+        relationTo: 'tracking-events';
+        value: number | TrackingEvent;
+      } | null)
+    | ({
+        relationTo: 'article-suggestions';
+        value: number | ArticleSuggestion;
+      } | null)
+    | ({
+        relationTo: 'quality-reviews';
+        value: number | QualityReview;
+      } | null)
+    | ({
         relationTo: 'redirects';
         value: number | Redirect;
       } | null)
@@ -1095,7 +1600,6 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         title?: T;
         description?: T;
-        image?: T;
       };
   publishedAt?: T;
   generateSlug?: T;
@@ -1195,16 +1699,33 @@ export interface FormBlockSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
+  heroImageUrl?: T;
   content?: T;
+  articleSummary?: T;
+  keyTakeaways?:
+    | T
+    | {
+        point?: T;
+        id?: T;
+      };
   url?: T;
+  faqs?: T;
   relatedPosts?: T;
   categories?: T;
+  funnelStage?: T;
+  aiGenerated?: T;
+  cta?: T;
+  articleType?: T;
+  targetIndustry?: T;
+  targetBusinessSize?: T;
   meta?:
     | T
     | {
+        primaryKeyword?: T;
+        targetKeyword?: T;
         title?: T;
-        description?: T;
         image?: T;
+        description?: T;
       };
   publishedAt?: T;
   authors?: T;
@@ -1214,8 +1735,31 @@ export interface PostsSelect<T extends boolean = true> {
         id?: T;
         name?: T;
       };
-  generateSlug?: T;
   slug?: T;
+  qualityAudit?:
+    | T
+    | {
+        score?: T;
+        flag?: T;
+        issues?:
+          | T
+          | {
+              issue?: T;
+              id?: T;
+            };
+        reviewNote?: T;
+        lastReviewedAt?: T;
+      };
+  lastCheckedForUpdates?: T;
+  articleUpdates?:
+    | T
+    | {
+        updateNumber?: T;
+        updatedAt?: T;
+        summary?: T;
+        updateText?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1356,6 +1900,211 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "target-audience_select".
+ */
+export interface TargetAudienceSelect<T extends boolean = true> {
+  industry?: T;
+  industryRef?: T;
+  businessSizes?: T;
+  keywords?:
+    | T
+    | {
+        keyword?: T;
+        id?: T;
+      };
+  relatedPosts?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-types_select".
+ */
+export interface ArticleTypesSelect<T extends boolean = true> {
+  label?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "industries_select".
+ */
+export interface IndustriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads_select".
+ */
+export interface LeadsSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-logs_select".
+ */
+export interface SearchLogsSelect<T extends boolean = true> {
+  industry?: T;
+  province?: T;
+  hideUS?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views_select".
+ */
+export interface PageViewsSelect<T extends boolean = true> {
+  visitorId?: T;
+  fingerprintId?: T;
+  deviceType?: T;
+  browser?: T;
+  os?: T;
+  ipAddress?: T;
+  country?: T;
+  city?: T;
+  region?: T;
+  pageCount?: T;
+  sessionCount?: T;
+  lastVisit?: T;
+  userAgent?: T;
+  firstSource?: T;
+  firstUtmSource?: T;
+  firstUtmMedium?: T;
+  firstUtmCampaign?: T;
+  pages?:
+    | T
+    | {
+        path?: T;
+        title?: T;
+        visitedAt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-visits_select".
+ */
+export interface PageVisitsSelect<T extends boolean = true> {
+  path?: T;
+  title?: T;
+  visitedAt?: T;
+  visitorId?: T;
+  sessionId?: T;
+  isNewSession?: T;
+  timeOnPage?: T;
+  scrollDepth?: T;
+  referrer?: T;
+  utmSource?: T;
+  utmMedium?: T;
+  utmCampaign?: T;
+  utmContent?: T;
+  utmTerm?: T;
+  ipAddress?: T;
+  country?: T;
+  city?: T;
+  region?: T;
+  userAgent?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tracking-events_select".
+ */
+export interface TrackingEventsSelect<T extends boolean = true> {
+  eventType?: T;
+  eventName?: T;
+  properties?: T;
+  visitorId?: T;
+  fingerprintId?: T;
+  sessionId?: T;
+  path?: T;
+  occurredAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-suggestions_select".
+ */
+export interface ArticleSuggestionsSelect<T extends boolean = true> {
+  headline?: T;
+  summary?: T;
+  keyPoints?:
+    | T
+    | {
+        point?: T;
+        id?: T;
+      };
+  sources?:
+    | T
+    | {
+        url?: T;
+        title?: T;
+        id?: T;
+      };
+  geminiContext?: T;
+  vertical?: T;
+  priority?: T;
+  priorityReason?: T;
+  scheduledFor?: T;
+  status?: T;
+  discoveredAt?: T;
+  publishedPost?: T;
+  claudeEditorialNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quality-reviews_select".
+ */
+export interface QualityReviewsSelect<T extends boolean = true> {
+  runLabel?: T;
+  scannedAt?: T;
+  totalScanned?: T;
+  flagged?: T;
+  avgScore?: T;
+  results?:
+    | T
+    | {
+        post?: T;
+        title?: T;
+        score?: T;
+        flag?: T;
+        issues?:
+          | T
+          | {
+              issue?: T;
+              id?: T;
+            };
+        reviewNote?: T;
+        id?: T;
+      };
+  editorialSummary?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1704,6 +2453,72 @@ export interface Home {
   createdAt?: string | null;
 }
 /**
+ * Global site identity used in structured data (Schema.org), SEO, and metadata.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * Your company or brand name. Used in Schema.org markup across all pages.
+   */
+  siteName: string;
+  /**
+   * One to three sentence description of your business. Used in Organization schema on the home page.
+   */
+  siteDescription?: string | null;
+  /**
+   * ISO 3166 country code (e.g. CA, US). Used in Organization schema.
+   */
+  areaServed?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Pause or resume any automated function. Changes take effect on the next scheduled run.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-settings".
+ */
+export interface AutomationSetting {
+  id: number;
+  /**
+   * Which AI provider to use for web search (news scanning, fact-checking, re-prioritization). Claude requires no extra API key.
+   */
+  researchProvider?: ('claude' | 'gemini') | null;
+  /**
+   * Scans Canadian biz/tech news and creates article suggestions.
+   */
+  scanNewsEnabled?: boolean | null;
+  /**
+   * During each scan, re-scores existing pending/approved suggestions as stories develop.
+   */
+  rePrioritizeEnabled?: boolean | null;
+  /**
+   * Claude picks from approved suggestions, fact-checks with Gemini, writes and publishes articles automatically.
+   */
+  autoWriteEnabled?: boolean | null;
+  /**
+   * When enabled, articles go live immediately. Disable to have Claude write drafts for your review instead.
+   */
+  autoPublishEnabled?: boolean | null;
+  /**
+   * Checks posts from the last 3 months for new developments and appends update blocks.
+   */
+  weeklyUpdateEnabled?: boolean | null;
+  /**
+   * Claude reviews all published posts for AI slop and incoherence, scoring and flagging them.
+   */
+  qualityAuditEnabled?: boolean | null;
+  /**
+   * During the monthly audit, also check posts older than 3 months for new developments.
+   */
+  monthlyUpdateEnabled?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -1758,6 +2573,35 @@ export interface HomeSelect<T extends boolean = true> {
   heroSubtitle?: T;
   aboutImage?: T;
   customHTML?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  siteDescription?: T;
+  areaServed?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-settings_select".
+ */
+export interface AutomationSettingsSelect<T extends boolean = true> {
+  researchProvider?: T;
+  scanNewsEnabled?: T;
+  rePrioritizeEnabled?: T;
+  autoWriteEnabled?: T;
+  autoPublishEnabled?: T;
+  weeklyUpdateEnabled?: T;
+  qualityAuditEnabled?: T;
+  monthlyUpdateEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -13,9 +13,16 @@ public/robots.txt
 public/sitemap*.xml
 
 
+*.tsbuildinfo
+
 # Playwright
 node_modules/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+posts_export.sql
+.vscode/settings.json
+scripts/assign-images.mjs
+neon-export-20260312-141611.sql
+.env.production

@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import type { Header } from '@/payload-types'
 
 import { Logo } from '@/components/Logo/Logo'
+import TextLogo from '@/components/Branding/textLogo'
 import { HeaderNav } from './Nav'
 
 interface HeaderClientProps {
@@ -40,16 +41,13 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
     >
       <div className="flex justify-between">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-brand-blue-600">
-            Inspiria<span className="text-gray-700 dark:text-gray-300">Designs</span>
-            {/* <Logo loading="eager" priority="high" className="invert dark:invert-0" /> */}
-          </Link>
+          <TextLogo />
           {/* Use HeaderNav for both desktop and mobile, toggle with menu state */}
 
           <HeaderNav
             data={data}
             onClickLink={closeMenu}
-            className={`absolute md:static left-0 right-0    md:bg-transparent px-6 md:px-0 pt-2 md:pt-0 pb-4 md:pb-0 transition-all duration-300 z-40
+            className={`absolute md:static left-0 right-0 bg-white dark:bg-gray-950 md:bg-transparent md:dark:bg-transparent shadow-lg md:shadow-none px-6 md:px-0 pt-2 md:pt-0 pb-4 md:pb-0 transition-all duration-300 z-40
               ${isMenuOpen ? 'block' : 'hidden'} md:flex top-full md:top-auto items-center`}
           />
 

@@ -7,17 +7,30 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { fileURLToPath } from 'url'
 
-import { seoPlugin } from '@payloadcms/plugin-seo'
+// import { seoPlugin } from '@payloadcms/plugin-seo'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 
+import { ArticleTypes } from './collections/ArticleTypes'
 import { Categories } from './collections/Categories'
+import { Industries } from './collections/Industries'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Home } from './globals/Home'
 import { Posts } from './collections/Posts'
+import { TargetAudience } from './collections/TargetAudience'
 import { Users } from './collections/Users'
+import { FAQs } from './collections/FAQs'
+import { Leads } from './collections/Leads'
+import { SearchLogs } from './collections/SearchLogs'
+import { PageViews } from './collections/PageViews'
+import { PageVisits } from './collections/PageVisits'
+import { TrackingEvents } from './collections/TrackingEvents'
+import { ArticleSuggestions } from './collections/ArticleSuggestions'
+import { QualityReviews } from './collections/QualityReviews'
+import { AutomationSettings } from './globals/AutomationSettings'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
+import { SiteSettings } from './globals/SiteSettings'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
@@ -35,7 +48,7 @@ const storagePlugin = process.env.VERCEL_ENV
   : undefined
 
 const generateTitle: GenerateTitle = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Inspiria Designs` : 'Inspiria Designs'
+  return doc?.title ? `${doc.title} | Inspiria Digital` : 'Inspiria Digital'
 }
 
 const generateURL: GenerateURL = ({ doc, collectionConfig }) => {
@@ -97,19 +110,36 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [
+    Pages,
+    Posts,
+    Media,
+    Categories,
+    Users,
+    TargetAudience,
+    ArticleTypes,
+    Industries,
+    Leads,
+    FAQs,
+    SearchLogs,
+    PageViews,
+    PageVisits,
+    TrackingEvents,
+    ArticleSuggestions,
+    QualityReviews,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, Home],
+  globals: [Header, Footer, Home, SiteSettings, AutomationSettings],
   plugins: [
     ...plugins,
     ...(storagePlugin ? [storagePlugin] : []),
-    seoPlugin({
-      collections: ['pages', 'posts'],
-      uploadsCollection: 'media',
-      generateTitle,
-      generateURL,
-      tabbedUI: true, // Adds a separate "SEO" tab in the admin
-    }),
+    // seoPlugin({
+    //   collections: ['pages'],
+    //   uploadsCollection: 'media',
+    //   generateTitle,
+    //   generateURL,
+    //   tabbedUI: true, // Adds a separate "SEO" tab in the admin
+    // }),
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,

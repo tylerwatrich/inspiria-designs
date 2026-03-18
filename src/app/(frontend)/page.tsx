@@ -10,6 +10,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Media } from '@/components/Media'
 import { Media as MediaType } from '@/payload-types'
+import { LeadCaptureModal } from '@/components/LeadCaptureModal'
+import { getServerSideURL } from '@/utilities/getURL'
 
 // --- Data for mapping ---
 const servicesData = [
@@ -32,7 +34,7 @@ const servicesData = [
     ),
     title: 'Web Design & Development',
     description:
-      'Crafting responsive, high-performing websites that look amazing on all devices and drive results.',
+      'Fast, mobile-ready websites built to rank on Google — and optimized for AI search tools like ChatGPT and Perplexity that are changing how people find businesses. Not just something that looks good — something that gets found.',
   },
   {
     icon: (
@@ -53,7 +55,7 @@ const servicesData = [
     ),
     title: 'Brand Identity',
     description:
-      'We create a cohesive and powerful visual identity—from core logos and style guides to marketing assets—that tells your unique story and drives recognition.',
+      'A visual identity that tells your story instantly. Logos, colours, and style that people remember and trust.',
   },
   {
     icon: (
@@ -74,7 +76,7 @@ const servicesData = [
     ),
     title: 'UI/UX Design',
     description:
-      'We focus on creating intuitive and enjoyable digital experiences for your users, boosting engagement.',
+      'Intuitive digital experiences that keep people engaged and make it easy for them to do what you want them to do.',
   },
 ]
 
@@ -157,11 +159,11 @@ const PortfolioItem = ({ imageUrl, altText, title, category }: PortfolioItemProp
 const Hero = () => (
   <section className="text-center my-24 md:my-32">
     <h1 className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-gray-300 leading-tight mb-4">
-      Creative Ideas, <span className="text-brand-blue-500">Stunning Designs</span>.
+      Your business deserves <span className="text-brand-blue-500">to be found.</span>
     </h1>
     <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-      Crafting beautiful, user-friendly websites and strategic visual branding that helps your
-      business shine.
+      We build digital presence that actually works — websites, branding, and online strategy that
+      turns visitors into customers and makes your business look like it means business.
     </p>
     <div className="flex justify-center items-center gap-4">
       <a
@@ -187,7 +189,7 @@ const Services = () => (
         What We Do
       </h2>
       <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-        We offer a complete suite of design services.
+        Everything your business needs to get online and get competitive.
       </p>
     </div>
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -229,7 +231,7 @@ const About = ({ aboutImage }: AboutProps) => (
       </h2>
       <p className="text-gray-600 dark:text-gray-400 mb-4">
         {
-          "We're your dedicated partner, focused on delivering exceptional results. Our process is collaborative, transparent, and streamlined to bring your vision to life with efficiency and precision."
+          "We're not a faceless agency running cookie-cutter templates. We take the time to understand your business, move fast, and deliver work that actually moves the needle. No fluff, no runaround."
         }
       </p>
       <ul className="space-y-3">
@@ -249,8 +251,8 @@ const About = ({ aboutImage }: AboutProps) => (
             ></path>
           </svg>
           <span>
-            <span className="font-semibold">Client-Centric Approach:</span> Your goals are our
-            priority from start to finish.
+            <span className="font-semibold">Built for Canada:</span> We know the market and
+            understand the landscape.
           </span>
         </li>
         <li className="flex items-start">
@@ -269,8 +271,8 @@ const About = ({ aboutImage }: AboutProps) => (
             ></path>
           </svg>
           <span>
-            <span className="font-semibold">Creative Excellence:</span> We push boundaries to
-            deliver innovative and memorable designs.
+            <span className="font-semibold">No runaround:</span> Direct, honest, and moving fast —
+            no corporate bloat.
           </span>
         </li>
         <li className="flex items-start">
@@ -289,8 +291,9 @@ const About = ({ aboutImage }: AboutProps) => (
             ></path>
           </svg>
           <span>
-            <span className="font-semibold">On-Time Delivery:</span> We respect your time and
-            deadlines, ensuring projects are completed efficiently.
+            <span className="font-semibold">Real results:</span> Websites built to show up on Google
+            and optimized for AEO — so AI tools like ChatGPT and Perplexity recommend your business
+            too.
           </span>
         </li>
       </ul>
@@ -311,29 +314,52 @@ const ContactCTA = () => (
     id="contact"
     className="bg-brand-blue-500 text-white rounded-2xl shadow-floating-lg p-8 md:p-16 text-center"
   >
-    <h2 className="text-3xl md:text-4xl font-bold mb-4">
-      {"Have an idea? Let's build it together."}
-    </h2>
+    <h2 className="text-3xl md:text-4xl font-bold mb-4">{'Ready to start growing?'}</h2>
     <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-8">
-      {
-        "Ready to start your next project? We're here to help. Contact us for a free, no-obligation consultation."
-      }
+      {'Tell us about your business and where you want to take it. Free consultation, no pressure.'}
     </p>
-    <a
-      href="mailto:tyler@inspiriadesigns.com"
-      className="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
-    >
-      Contact Us Now
-    </a>
+    <LeadCaptureModal
+      triggerLabel="Contact Us Now"
+      triggerClassName="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
+      source="homepage"
+    />
   </section>
 )
 
 export default async function HomePage() {
   const payload = await getPayload({ config })
-  const home = await payload.findGlobal({ slug: 'home' })
+  const [home, siteSettings] = await Promise.all([
+    payload.findGlobal({ slug: 'home' }),
+    payload.findGlobal({ slug: 'site-settings' }),
+  ])
+
+  const siteUrl = getServerSideURL()
+
+  const ldJson = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: siteSettings.siteName,
+        url: siteUrl,
+        ...(siteSettings.siteDescription ? { description: siteSettings.siteDescription } : {}),
+        ...(siteSettings.areaServed ? { areaServed: siteSettings.areaServed } : {}),
+        knowsAbout: ['Web Design', 'Web Development', 'Brand Identity', 'UI/UX Design', 'SEO', 'Digital Strategy'],
+      },
+      {
+        '@type': 'WebSite',
+        name: siteSettings.siteName,
+        url: siteUrl,
+      },
+    ],
+  }
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+      />
       <div className="bg-light-bg dark:bg-zinc-900 text-gray-800 dark:text-gray-300 font-sans">
         {/* <Header /> */}
         <main className="container mx-auto px-6 py-12 md:py-20">
