@@ -165,7 +165,30 @@ export async function GET(req: NextRequest) {
       return
     }
 
-    // ─── Step 6: Mark suggestion as published ────────────────────────────────
+    // ─── Step 6: Create FAQs and link to post ────────────────────────────────
+
+    if (article.faqs?.length) {
+      try {
+        const faqIds: number[] = []
+        for (const faq of article.faqs) {
+          const created = await payload.create({
+            collection: 'faqs',
+            data: { question: faq.question, answer: faq.answer },
+          })
+          faqIds.push(created.id)
+        }
+        await payload.update({
+          collection: 'posts',
+          id: post.id,
+          data: { faqs: faqIds },
+        })
+        console.log(`[write-post] Created and linked ${faqIds.length} FAQs`)
+      } catch (e) {
+        console.error('[write-post] FAQ creation failed (non-fatal):', e)
+      }
+    }
+
+    // ─── Step 7: Mark suggestion as published ────────────────────────────────
 
     await payload.update({
       collection: 'article-suggestions',
