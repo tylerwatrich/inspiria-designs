@@ -120,6 +120,7 @@ export type GeminiSuggestion = {
   vertical: 'nuclear' | 'ai-cloud' | 'construction-tech' | 'finance' | 'trade' | 'deep-tech'
   priority: number
   priorityReason: string
+  smbRelevance: number
 }
 
 export type RePrioritized = {
@@ -140,36 +141,51 @@ export type FactCheckResult = {
 
 export async function scanForStories(): Promise<GeminiSuggestion[]> {
   const SYSTEM = `You are a research analyst for Inspiria Digital, a Canadian business news publication.
-Your job is to find real, current news stories that matter to Canadian executives, investors, and tech professionals.
+Your job is to find real, current news stories that matter to Canadian small business owners — people running businesses with 1–50 employees who need to understand what news means for their operations, costs, and opportunities.
 You MUST respond with valid JSON only. No preamble, no markdown fences.`
 
-  const prompt = `Search the web right now for the most significant Canadian business and technology news from the past 6 hours.
+  const prompt = `Search the web right now for the most significant Canadian business and technology news from the past 6 hours, with a focus on impact for Canadian small business owners.
 
-Focus on these verticals:
-- Canadian nuclear energy and SMR (small modular reactor) development
+Cover these topic areas:
+- Bank of Canada rate decisions and lending conditions for small businesses
+- CRA, GST/HST, and tax policy changes affecting small businesses
+- Federal/provincial grants, loans, and programs (BDC, CEBA successor programs, CDAP)
+- Labour law, minimum wage, and hiring conditions in Canada
+- E-commerce, digital payments, and small business tech adoption
+- Buy Canadian / procurement opportunities for small suppliers
+- US tariffs and trade policy impact on Canadian SMBs
+- Canadian nuclear energy and SMR development
 - AI infrastructure and cloud computing in Canada
 - Construction technology and proptech in Canada
 - Canadian financial markets, fintech, banking
-- Trade policy affecting Canadian business (especially US-Canada)
 - Deep tech: quantum computing, biotech, space, semiconductors in Canada
 
-Find 4-6 distinct stories. For each, assign a priority score:
+Find 4-6 distinct stories. For each, assign:
+
+Priority score (1–100):
 - 80-100: Breaking news, major announcements, market-moving events
 - 60-79: Significant developments worth covering within 24hrs
 - 40-59: Solid evergreen angle on a current trend
 - 1-39: Background/context piece, low urgency
 
+SMB relevance score (1–10) — how directly does this story affect a Canadian small business owner's day-to-day operations or decisions:
+- 9–10: Directly affects most small businesses (rate change, tax rule, major grant program)
+- 7–8: Affects a significant subset (new procurement rules, sector-specific regulation)
+- 5–6: Useful context/opportunity awareness (tech trend, market shift)
+- 1–4: Mostly executive/investor interest, limited SMB applicability
+
 Return a JSON array of story objects:
 [
   {
     "headline": "Specific, compelling headline (max 12 words)",
-    "summary": "2-3 sentence description of what's happening and why it matters to Canadian business readers",
+    "summary": "2-3 sentence description of what's happening and why it matters to Canadian small business owners",
     "keyPoints": ["Specific fact 1", "Specific fact 2", "Specific fact 3"],
     "sources": [{"url": "actual URL", "title": "page title"}],
     "geminiContext": "All relevant details, numbers, quotes, and context a writer would need. Be thorough — 150-200 words.",
     "vertical": "one of: nuclear | ai-cloud | construction-tech | finance | trade | deep-tech",
     "priority": 75,
-    "priorityReason": "Why this score — how significant is this story and why now?"
+    "priorityReason": "Why this score — how significant is this story and why now?",
+    "smbRelevance": 8
   }
 ]
 

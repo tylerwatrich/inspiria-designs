@@ -71,6 +71,15 @@ export const ArticleSuggestions: CollectionConfig = {
       admin: { description: 'Why Gemini scored it this way.' },
     },
     {
+      name: 'smbRelevance',
+      type: 'number',
+      min: 1,
+      max: 10,
+      admin: {
+        description: '1–10. How directly relevant is this story to a Canadian small business owner? 9–10 = affects most SMBs directly (rate change, tax rule). 7–8 = significant subset. 5–6 = useful context. 1–4 = mostly exec/investor interest.',
+      },
+    },
+    {
       name: 'scheduledFor',
       type: 'date',
       admin: {
