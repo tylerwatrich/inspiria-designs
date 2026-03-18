@@ -62,7 +62,7 @@ async function downloadImage(url: string): Promise<Buffer> {
 export async function saveImageToMedia(
   bflUrl: string,
   title: string,
-  auth: { cookie: string } | { token: string },
+  payload: import('payload').Payload,
 ): Promise<number | null> {
   const filename =
     title
@@ -74,32 +74,21 @@ export async function saveImageToMedia(
   try {
     const buffer = await downloadImage(bflUrl)
 
-    const formData = new FormData()
-    formData.append('_payload', JSON.stringify({ alt: title }))
-    formData.append('file', new Blob([new Uint8Array(buffer)], { type: 'image/jpeg' }), filename)
-
-    const authHeaders: Record<string, string> =
-      'cookie' in auth ? { Cookie: auth.cookie } : { Authorization: `JWT ${auth.token}` }
-
-    const serverUrl =
-      process.env.NEXT_PUBLIC_SERVER_URL ??
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    const response = await fetch(`${serverUrl}/api/media`, {
-      method: 'POST',
-      headers: authHeaders,
-      body: formData,
+    const result = await payload.create({
+      collection: 'media',
+      data: { alt: title },
+      file: {
+        data: buffer,
+        mimetype: 'image/jpeg',
+        name: filename,
+        size: buffer.length,
+      },
+      overrideAccess: true,
     })
 
-    if (!response.ok) {
-      const text = await response.text()
-      console.error(`[imageGenerator] REST upload failed (${response.status}):`, text)
-      return null
-    }
-
-    const result = await response.json()
-    const id: number = Number(result.doc?.id)
+    const id = Number(result.id)
     if (!id) {
-      console.error('[imageGenerator] REST upload returned no id:', result)
+      console.error('[imageGenerator] Local API create returned no id:', result)
       return null
     }
     console.log(`[imageGenerator] Saved to media: ${id} (${filename})`)
