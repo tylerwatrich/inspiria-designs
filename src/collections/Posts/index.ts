@@ -140,6 +140,7 @@ export const Posts: CollectionConfig<'posts'> = {
               name: 'keyTakeaways',
               type: 'array',
               label: 'Key Takeaways',
+              maxRows: 6,
               admin: {
                 description: 'Bullet points summarizing the main insights of this article.',
               },
