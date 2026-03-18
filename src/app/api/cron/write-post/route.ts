@@ -137,14 +137,7 @@ export async function GET(req: NextRequest) {
     const bflUrl = await generateArticleImage(article.title, chosen.vertical)
     let heroImageId: number | null = null
     if (bflUrl) {
-      const { token: adminToken } = await payload.login({
-        collection: 'users',
-        data: {
-          email: process.env.PAYLOAD_ADMIN_EMAIL!,
-          password: process.env.PAYLOAD_ADMIN_PASSWORD!,
-        },
-      })
-      heroImageId = await saveImageToMedia(bflUrl, article.title, { token: adminToken! })
+      heroImageId = await saveImageToMedia(bflUrl, article.title, payload)
       if (!heroImageId) {
         console.log('[write-post] Media save failed — proceeding without image')
       }

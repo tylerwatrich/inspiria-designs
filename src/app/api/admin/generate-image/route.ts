@@ -31,9 +31,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const mediaId = await saveImageToMedia(bflUrl, post.title, {
-      cookie: req.headers.get('cookie') ?? '',
-    })
+    const mediaId = await saveImageToMedia(bflUrl, post.title, payload)
     if (!mediaId) {
       return NextResponse.json(
         { error: 'Image generated but failed to save to media — check server logs' },
