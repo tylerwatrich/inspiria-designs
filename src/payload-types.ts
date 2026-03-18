@@ -1186,6 +1186,10 @@ export interface ArticleSuggestion {
    */
   priorityReason?: string | null;
   /**
+   * 1–10. How directly relevant is this story to a Canadian small business owner? 9–10 = affects most SMBs directly (rate change, tax rule). 7–8 = significant subset. 5–6 = useful context. 1–4 = mostly exec/investor interest.
+   */
+  smbRelevance?: number | null;
+  /**
    * If set, the writing cron ignores this suggestion until this date. Leave blank for immediate queue.
    */
   scheduledFor?: string | null;
@@ -2068,6 +2072,7 @@ export interface ArticleSuggestionsSelect<T extends boolean = true> {
   vertical?: T;
   priority?: T;
   priorityReason?: T;
+  smbRelevance?: T;
   scheduledFor?: T;
   status?: T;
   discoveredAt?: T;
