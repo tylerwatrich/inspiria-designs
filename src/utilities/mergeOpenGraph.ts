@@ -3,14 +3,18 @@ import { getServerSideURL } from './getURL'
 
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
-  description: 'An open-source website built with Payload and Next.js.',
+  description:
+    'Professional web design and digital strategy for Canadian small businesses. Websites that build credibility, generate leads, and win contracts.',
   images: [
     {
-      url: `${getServerSideURL()}/website-template-OG.webp`,
+      url: `${getServerSideURL()}/og-image.jpg`,
+      width: 1216,
+      height: 640,
+      alt: 'Inspiria Digital — Web Design for Canadian Businesses',
     },
   ],
-  siteName: 'Payload Website Template',
-  title: 'Payload Website Template',
+  siteName: 'Inspiria Digital',
+  title: 'Inspiria Digital — Web Design for Canadian Businesses',
 }
 
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {
