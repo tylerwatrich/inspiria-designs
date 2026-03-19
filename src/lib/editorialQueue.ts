@@ -23,7 +23,10 @@ type EditorialDecision = {
   skipped: { id: string; reason: string }[]
 }
 
-export async function deliberate(queue: QueueItem[]): Promise<EditorialDecision | null> {
+export async function deliberate(
+  queue: QueueItem[],
+  recentlyPublished: { title: string; vertical: string }[] = []
+): Promise<EditorialDecision | null> {
   if (!queue.length) return null
 
   const now = new Date()
@@ -50,10 +53,18 @@ ${i + 1}. [ID: ${s.id}] Priority: ${s.priority}/100
     )
     .join('\n\n')
 
+  const recentlyPublishedBlock = recentlyPublished.length
+    ? `\nIMPORTANT: The following topics were recently published. Do not select a story that covers the same event, announcement, or trend — even if framed differently. Editorial freshness matters.
+
+Recently published (avoid repeating):
+${recentlyPublished.map((r) => `- [${r.vertical}] "${r.title}"`).join('\n')}
+`
+    : ''
+
   const prompt = `You are the editorial director of Inspiria Digital, a Canadian business news publication targeting executives, investors, and tech professionals.
 
 Today is ${now.toISOString()}.
-
+${recentlyPublishedBlock}
 You have ${available.length} approved story pitches in the queue. Your job is to select the single most compelling story to publish RIGHT NOW, based on:
 - Timeliness (breaking/developing stories beat evergreen)
 - Reader value (what does our audience actually need to know today?)
