@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 import type { LiveLogisticsContext } from '@/app/api/logistics-context/route'
 import { CANADA_TRADE_TOTALS, LATEST_TRADE_YEAR } from '@/data/comtrade-canada-totals'
+import { CANADA_INDUSTRY_EXPORTS } from '@/data/comtrade-industry-totals'
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -504,6 +505,25 @@ export default function TradeCompass() {
                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
                   Ranked by opportunity score · Trade volume, FTA access & Alignment
                 </p>
+                {/* Industry export context strip */}
+                {CANADA_INDUSTRY_EXPORTS[selectedIndustry] && (() => {
+                  const d = CANADA_INDUSTRY_EXPORTS[selectedIndustry].byYear
+                  const latest = d[2024]
+                  const prev = d[2023]
+                  const delta = ((latest.exports - prev.exports) / prev.exports) * 100
+                  return (
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Canada exported{' '}
+                      <span className="font-bold text-zinc-700 dark:text-zinc-300">
+                        ${(latest.exports / 1_000_000_000).toFixed(1)}B
+                      </span>{' '}
+                      in this sector (2024, 12-market aggregate) ·{' '}
+                      <span className={delta >= 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
+                        {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}% vs 2023
+                      </span>
+                    </p>
+                  )
+                })()}
               </div>
 
               <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl w-fit">
