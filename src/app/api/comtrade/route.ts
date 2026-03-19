@@ -5,7 +5,7 @@ const CANADA_CODE = '124'
 
 // HS 2-digit chapter codes by industry — goods only (services have no HS code)
 const INDUSTRY_HS_CODES: Record<string, string[]> = {
-  'Agriculture & Food': ['02', '04', '10', '12', '15', '16'],
+  'Agriculture & Food': ['02', '10', '12', '15', '16'],
   'Automotive & Parts': ['87'],
   'Construction & Building Materials': ['44', '72', '73'],
   'Energy & Resources': ['27'],

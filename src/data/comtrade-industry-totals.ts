@@ -1,7 +1,7 @@
 // Canada industry-level goods exports — aggregate across 12 target markets
 // Partners: US, China, Japan, Germany, UK, South Korea, Australia, India, Mexico, Singapore, France, Saudi Arabia
 // Source: UN Comtrade, Annual HS, Canada (reporter 124)
-// Note: HS 85 (Software/Tech) not returned — services not covered by Comtrade goods data
+// HS codes: 02, 10, 12, 15, 16 (Agriculture), 26, 74, 76 (Mining), 85 (Tech), 87 (Auto)
 // Downloaded: March 2026
 
 export interface IndustryExportYear {
@@ -16,19 +16,19 @@ export interface IndustryExportData {
 
 export const CANADA_INDUSTRY_EXPORTS: Record<string, IndustryExportData> = {
   'Agriculture & Food': {
-    hsCodes: ['02', '04', '10', '12', '15', '16'],
+    hsCodes: ['02', '10', '12', '15', '16'],
     byYear: {
       2022: {
-        exports: 6458601489 + 340195228 + 4616771498 + 6184039759 + 6178510912 + 1275088925,
-        imports: 2031569517 + 669737271 + 1890845451 + 1017928458 + 812913784 + 1274761271,
+        exports: 6458601489 + 4616771498 + 6184039759 + 6178510912 + 1275088925,
+        imports: 2031569517 + 1890845451 + 1017928458 + 812913784 + 1274761271,
       },
       2023: {
-        exports: 6305162290 + 325060640 + 4599465640 + 6584077114 + 6495756222 + 1265365634,
-        imports: 2031260366 + 706836306 + 1258239306 + 962179926 + 687713304 + 1169673404,
+        exports: 6305162290 + 4599465640 + 6584077114 + 6495756222 + 1265365634,
+        imports: 2031260366 + 1258239306 + 962179926 + 687713304 + 1169673404,
       },
       2024: {
-        exports: 6436425241 + 360455391 + 3696005836 + 5865312516 + 5169138832 + 1400767900,
-        imports: 2118904644 + 784056161 + 996998089 + 983179630 + 766880798 + 1128055764,
+        exports: 6436425241 + 3696005836 + 5865312516 + 5169138832 + 1400767900,
+        imports: 2118904644 + 996998089 + 983179630 + 766880798 + 1128055764,
       },
     },
   },
@@ -57,8 +57,15 @@ export const CANADA_INDUSTRY_EXPORTS: Record<string, IndustryExportData> = {
       },
     },
   },
-  // 'Software & Technology' (HS 85) — not returned by Comtrade goods API
-  // Services industries (Tourism, Financial) — not covered by goods trade data
+  'Software & Technology': {
+    hsCodes: ['85'],
+    byYear: {
+      2022: { exports: 12920412203, imports: 41432201890 },
+      2023: { exports: 14124564339, imports: 40920956470 },
+      2024: { exports: 15194394076, imports: 39315522440 },
+    },
+  },
+  // Tourism & Hospitality, Financial Services — services, not covered by Comtrade goods data
 }
 
 export const INDUSTRY_EXPORT_YEARS = [2022, 2023, 2024] as const
