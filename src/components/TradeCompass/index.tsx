@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   INDUSTRIES,
   PROVINCES,
@@ -36,7 +36,9 @@ import {
   TrendingUp,
   Wifi,
   WifiOff,
+  RefreshCw,
 } from 'lucide-react'
+import type { LiveLogisticsContext } from '@/app/api/logistics-context/route'
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -97,16 +99,51 @@ function TariffBadge({ risk }: { risk: TariffInfo }) {
   )
 }
 
-function ProvinceNote({ province, marketName }: { province: string; marketName: string }) {
-  const note = PROVINCE_CONTEXT[province]?.[marketName]
+function ProvinceNote({
+  province,
+  marketName,
+  liveContext,
+}: {
+  province: string
+  marketName: string
+  liveContext: LiveLogisticsContext
+}) {
+  const live = liveContext[province]?.[marketName]
+  const staticNote = PROVINCE_CONTEXT[province]?.[marketName]
+  const note = live?.note ?? staticNote
   if (!note) return null
+
+  const isLive = !!live
+  const isStale = live?.confidence === 'stale'
+
+  // Format lastReviewed as "Jan 2025"
+  const reviewedLabel = live?.lastReviewed
+    ? new Date(live.lastReviewed).toLocaleDateString('en-CA', { month: 'short', year: 'numeric' })
+    : null
 
   return (
     <div className="mt-3 p-3 bg-blue-50/50 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 rounded-lg flex gap-3 items-start animate-in fade-in slide-in-from-top-1 duration-400">
       <MapPin className="w-4 h-4 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-      <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-        <strong className="font-semibold">From {province}:</strong> {note}
-      </p>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+          <strong className="font-semibold">From {province}:</strong> {note}
+        </p>
+        {isLive && (
+          <div className="mt-1.5 flex items-center gap-1.5">
+            {isStale ? (
+              <span className="flex items-center gap-1 text-[9px] font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                <RefreshCw className="w-2.5 h-2.5" /> May be outdated
+              </span>
+            ) : (
+              reviewedLabel && (
+                <span className="text-[9px] font-medium text-blue-500 dark:text-blue-500 uppercase tracking-wider">
+                  Updated {reviewedLabel}
+                </span>
+              )
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -157,6 +194,7 @@ function MarketCard({
   liveExportValue,
   liveDataPeriod,
   isLoadingLive,
+  liveLogisticsContext,
 }: {
   market: Market
   type: string
@@ -166,6 +204,7 @@ function MarketCard({
   liveExportValue?: number
   liveDataPeriod?: string
   isLoadingLive: boolean
+  liveLogisticsContext: LiveLogisticsContext
 }) {
   const ta = type === 'international' ? TRADE_AGREEMENTS[market.name] : null
   const tariff = type === 'international' && industry ? TARIFF_RISK[industry]?.[market.name] : null
@@ -222,7 +261,13 @@ function MarketCard({
           />
         )}
 
-        {province && <ProvinceNote province={province} marketName={market.name} />}
+        {province && (
+          <ProvinceNote
+            province={province}
+            marketName={market.name}
+            liveContext={liveLogisticsContext}
+          />
+        )}
         {tariff && <TariffBadge risk={tariff} />}
       </CardContent>
     </Card>
@@ -241,6 +286,15 @@ export default function TradeCompass() {
   const [liveTradeData, setLiveTradeData] = useState<Record<string, number>>({})
   const [liveDataPeriod, setLiveDataPeriod] = useState<string | undefined>()
   const [isLoadingLive, setIsLoadingLive] = useState(false)
+  const [liveLogisticsContext, setLiveLogisticsContext] = useState<LiveLogisticsContext>({})
+
+  // Fetch live logistics context once on mount — cached at CDN edge for 1 hour
+  useEffect(() => {
+    fetch('/api/logistics-context')
+      .then((r) => r.json())
+      .then((data: LiveLogisticsContext) => setLiveLogisticsContext(data))
+      .catch(() => {}) // silent — static PROVINCE_CONTEXT is the fallback
+  }, [])
 
   const data = selectedIndustry ? MARKET_DATA[selectedIndustry] : null
   const isUSDependentSector = US_DEPENDENT_SECTORS.includes(selectedIndustry)
@@ -519,6 +573,7 @@ export default function TradeCompass() {
                     liveExportValue={liveTradeData[market.name]}
                     liveDataPeriod={liveDataPeriod}
                     isLoadingLive={isLoadingLive}
+                    liveLogisticsContext={liveLogisticsContext}
                   />
                 ))}
               </div>
