@@ -60,6 +60,21 @@ export async function GET(req: NextRequest) {
   after(async () => {
     // ─── Step 1: Claude deliberates ──────────────────────────────────────────
 
+    const recentPosts = await payload.find({
+      collection: 'posts',
+      where: {
+        _status: { equals: 'published' },
+        createdAt: { greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+      },
+      limit: 10,
+      sort: '-createdAt',
+    })
+
+    const recentlyPublished = recentPosts.docs.map((d: any) => ({
+      title: d.title,
+      vertical: d.vertical ?? 'unknown',
+    }))
+
     const decision = await deliberate(
       approved.map((d: any) => ({
         id: String(d.id),
@@ -71,7 +86,8 @@ export async function GET(req: NextRequest) {
         keyPoints: d.keyPoints ?? [],
         discoveredAt: d.discoveredAt,
         scheduledFor: d.scheduledFor,
-      }))
+      })),
+      recentlyPublished
     )
 
     if (!decision) {
