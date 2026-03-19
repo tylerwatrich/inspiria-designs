@@ -139,12 +139,21 @@ export type FactCheckResult = {
 
 // ─── Scan for news ────────────────────────────────────────────────────────────
 
-export async function scanForStories(): Promise<GeminiSuggestion[]> {
+export async function scanForStories(recentlyCovered: { headline: string }[] = []): Promise<GeminiSuggestion[]> {
   const SYSTEM = `You are a research analyst for Inspiria Digital, a Canadian business news publication.
 Your job is to find real, current news stories that matter to Canadian small business owners — people running businesses with 1–50 employees who need to understand what news means for their operations, costs, and opportunities.
 You MUST respond with valid JSON only. No preamble, no markdown fences.`
 
-  const prompt = `Search the web right now for the most significant Canadian business and technology news from the past 6 hours, with a focus on impact for Canadian small business owners.
+  const recentlyCoveredBlock = recentlyCovered.length
+    ? `\nIMPORTANT: Do NOT suggest stories that are semantically similar to any of the following recently covered topics.
+A story is "too similar" if it covers the same event, policy, company announcement, or trend — even if the headline wording differs.
+
+Recently covered (do not repeat):
+${recentlyCovered.map((r) => `- "${r.headline}"`).join('\n')}
+\n`
+    : ''
+
+  const prompt = `${recentlyCoveredBlock}Search the web right now for the most significant Canadian business and technology news from the past 6 hours, with a focus on impact for Canadian small business owners.
 
 Cover these topic areas:
 - Bank of Canada rate decisions and lending conditions for small businesses
