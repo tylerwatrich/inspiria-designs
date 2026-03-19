@@ -36,23 +36,34 @@ export async function GET(req: NextRequest) {
     console.log('[scan-news] Scanning for new stories...')
     let newStories: Awaited<ReturnType<typeof scanForStories>> = []
 
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+    const [recentSuggestions, recentPosts] = await Promise.all([
+      payload.find({
+        collection: 'article-suggestions',
+        where: { discoveredAt: { greater_than: sevenDaysAgo } },
+        limit: 100,
+      }),
+      payload.find({
+        collection: 'posts',
+        where: { createdAt: { greater_than: sevenDaysAgo } },
+        limit: 20,
+        sort: '-createdAt',
+      }),
+    ])
+
+    const recentlyCovered = [
+      ...recentSuggestions.docs.map((d: any) => ({ headline: d.headline })),
+      ...recentPosts.docs.map((d: any) => ({ headline: d.title })),
+    ]
+
     try {
-      newStories = await scanForStories()
+      newStories = await scanForStories(recentlyCovered)
       console.log(`[scan-news] Gemini found ${newStories.length} stories`)
     } catch (e) {
       console.error('[scan-news] scanForStories failed:', e)
       results.errors.push(`scanForStories: ${String(e)}`)
     }
-
-    const recentSuggestions = await payload.find({
-      collection: 'article-suggestions',
-      where: {
-        discoveredAt: {
-          greater_than: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        },
-      },
-      limit: 100,
-    })
 
     const recentHeadlines = new Set(
       recentSuggestions.docs.map((d: any) => d.headline.toLowerCase().trim())
