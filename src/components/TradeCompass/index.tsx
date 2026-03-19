@@ -9,6 +9,7 @@ import {
   MARKET_DATA,
   US_DEPENDENT_SECTORS,
   TRADE_AGREEMENTS,
+  COMTRADE_SUPPORTED_MARKETS,
   type Market,
   type TariffInfo,
 } from './data'
@@ -33,7 +34,18 @@ import {
   ArrowRight,
   ShieldCheck,
   TrendingUp,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
+
+// ─── HELPERS ───────────────────────────────────────────────────────────────────
+
+function formatTradeValue(usd: number): string {
+  if (usd >= 1_000_000_000) return `$${(usd / 1_000_000_000).toFixed(1)}B`
+  if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(0)}M`
+  if (usd >= 1_000) return `$${(usd / 1_000).toFixed(0)}K`
+  return `$${usd.toFixed(0)}`
+}
 
 // ─── SUB-COMPONENTS ────────────────────────────────────────────────────────────
 
@@ -99,21 +111,65 @@ function ProvinceNote({ province, marketName }: { province: string; marketName: 
   )
 }
 
+function LiveExportBadge({
+  value,
+  period,
+  isLoading,
+}: {
+  value?: number
+  period?: string
+  isLoading: boolean
+}) {
+  if (isLoading) {
+    return (
+      <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest animate-pulse">
+        <Wifi className="w-3 h-3" /> Fetching live data…
+      </div>
+    )
+  }
+
+  if (!value) return null
+
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/40 rounded-full">
+        <Wifi className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+          Live
+        </span>
+        <span className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 tabular-nums">
+          {formatTradeValue(value)} exports
+        </span>
+      </div>
+      {period && (
+        <span className="text-[9px] text-zinc-400 font-medium">{period}</span>
+      )}
+    </div>
+  )
+}
+
 function MarketCard({
   market,
   type,
   index,
   industry,
   province,
+  liveExportValue,
+  liveDataPeriod,
+  isLoadingLive,
 }: {
   market: Market
   type: string
   index: number
   industry: string
   province: string
+  liveExportValue?: number
+  liveDataPeriod?: string
+  isLoadingLive: boolean
 }) {
   const ta = type === 'international' ? TRADE_AGREEMENTS[market.name] : null
   const tariff = type === 'international' && industry ? TARIFF_RISK[industry]?.[market.name] : null
+  const showLive = type === 'international' && COMTRADE_SUPPORTED_MARKETS.has(market.name)
 
   return (
     <Card
@@ -158,6 +214,14 @@ function MarketCard({
           {market.note}
         </p>
 
+        {showLive && (
+          <LiveExportBadge
+            value={liveExportValue}
+            period={liveDataPeriod}
+            isLoading={isLoadingLive}
+          />
+        )}
+
         {province && <ProvinceNote province={province} marketName={market.name} />}
         {tariff && <TariffBadge risk={tariff} />}
       </CardContent>
@@ -174,6 +238,9 @@ export default function TradeCompass() {
   const [hideUS, setHideUS] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [showCTA, setShowCTA] = useState(false)
+  const [liveTradeData, setLiveTradeData] = useState<Record<string, number>>({})
+  const [liveDataPeriod, setLiveDataPeriod] = useState<string | undefined>()
+  const [isLoadingLive, setIsLoadingLive] = useState(false)
 
   const data = selectedIndustry ? MARKET_DATA[selectedIndustry] : null
   const isUSDependentSector = US_DEPENDENT_SECTORS.includes(selectedIndustry)
@@ -182,15 +249,29 @@ export default function TradeCompass() {
     if (!selectedIndustry) return
     setHasSearched(true)
     setShowCTA(false)
+    setLiveTradeData({})
+    setLiveDataPeriod(undefined)
+    setIsLoadingLive(true)
     setTimeout(() => setShowCTA(true), 1500)
 
+    // Log search query (non-blocking)
     fetch('/api/search-logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ industry: selectedIndustry, province: selectedProvince, hideUS }),
-    }).catch(() => {
-      // Non-blocking — logging failure must never interrupt the user experience
-    })
+    }).catch(() => {})
+
+    // Fetch live trade data from UN Comtrade (non-blocking — failures are silent)
+    fetch(`/api/comtrade?industry=${encodeURIComponent(selectedIndustry)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.tradeValues) {
+          setLiveTradeData(json.tradeValues)
+          setLiveDataPeriod(json.period)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingLive(false))
 
     // Scroll results into view
     setTimeout(() => {
@@ -435,6 +516,9 @@ export default function TradeCompass() {
                     index={i}
                     industry={selectedIndustry}
                     province={selectedProvince === 'null_all' ? '' : selectedProvince}
+                    liveExportValue={liveTradeData[market.name]}
+                    liveDataPeriod={liveDataPeriod}
+                    isLoadingLive={isLoadingLive}
                   />
                 ))}
               </div>
@@ -489,14 +573,22 @@ export default function TradeCompass() {
             )}
 
             {/* Disclaimer */}
-            <footer className="mt-12 p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900/30">
+            <footer className="mt-12 p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900/30 space-y-3">
+              {liveDataPeriod && (
+                <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+                  <Wifi className="w-3 h-3" />
+                  Live export values: UN Comtrade ({liveDataPeriod} annual data, USD)
+                </div>
+              )}
               <p className="text-[11px] text-zinc-500 leading-relaxed italic">
                 <strong className="text-zinc-700 dark:text-zinc-300 not-italic uppercase tracking-tighter mr-1">
                   Trade Intelligence Disclaimer:
                 </strong>
-                Opportunity scores reflect relative market potential based on early 2025 trade
-                volume, FTA access, and demand trends. This is not financial or legal advice.
-                Conditions may shift rapidly. Always verify with official sources:
+                Opportunity scores reflect relative market potential based on FTA access, tariff
+                risk, and demand trends. Live export values are sourced from the UN Comtrade
+                database and cover goods trade only (services industries show no live value). This
+                is not financial or legal advice. Conditions may shift rapidly. Always verify with
+                official sources:
                 <a
                   href="https://www.tradecommissioner.gc.ca"
                   target="_blank"

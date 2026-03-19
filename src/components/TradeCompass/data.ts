@@ -318,6 +318,22 @@ export const TRADE_AGREEMENTS: Record<string, { name: string; color: string }> =
   'Saudi Arabia': { name: 'No FTA', color: '#9ca3af' },
 }
 
+// Markets that have a UN Comtrade partner code — used to show live export value badge
+export const COMTRADE_SUPPORTED_MARKETS = new Set([
+  'United States',
+  'China',
+  'Japan',
+  'Germany',
+  'United Kingdom',
+  'South Korea',
+  'Australia',
+  'India',
+  'Mexico',
+  'Singapore',
+  'France',
+  'Saudi Arabia',
+])
+
 export interface Market {
   name: string
   score: number
