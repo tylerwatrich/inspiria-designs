@@ -39,6 +39,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import type { LiveLogisticsContext } from '@/app/api/logistics-context/route'
+import { CANADA_TRADE_TOTALS, LATEST_TRADE_YEAR } from '@/data/comtrade-canada-totals'
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -354,6 +355,32 @@ export default function TradeCompass() {
             </p>
           </div>
         </header>
+
+        {/* Canada Trade Overview Strip */}
+        <div className="grid grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-75 fill-both">
+          {CANADA_TRADE_TOTALS.map((row, i) => {
+            const prev = CANADA_TRADE_TOTALS[i - 1]
+            const exportDelta = prev ? ((row.exports - prev.exports) / prev.exports) * 100 : null
+            const isLatest = i === CANADA_TRADE_TOTALS.length - 1
+            return (
+              <div
+                key={row.year}
+                className={`p-4 rounded-xl border text-center space-y-1 ${isLatest ? 'border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30'}`}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{row.year}</p>
+                <p className="text-lg font-black tabular-nums text-zinc-900 dark:text-zinc-50">
+                  ${(row.exports / 1_000_000_000).toFixed(1)}B
+                </p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wider">exports</p>
+                {exportDelta !== null && (
+                  <p className={`text-[10px] font-bold ${exportDelta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    {exportDelta >= 0 ? '▲' : '▼'} {Math.abs(exportDelta).toFixed(1)}% YoY
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
 
         {/* Search Controls */}
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-none animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 fill-both">
