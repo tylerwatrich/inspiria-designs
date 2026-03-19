@@ -34,8 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
       <head>
         <InitTheme />
-        <link href="/favicon.ico" rel="icon" sizes="32x32" />
-        <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+        <link href="/favicon-inspiria.jpg" rel="icon" type="image/jpeg" sizes="512x512" />
+        <link href="/favicon-inspiria.jpg" rel="apple-touch-icon" sizes="512x512" />
       </head>
 
       <body className={`${inter.className} dark:bg-zinc-900`}>
