@@ -153,10 +153,12 @@ function ProvinceNote({
 function LiveExportBadge({
   value,
   period,
+  source,
   isLoading,
 }: {
   value?: number
   period?: string
+  source?: 'live' | 'static'
   isLoading: boolean
 }) {
   if (isLoading) {
@@ -169,18 +171,34 @@ function LiveExportBadge({
 
   if (!value) return null
 
+  const isLive = source === 'live'
+
   return (
     <div className="mt-3 flex items-center gap-2">
-      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/40 rounded-full">
-        <Wifi className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
-        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-          Live
+      <div className={cn(
+        'flex items-center gap-1.5 px-2.5 py-1 border rounded-full',
+        isLive
+          ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/40'
+          : 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/40',
+      )}>
+        {isLive
+          ? <Wifi className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+          : <WifiOff className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
+        }
+        <span className={cn(
+          'text-[10px] font-bold uppercase tracking-wider',
+          isLive ? 'text-emerald-700 dark:text-emerald-400' : 'text-blue-700 dark:text-blue-400',
+        )}>
+          {isLive ? 'Live' : `Comtrade ${period ?? ''}`}
         </span>
-        <span className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 tabular-nums">
+        <span className={cn(
+          'text-[10px] font-black tabular-nums',
+          isLive ? 'text-emerald-800 dark:text-emerald-300' : 'text-blue-800 dark:text-blue-300',
+        )}>
           {formatTradeValue(value)} exports
         </span>
       </div>
-      {period && (
+      {isLive && period && (
         <span className="text-[9px] text-zinc-400 font-medium">{period}</span>
       )}
     </div>
@@ -205,6 +223,7 @@ function MarketCard({
   province: string
   liveExportValue?: number
   liveDataPeriod?: string
+  liveDataSource?: 'live' | 'static'
   isLoadingLive: boolean
   liveLogisticsContext: LiveLogisticsContext
 }) {
@@ -259,6 +278,7 @@ function MarketCard({
           <LiveExportBadge
             value={liveExportValue}
             period={liveDataPeriod}
+            source={liveDataSource}
             isLoading={isLoadingLive}
           />
         )}
@@ -287,6 +307,7 @@ export default function TradeCompass() {
   const [showCTA, setShowCTA] = useState(false)
   const [liveTradeData, setLiveTradeData] = useState<Record<string, number>>({})
   const [liveDataPeriod, setLiveDataPeriod] = useState<string | undefined>()
+  const [liveDataSource, setLiveDataSource] = useState<'live' | 'static' | undefined>()
   const [isLoadingLive, setIsLoadingLive] = useState(false)
   const [liveLogisticsContext, setLiveLogisticsContext] = useState<LiveLogisticsContext>({})
 
@@ -307,6 +328,7 @@ export default function TradeCompass() {
     setShowCTA(false)
     setLiveTradeData({})
     setLiveDataPeriod(undefined)
+    setLiveDataSource(undefined)
     setIsLoadingLive(true)
     setTimeout(() => setShowCTA(true), 1500)
 
@@ -324,6 +346,7 @@ export default function TradeCompass() {
         if (json.tradeValues) {
           setLiveTradeData(json.tradeValues)
           setLiveDataPeriod(json.period)
+          setLiveDataSource(json.source === 'live' ? 'live' : 'static')
         }
       })
       .catch(() => {})
@@ -517,7 +540,7 @@ export default function TradeCompass() {
                       <span className="font-bold text-zinc-700 dark:text-zinc-300">
                         ${(latest.exports / 1_000_000_000).toFixed(1)}B
                       </span>{' '}
-                      in this sector (2024, 12-market aggregate) ·{' '}
+                      in this sector (2024, world total) ·{' '}
                       <span className={delta >= 0 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
                         {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}% vs 2023
                       </span>
@@ -619,6 +642,7 @@ export default function TradeCompass() {
                     province={selectedProvince === 'null_all' ? '' : selectedProvince}
                     liveExportValue={liveTradeData[market.name]}
                     liveDataPeriod={liveDataPeriod}
+                    liveDataSource={liveDataSource}
                     isLoadingLive={isLoadingLive}
                     liveLogisticsContext={liveLogisticsContext}
                   />
@@ -677,9 +701,20 @@ export default function TradeCompass() {
             {/* Disclaimer */}
             <footer className="mt-12 p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900/30 space-y-3">
               {liveDataPeriod && (
-                <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
-                  <Wifi className="w-3 h-3" />
-                  Live export values: UN Comtrade ({liveDataPeriod} annual data, USD)
+                <div className={cn(
+                  'flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest',
+                  liveDataSource === 'live'
+                    ? 'text-emerald-700 dark:text-emerald-400'
+                    : 'text-blue-700 dark:text-blue-400',
+                )}>
+                  {liveDataSource === 'live'
+                    ? <Wifi className="w-3 h-3" />
+                    : <WifiOff className="w-3 h-3" />
+                  }
+                  {liveDataSource === 'live'
+                    ? `Live export values: UN Comtrade (${liveDataPeriod} annual data, USD)`
+                    : `Export values: UN Comtrade static data (${liveDataPeriod}, USD) — add COMTRADE_API_KEY for live data`
+                  }
                 </div>
               )}
               <p className="text-[11px] text-zinc-500 leading-relaxed italic">

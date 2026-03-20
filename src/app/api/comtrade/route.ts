@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { COMTRADE_COUNTRY_EXPORTS_2024 } from '@/data/comtrade-country-exports'
 
 const COMTRADE_BASE = 'https://comtradeapi.un.org/data/v1/get/C/A/HS'
 const CANADA_CODE = '124'
@@ -62,7 +63,11 @@ export async function GET(req: NextRequest) {
 
   const apiKey = process.env.COMTRADE_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: 'COMTRADE_API_KEY not configured' }, { status: 503 })
+    const staticData = COMTRADE_COUNTRY_EXPORTS_2024[industry]
+    if (staticData) {
+      return NextResponse.json({ tradeValues: staticData, period: '2024', source: 'static' })
+    }
+    return NextResponse.json({ tradeValues: {}, note: 'no_static_data' })
   }
 
   const partnerCodesStr = Object.values(PARTNER_CODES).join(',')
@@ -113,5 +118,5 @@ export async function GET(req: NextRequest) {
     tradeValues[countryName] = (tradeValues[countryName] ?? 0) + value
   }
 
-  return NextResponse.json({ tradeValues, period, source: 'UN Comtrade' })
+  return NextResponse.json({ tradeValues, period, source: 'live' })
 }

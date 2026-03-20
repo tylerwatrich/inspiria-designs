@@ -1,8 +1,8 @@
-// Canada industry-level goods exports — aggregate across 12 target markets
-// Partners: US, China, Japan, Germany, UK, South Korea, Australia, India, Mexico, Singapore, France, Saudi Arabia
-// Source: UN Comtrade, Annual HS, Canada (reporter 124)
-// HS codes: 02, 10, 12, 15, 16 (Agriculture), 26, 74, 76 (Mining), 85 (Tech), 87 (Auto)
-// Downloaded: March 2026
+// Canada industry-level goods trade — world aggregate
+// Reporter: Canada (124) | Partner: World (ALL)
+// Source: UN Comtrade, Annual HS, aggrLevel=2 (HS chapter)
+// Downloaded: March 2026 | Flows: Exports + Imports
+// Note: HS 44 appears in both Forestry and Construction; HS 85 in both Tech and Manufacturing
 
 export interface IndustryExportYear {
   exports: number
@@ -18,51 +18,81 @@ export const CANADA_INDUSTRY_EXPORTS: Record<string, IndustryExportData> = {
   'Agriculture & Food': {
     hsCodes: ['02', '10', '12', '15', '16'],
     byYear: {
-      2022: {
-        exports: 6458601489 + 4616771498 + 6184039759 + 6178510912 + 1275088925,
-        imports: 2031569517 + 1890845451 + 1017928458 + 812913784 + 1274761271,
-      },
-      2023: {
-        exports: 6305162290 + 4599465640 + 6584077114 + 6495756222 + 1265365634,
-        imports: 2031260366 + 1258239306 + 962179926 + 687713304 + 1169673404,
-      },
-      2024: {
-        exports: 6436425241 + 3696005836 + 5865312516 + 5169138832 + 1400767900,
-        imports: 2118904644 + 996998089 + 983179630 + 766880798 + 1128055764,
-      },
+      2022: { exports: 66289758541, imports: 19258864106 },
+      2023: { exports: 68885450348, imports: 17620152515 },
+      2024: { exports: 61413354337, imports: 18629820154 },
     },
   },
   'Automotive & Parts': {
     hsCodes: ['87'],
     byYear: {
-      2022: { exports: 48519937977, imports: 78749243333 },
-      2023: { exports: 61333825224, imports: 87713848897 },
-      2024: { exports: 54005525277, imports: 84213688981 },
+      2022: { exports: 100436250822, imports: 165084455508 },
+      2023: { exports: 126817852149, imports: 184145591333 },
+      2024: { exports: 111901113299, imports: 175794280037 },
+    },
+  },
+  'Construction & Building Materials': {
+    hsCodes: ['44', '72', '73'],
+    byYear: {
+      2022: { exports: 75564607349, imports: 58305794067 },
+      2023: { exports: 60127430179, imports: 50808059501 },
+      2024: { exports: 56163458528, imports: 46907431426 },
+    },
+  },
+  'Energy & Resources': {
+    hsCodes: ['27'],
+    byYear: {
+      2022: { exports: 362162560913, imports: 90027632377 },
+      2023: { exports: 285942358127, imports: 76510882774 },
+      2024: { exports: 281357652350, imports: 69931929235 },
+    },
+  },
+  'Fashion & Apparel': {
+    hsCodes: ['61', '62'],
+    byYear: {
+      2022: { exports: 3184523993, imports: 24930620629 },
+      2023: { exports: 2990657568, imports: 21683304572 },
+      2024: { exports: 2980887270, imports: 21038254308 },
+    },
+  },
+  'Forestry & Lumber': {
+    hsCodes: ['44', '47'],
+    byYear: {
+      2022: { exports: 53100468464, imports: 9154748044 },
+      2023: { exports: 37888832517, imports: 7897019052 },
+      2024: { exports: 37276101550, imports: 7787582192 },
+    },
+  },
+  'Healthcare & Medical': {
+    hsCodes: ['30'],
+    byYear: {
+      2022: { exports: 21469988777, imports: 40171462154 },
+      2023: { exports: 19221352649, imports: 37852740912 },
+      2024: { exports: 21779002666, imports: 37720087448 },
+    },
+  },
+  Manufacturing: {
+    hsCodes: ['84', '85'],
+    byYear: {
+      2022: { exports: 104878173914, imports: 267307035361 },
+      2023: { exports: 116839365384, imports: 274616055233 },
+      2024: { exports: 112890506049, imports: 263237121574 },
     },
   },
   'Mining & Metals': {
     hsCodes: ['26', '74', '76'],
     byYear: {
-      2022: {
-        exports: 8658398964 + 4118730285 + 13678833997,
-        imports: 3130475503 + 2024983278 + 5054063482,
-      },
-      2023: {
-        exports: 8677937821 + 4016754532 + 11932391945,
-        imports: 2846060758 + 1946361278 + 4381062791,
-      },
-      2024: {
-        exports: 8256787922 + 4430131566 + 11796628257,
-        imports: 2536699086 + 2281251059 + 4507865944,
-      },
+      2022: { exports: 60245933196, imports: 28133480503 },
+      2023: { exports: 56806109976, imports: 24878572993 },
+      2024: { exports: 56745681781, imports: 24561019526 },
     },
   },
   'Software & Technology': {
     hsCodes: ['85'],
     byYear: {
-      2022: { exports: 12920412203, imports: 41432201890 },
-      2023: { exports: 14124564339, imports: 40920956470 },
-      2024: { exports: 15194394076, imports: 39315522440 },
+      2022: { exports: 29472326570, imports: 106551884224 },
+      2023: { exports: 32016064948, imports: 106193641642 },
+      2024: { exports: 33721345818, imports: 101311665465 },
     },
   },
   // Tourism & Hospitality, Financial Services — services, not covered by Comtrade goods data
