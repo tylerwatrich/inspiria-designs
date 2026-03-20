@@ -17,7 +17,11 @@
 
 import { NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
+import type { CollectionSlug } from 'payload'
 import config from '@payload-config'
+
+// 'logistics-context' is registered in payload.config but types may lag regeneration
+const LOGISTICS_COLLECTION = 'logistics-context' as CollectionSlug
 
 export const maxDuration = 300
 
@@ -126,7 +130,7 @@ export async function GET(req: NextRequest) {
 
     // Load all existing DB records into a lookup map
     const { docs: existing } = await payload.find({
-      collection: 'logistics-context',
+      collection: LOGISTICS_COLLECTION,
       limit: 500,
       pagination: false,
     })
@@ -153,7 +157,7 @@ export async function GET(req: NextRequest) {
       // Mark stale before deciding whether to skip
       if (record && age > STALE_THRESHOLD_DAYS && record.confidence !== 'stale') {
         await payload.update({
-          collection: 'logistics-context',
+          collection: LOGISTICS_COLLECTION,
           id: record.id,
           data: { confidence: 'stale' },
         })
@@ -180,7 +184,7 @@ export async function GET(req: NextRequest) {
 
       if (record) {
         await payload.update({
-          collection: 'logistics-context',
+          collection: LOGISTICS_COLLECTION,
           id: record.id,
           data: {
             note: result.note,
@@ -194,7 +198,7 @@ export async function GET(req: NextRequest) {
         )
       } else {
         await payload.create({
-          collection: 'logistics-context',
+          collection: LOGISTICS_COLLECTION,
           data: {
             province,
             market,
