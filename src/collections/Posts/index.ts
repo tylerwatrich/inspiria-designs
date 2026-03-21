@@ -251,6 +251,17 @@ export const Posts: CollectionConfig<'posts'> = {
           label: 'Demographics',
           fields: [
             {
+              name: 'articleArea',
+              type: 'relationship',
+              relationTo: 'article-areas',
+              hasMany: false,
+              label: 'Article Area',
+              admin: {
+                description:
+                  'The narrative section this post belongs to — Canadian Business News, Industry Insights, or Resources.',
+              },
+            },
+            {
               name: 'articleType',
               type: 'relationship',
               relationTo: 'article-types',
