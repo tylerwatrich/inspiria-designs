@@ -11,6 +11,7 @@ import config from '@payload-config'
 import { Media } from '@/components/Media'
 import { Media as MediaType } from '@/payload-types'
 import { LeadCaptureModal } from '@/components/LeadCaptureModal'
+import { CTABlock } from '@/components/CTABlock'
 import { getServerSideURL } from '@/utilities/getURL'
 
 // --- Data for mapping ---
@@ -309,7 +310,7 @@ const About = ({ aboutImage }: AboutProps) => (
   </section>
 )
 
-const ContactCTA = () => (
+const DefaultContactCTA = () => (
   <section
     id="contact"
     className="bg-brand-blue-500 text-white rounded-2xl shadow-floating-lg p-8 md:p-16 text-center"
@@ -329,7 +330,7 @@ const ContactCTA = () => (
 export default async function HomePage() {
   const payload = await getPayload({ config })
   const [home, siteSettings] = await Promise.all([
-    payload.findGlobal({ slug: 'home' }),
+    payload.findGlobal({ slug: 'home', depth: 1 }),
     payload.findGlobal({ slug: 'site-settings' }),
   ])
 
@@ -367,7 +368,11 @@ export default async function HomePage() {
           <Services />
           {/* <Portfolio /> */}
           <About aboutImage={home.aboutImage} />
-          <ContactCTA />
+          {home.cta && typeof home.cta === 'object' ? (
+            <CTABlock cta={home.cta} source="homepage" />
+          ) : (
+            <DefaultContactCTA />
+          )}
         </main>
         {/* <Footer /> */}
       </div>

@@ -24,5 +24,15 @@ export const Home: GlobalConfig = {
         language: 'html',
       },
     },
+    {
+      name: 'cta',
+      type: 'relationship',
+      relationTo: 'ctas',
+      hasMany: false,
+      label: 'CTA',
+      admin: {
+        description: 'The call-to-action shown at the bottom of the home page.',
+      },
+    },
   ],
 }

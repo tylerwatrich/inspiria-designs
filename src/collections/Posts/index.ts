@@ -233,16 +233,13 @@ export const Posts: CollectionConfig<'posts'> = {
             },
             {
               name: 'cta',
-              type: 'select',
+              type: 'relationship',
+              relationTo: 'ctas',
+              hasMany: false,
               label: 'CTA',
-              defaultValue: 'blue',
               admin: {
-                description: 'Which call-to-action to show on this post.',
+                description: 'Which call-to-action to show on this post. Manage CTAs in the CTAs collection.',
               },
-              options: [
-                { label: 'Strategy Call (blue)', value: 'blue' },
-                { label: 'Trade Compass (red)', value: 'trade-compass' },
-              ],
             },
           ],
           label: 'Meta',

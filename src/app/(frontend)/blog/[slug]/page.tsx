@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import { LeadCaptureModal } from '@/components/LeadCaptureModal'
+import { CTABlock } from '@/components/CTABlock'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import Link from 'next/link'
 import RichText from '@/components/RichText'
 import type { Post, Faq, Media } from '@/payload-types'
 import { PostHero } from '@/heros/PostHero'
@@ -179,52 +179,12 @@ export default async function Post({ params: paramsPromise }: Args) {
           })()}
 
           <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating px-8 py-10 md:px-14 md:py-14">
-            {post.cta === 'trade-compass' && (
-              <div className="mb-8 border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                    Find your next export market
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Use our{' '}
-                    <Link
-                      href="/trade-compass"
-                      className="text-red-600 dark:text-red-400 underline underline-offset-2 font-medium hover:text-red-700"
-                    >
-                      Trade Compass
-                    </Link>{' '}
-                    to discover which international markets are the best fit for your Canadian
-                    business — powered by real trade data.
-                  </p>
-                </div>
-                <Link
-                  href="/trade-compass"
-                  className="shrink-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors whitespace-nowrap"
-                >
-                  Try Trade Compass →
-                </Link>
-              </div>
-            )}
             {/* RichText content */}
             <RichText data={post.content} enableGutter={false} />
           </div>
 
-          {post.cta === 'trade-compass' ? (
-            <section className="mt-6 bg-red-600 text-white rounded-2xl shadow-floating-lg p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                Discover your best export markets
-              </h2>
-              <p className="text-red-100 max-w-xl mx-auto mb-6">
-                Our Trade Compass analyzes real Canadian trade data to pinpoint which international
-                markets offer the biggest opportunity for your business.
-              </p>
-              <Link
-                href="/trade-compass"
-                className="inline-block bg-white text-red-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-red-50 transition-all transform hover:scale-105"
-              >
-                Explore Trade Compass
-              </Link>
-            </section>
+          {post.cta && typeof post.cta === 'object' ? (
+            <CTABlock cta={post.cta} source="post" className="mt-10" />
           ) : (
             <section className="mt-10 bg-brand-blue-500 text-white rounded-2xl shadow-floating-lg p-8 md:p-12 text-center">
               <h2 className="text-2xl md:text-3xl font-bold mb-3">
