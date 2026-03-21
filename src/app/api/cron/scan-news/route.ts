@@ -58,8 +58,12 @@ export async function GET(req: NextRequest) {
     ]
 
     try {
-      newStories = await scanForStories(recentlyCovered)
-      console.log(`[scan-news] Gemini found ${newStories.length} stories`)
+      // Run area scans sequentially — parallel calls exhaust the token-per-minute budget
+      const cbnStories = await scanForStories('canadian-business-news', recentlyCovered)
+      const iiStories = await scanForStories('industry-insights', recentlyCovered)
+      const resourceStories = await scanForStories('resources', recentlyCovered)
+      newStories = [...cbnStories, ...iiStories, ...resourceStories]
+      console.log(`[scan-news] Found ${cbnStories.length} CBN + ${iiStories.length} Industry + ${resourceStories.length} Resources stories`)
     } catch (e) {
       console.error('[scan-news] scanForStories failed:', e)
       results.errors.push(`scanForStories: ${String(e)}`)
@@ -86,6 +90,7 @@ export async function GET(req: NextRequest) {
             keyPoints: story.keyPoints.map((point: string) => ({ point })),
             sources: story.sources,
             geminiContext: story.geminiContext,
+            area: story.area,
             vertical: story.vertical,
             priority: story.priority,
             priorityReason: story.priorityReason,
@@ -103,6 +108,10 @@ export async function GET(req: NextRequest) {
     }
 
     // ─── Step 2: Re-prioritize existing suggestions ─────────────────────────────
+    // Wait 60s before rePrioritize — the 3 area scans consume most of the
+    // 50k input tokens/min budget; this lets the rate-limit window roll over.
+
+    await new Promise((resolve) => setTimeout(resolve, 60_000))
 
     if (guard.check('rePrioritizeEnabled')) {
       const pendingAndApproved = await payload.find({
