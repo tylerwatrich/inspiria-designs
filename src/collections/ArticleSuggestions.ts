@@ -4,7 +4,7 @@ export const ArticleSuggestions: CollectionConfig = {
   slug: 'article-suggestions',
   admin: {
     useAsTitle: 'headline',
-    defaultColumns: ['headline', 'vertical', 'priority', 'status', 'scheduledFor', 'discoveredAt'],
+    defaultColumns: ['headline', 'area', 'vertical', 'priority', 'status', 'scheduledFor', 'discoveredAt'],
     listSearchableFields: ['headline', 'summary'],
   },
   fields: [
@@ -43,15 +43,37 @@ export const ArticleSuggestions: CollectionConfig = {
       },
     },
     {
+      name: 'area',
+      type: 'select',
+      required: true,
+      defaultValue: 'canadian-business-news',
+      options: [
+        { label: 'Canadian Business News', value: 'canadian-business-news' },
+        { label: 'Industry Insights', value: 'industry-insights' },
+        { label: 'Resources', value: 'resources' },
+      ],
+      admin: { description: 'Which editorial section this story belongs to.' },
+    },
+    {
       name: 'vertical',
       type: 'select',
       options: [
+        // Canadian Business News
         { label: 'Nuclear', value: 'nuclear' },
         { label: 'AI & Cloud', value: 'ai-cloud' },
         { label: 'Construction Tech', value: 'construction-tech' },
         { label: 'Finance', value: 'finance' },
         { label: 'Trade & Policy', value: 'trade' },
         { label: 'Deep Tech', value: 'deep-tech' },
+        // Industry Insights
+        { label: 'Legal', value: 'legal' },
+        { label: 'Contractors & Trades', value: 'contractors' },
+        { label: 'Real Estate', value: 'real-estate' },
+        { label: 'Government Procurement', value: 'procurement' },
+        // Resources
+        { label: 'Website Basics', value: 'website-basics' },
+        { label: 'SEO', value: 'seo' },
+        { label: 'E-Commerce', value: 'ecommerce' },
       ],
       required: true,
     },

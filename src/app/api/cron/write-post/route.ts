@@ -56,6 +56,14 @@ export async function GET(req: NextRequest) {
 
   console.log(`[write-post] ${approved.length} suggestions in queue`)
 
+  // Build area slug → ID map for linking articleArea on published posts
+  const { docs: areaDocs } = await payload.find({ collection: 'article-areas', limit: 10 })
+  const areaIdMap: Record<string, number> = {}
+  for (const a of areaDocs) {
+    const slug = (a as any).slug
+    if (slug) areaIdMap[slug] = Number(a.id)
+  }
+
   // Return immediately so cron-job.org doesn't time out — heavy work runs in background
   after(async () => {
     // ─── Step 1: Claude deliberates ──────────────────────────────────────────
@@ -152,6 +160,7 @@ export async function GET(req: NextRequest) {
         additionalContext: factCheck.additionalContext,
         editorial: decision.reasoning,
         vertical: chosen.vertical,
+        area: (chosen as any).area ?? 'canadian-business-news',
       })
     } catch (e) {
       console.error('[write-post] Article writing failed:', e)
@@ -178,10 +187,11 @@ export async function GET(req: NextRequest) {
 
     let post
     try {
+      const areaId = areaIdMap[(chosen as any).area ?? ''] ?? undefined
       post = await payload.create({
         collection: 'posts',
         data: {
-          ...articleToPayload(article),
+          ...articleToPayload(article, areaId),
           _status: status,
           ...(heroImageId ? { heroImage: heroImageId } : {}),
         },

@@ -73,6 +73,7 @@ export interface Config {
     categories: Category;
     users: User;
     'target-audience': TargetAudience;
+    'article-areas': ArticleArea;
     'article-types': ArticleType;
     industries: Industry;
     leads: Lead;
@@ -106,6 +107,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'target-audience': TargetAudienceSelect<false> | TargetAudienceSelect<true>;
+    'article-areas': ArticleAreasSelect<false> | ArticleAreasSelect<true>;
     'article-types': ArticleTypesSelect<false> | ArticleTypesSelect<true>;
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
@@ -301,6 +303,10 @@ export interface Post {
    * Which call-to-action to show on this post.
    */
   cta?: ('blue' | 'trade-compass') | null;
+  /**
+   * The narrative section this post belongs to — Canadian Business News, Industry Insights, or Resources.
+   */
+  articleArea?: (number | null) | ArticleArea;
   /**
    * The content format of this post (Guide, Pain Point, Listicle, etc.)
    */
@@ -526,6 +532,26 @@ export interface Category {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Narrative separations for articles — defines which section of the site an article belongs to (e.g. Canadian Business News, Industry Insights, Resources).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-areas".
+ */
+export interface ArticleArea {
+  id: number;
+  name: string;
+  /**
+   * Machine-readable identifier used by the automation pipeline (e.g. canadian-business-news). Do not change after seeding.
+   */
+  slug: string;
+  /**
+   * What this area covers and the narrative intent behind it.
+   */
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1176,7 +1202,24 @@ export interface ArticleSuggestion {
    * Raw research context from Gemini for use when writing.
    */
   geminiContext?: string | null;
-  vertical: 'nuclear' | 'ai-cloud' | 'construction-tech' | 'finance' | 'trade' | 'deep-tech';
+  /**
+   * Which editorial section this story belongs to.
+   */
+  area: 'canadian-business-news' | 'industry-insights' | 'resources';
+  vertical:
+    | 'nuclear'
+    | 'ai-cloud'
+    | 'construction-tech'
+    | 'finance'
+    | 'trade'
+    | 'deep-tech'
+    | 'legal'
+    | 'contractors'
+    | 'real-estate'
+    | 'procurement'
+    | 'website-basics'
+    | 'seo'
+    | 'ecommerce';
   /**
    * 1–100. Gemini sets this; Claude adjusts during writing cron. 80+ = breaking, 60–79 = timely, 40–59 = evergreen, <40 = low.
    */
@@ -1461,6 +1504,10 @@ export interface PayloadLockedDocument {
         value: number | TargetAudience;
       } | null)
     | ({
+        relationTo: 'article-areas';
+        value: number | ArticleArea;
+      } | null)
+    | ({
         relationTo: 'article-types';
         value: number | ArticleType;
       } | null)
@@ -1719,6 +1766,7 @@ export interface PostsSelect<T extends boolean = true> {
   funnelStage?: T;
   aiGenerated?: T;
   cta?: T;
+  articleArea?: T;
   articleType?: T;
   targetIndustry?: T;
   targetBusinessSize?: T;
@@ -1926,6 +1974,17 @@ export interface TargetAudienceSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "article-areas_select".
+ */
+export interface ArticleAreasSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "article-types_select".
  */
 export interface ArticleTypesSelect<T extends boolean = true> {
@@ -2069,6 +2128,7 @@ export interface ArticleSuggestionsSelect<T extends boolean = true> {
         id?: T;
       };
   geminiContext?: T;
+  area?: T;
   vertical?: T;
   priority?: T;
   priorityReason?: T;
