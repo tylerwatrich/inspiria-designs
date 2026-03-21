@@ -14,12 +14,22 @@ const POLL_TIMEOUT_MS = 90_000
 const REQUEST_TIMEOUT_MS = 60_000
 
 const VERTICAL_STYLE_HINTS: Record<string, string> = {
+  // Canadian Business News
   nuclear: 'industrial and technical, power plant infrastructure, clean energy engineering',
   'ai-cloud': 'abstract digital patterns, glowing neural networks, soft blue data streams',
   'construction-tech': 'architectural and urban, modern construction site, steel and glass structures',
   finance: 'minimal and corporate, clean geometric lines, subtle financial motif',
   trade: 'geographic and symbolic, Canadian landscape, international trade routes and cargo',
   'deep-tech': 'futuristic and scientific, quantum computing, advanced laboratory, circuit patterns',
+  // Industry Insights
+  legal: 'professional and modern, law office interior, clean legal iconography, justice and documents',
+  contractors: 'construction site and skilled trades, blueprints and tools, Canadian urban development',
+  'real-estate': 'modern Canadian real estate, property exterior, architectural photography, urban and suburban',
+  procurement: 'government and corporate, formal meeting room, contract documents, institutional setting',
+  // Resources
+  'website-basics': 'clean digital workspace, laptop and website wireframe, minimal web design illustration',
+  seo: 'abstract search and discovery, magnifying glass, data visualization, digital pathways',
+  ecommerce: 'online shopping and commerce, product display, digital checkout, Canadian small business retail',
 }
 
 async function bflFetch(

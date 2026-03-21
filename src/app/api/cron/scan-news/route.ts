@@ -58,8 +58,14 @@ export async function GET(req: NextRequest) {
     ]
 
     try {
-      newStories = await scanForStories(recentlyCovered)
-      console.log(`[scan-news] Gemini found ${newStories.length} stories`)
+      // Scan all 3 areas sequentially to avoid rate limits
+      const [cbnStories, iiStories, resourceStories] = await Promise.all([
+        scanForStories('canadian-business-news', recentlyCovered),
+        scanForStories('industry-insights', recentlyCovered),
+        scanForStories('resources', recentlyCovered),
+      ])
+      newStories = [...cbnStories, ...iiStories, ...resourceStories]
+      console.log(`[scan-news] Found ${cbnStories.length} CBN + ${iiStories.length} Industry + ${resourceStories.length} Resources stories`)
     } catch (e) {
       console.error('[scan-news] scanForStories failed:', e)
       results.errors.push(`scanForStories: ${String(e)}`)
@@ -86,6 +92,7 @@ export async function GET(req: NextRequest) {
             keyPoints: story.keyPoints.map((point: string) => ({ point })),
             sources: story.sources,
             geminiContext: story.geminiContext,
+            area: story.area,
             vertical: story.vertical,
             priority: story.priority,
             priorityReason: story.priorityReason,

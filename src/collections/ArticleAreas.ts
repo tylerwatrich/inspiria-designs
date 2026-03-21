@@ -24,6 +24,16 @@ export const ArticleAreas: CollectionConfig = {
       label: 'Area Name',
     },
     {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'Slug',
+      admin: {
+        description: 'Machine-readable identifier used by the automation pipeline (e.g. canadian-business-news). Do not change after seeding.',
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
       label: 'Description',
