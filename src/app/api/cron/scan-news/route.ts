@@ -58,12 +58,10 @@ export async function GET(req: NextRequest) {
     ]
 
     try {
-      // Scan all 3 areas sequentially to avoid rate limits
-      const [cbnStories, iiStories, resourceStories] = await Promise.all([
-        scanForStories('canadian-business-news', recentlyCovered),
-        scanForStories('industry-insights', recentlyCovered),
-        scanForStories('resources', recentlyCovered),
-      ])
+      // Run area scans sequentially — parallel calls exhaust the token-per-minute budget
+      const cbnStories = await scanForStories('canadian-business-news', recentlyCovered)
+      const iiStories = await scanForStories('industry-insights', recentlyCovered)
+      const resourceStories = await scanForStories('resources', recentlyCovered)
       newStories = [...cbnStories, ...iiStories, ...resourceStories]
       console.log(`[scan-news] Found ${cbnStories.length} CBN + ${iiStories.length} Industry + ${resourceStories.length} Resources stories`)
     } catch (e) {
@@ -110,6 +108,10 @@ export async function GET(req: NextRequest) {
     }
 
     // ─── Step 2: Re-prioritize existing suggestions ─────────────────────────────
+    // Wait 60s before rePrioritize — the 3 area scans consume most of the
+    // 50k input tokens/min budget; this lets the rate-limit window roll over.
+
+    await new Promise((resolve) => setTimeout(resolve, 60_000))
 
     if (guard.check('rePrioritizeEnabled')) {
       const pendingAndApproved = await payload.find({
