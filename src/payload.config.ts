@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 // import { seoPlugin } from '@payloadcms/plugin-seo'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 
+import { ArticleAreas } from './collections/ArticleAreas'
 import { ArticleTypes } from './collections/ArticleTypes'
 import { Categories } from './collections/Categories'
 import { Industries } from './collections/Industries'
@@ -117,6 +118,7 @@ export default buildConfig({
     Categories,
     Users,
     TargetAudience,
+    ArticleAreas,
     ArticleTypes,
     Industries,
     Leads,
