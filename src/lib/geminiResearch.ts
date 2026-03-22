@@ -181,7 +181,7 @@ Cover these topic areas:
 - Canadian financial markets, fintech, banking
 - Deep tech: quantum computing, biotech, space, semiconductors in Canada
 
-Find 4-6 distinct stories. For each, assign:
+Find 4 distinct stories. For each, assign:
 
 Priority score (1–100):
 - 80-100: Breaking news, major announcements, market-moving events
@@ -202,7 +202,7 @@ Return a JSON array of story objects:
     "summary": "2-3 sentence description of what's happening and why it matters to Canadian small business owners",
     "keyPoints": ["Specific fact 1", "Specific fact 2", "Specific fact 3"],
     "sources": [{"url": "actual URL", "title": "page title"}],
-    "geminiContext": "All relevant details, numbers, quotes, and context a writer would need. Be thorough — 150-200 words.",
+    "geminiContext": "3-4 sentences: key facts, numbers, and context a writer needs. No preamble.",
     "area": "canadian-business-news",
     "vertical": "one of: nuclear | ai-cloud | construction-tech | finance | trade | deep-tech",
     "priority": 75,
@@ -231,7 +231,7 @@ Cover these topic areas:
 - Government e-procurement platforms, MERX, and supplier portal changes in Canada
 - Any story where digital presence (website, online reputation, online portals) is a competitive factor
 
-Find 3-5 distinct stories across these industries. Prefer stories with strong buying intent signal — what would make a business owner in this sector reconsider their digital presence?
+Find 3 distinct stories across these industries. Prefer stories with strong buying intent signal — what would make a business owner in this sector reconsider their digital presence?
 
 Priority score (1–100):
 - 80-100: Regulatory mandate or major platform shift requiring immediate action
@@ -252,7 +252,7 @@ Return a JSON array:
     "summary": "2-3 sentence description of what's happening and why it matters for digital presence decisions",
     "keyPoints": ["Specific fact 1", "Specific fact 2", "Specific fact 3"],
     "sources": [{"url": "actual URL", "title": "page title"}],
-    "geminiContext": "All relevant details, numbers, quotes, and context a writer would need. Be thorough — 150-200 words.",
+    "geminiContext": "3-4 sentences: key facts, numbers, and context a writer needs. No preamble.",
     "area": "industry-insights",
     "vertical": "one of: legal | contractors | real-estate | procurement",
     "priority": 65,
@@ -282,7 +282,7 @@ Cover these topic areas:
 - Accessibility and compliance requirements for Canadian business websites
 - AI tools for small business website content and marketing
 
-Find 3-4 distinct topics. These should be educational and evergreen-leaning — prioritize quality and practical usefulness over breaking urgency.
+Find 3 distinct topics. These should be educational and evergreen-leaning — prioritize quality and practical usefulness over breaking urgency.
 
 Priority score (1–100):
 - 60-79: Recent study or platform change with direct small business impact
@@ -302,7 +302,7 @@ Return a JSON array:
     "summary": "2-3 sentence description of what this covers and why a small business owner should care",
     "keyPoints": ["Practical insight 1", "Practical insight 2", "Practical insight 3"],
     "sources": [{"url": "actual URL", "title": "page title"}],
-    "geminiContext": "All relevant details, statistics, examples, and context a writer would need. 150-200 words.",
+    "geminiContext": "3-4 sentences: key facts, numbers, and context a writer needs. No preamble.",
     "area": "resources",
     "vertical": "one of: website-basics | seo | ecommerce",
     "priority": 50,
@@ -316,6 +316,59 @@ Only include topics with actual sources you found. Do not fabricate.`,
 }
 
 // ─── Scan for news ────────────────────────────────────────────────────────────
+
+/**
+ * Salvage complete JSON objects from a potentially truncated array string.
+ * Walks the string tracking brace depth; each time depth returns to 0 we
+ * have a complete top-level object. Returns only those objects, ignoring
+ * any partial trailing object caused by an output token cut-off.
+ */
+function parseJsonArraySafe(raw: string): any[] {
+  const start = raw.indexOf('[')
+  if (start === -1) return []
+  const str = raw.slice(start)
+
+  // Fast path — try the full string first
+  try {
+    const parsed = JSON.parse(str)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    // Fall through to salvage mode
+  }
+
+  // Salvage: collect slices that cover exactly one top-level object
+  const objects: any[] = []
+  let depth = 0
+  let objStart = -1
+  let inString = false
+  let escape = false
+
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i]
+
+    if (escape) { escape = false; continue }
+    if (ch === '\\' && inString) { escape = true; continue }
+    if (ch === '"') { inString = !inString; continue }
+    if (inString) continue
+
+    if (ch === '{') {
+      if (depth === 0) objStart = i
+      depth++
+    } else if (ch === '}') {
+      depth--
+      if (depth === 0 && objStart !== -1) {
+        try {
+          objects.push(JSON.parse(str.slice(objStart, i + 1)))
+        } catch {
+          // malformed object — skip it
+        }
+        objStart = -1
+      }
+    }
+  }
+
+  return objects
+}
 
 export async function scanForStories(
   area: ArticleArea,
@@ -334,17 +387,16 @@ ${recentlyCovered.map((r) => `- "${r.headline}"`).join('\n')}
 
   const prompt = config.prompt(recentlyCoveredBlock)
   const raw = await callResearch(prompt, config.system)
-  const match = raw.match(/\[[\s\S]*\]/)
 
-  try {
-    const parsed = JSON.parse(match ? match[0] : raw)
-    // Ensure area is set correctly even if the AI drifts
-    const stories = Array.isArray(parsed) ? parsed : []
-    return stories.map((s: any) => ({ ...s, area }))
-  } catch (e) {
-    console.error(`[research] Failed to parse scanForStories(${area}) response:`, e, '\nRaw:', raw)
+  const stories = parseJsonArraySafe(raw)
+
+  if (!stories.length) {
+    console.error(`[research] Failed to parse scanForStories(${area}) response — raw:`, raw.slice(0, 500))
     return []
   }
+
+  // Ensure area is set correctly even if the AI drifts
+  return stories.map((s: any) => ({ ...s, area }))
 }
 
 // ─── Re-prioritize existing suggestions ──────────────────────────────────────
