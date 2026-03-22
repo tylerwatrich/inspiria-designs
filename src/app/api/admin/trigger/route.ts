@@ -15,15 +15,15 @@ const ALLOWED_JOBS = [
 ] as const
 
 function getBaseUrl(req: NextRequest): string {
-  // NEXT_PUBLIC_SERVER_URL is set in Vercel env vars and local .env
-  if (process.env.NEXT_PUBLIC_SERVER_URL) {
-    return process.env.NEXT_PUBLIC_SERVER_URL
-  }
-  // Vercel deployment URL (not set in preview deployments for the canonical URL)
+  // VERCEL_URL is always the current deployment URL — correct for both preview and production.
+  // Must check this before NEXT_PUBLIC_SERVER_URL which is hardcoded to the production domain.
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
   }
-  // Fallback: derive from request
+  // Local dev
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL
+  }
   return req.nextUrl.origin
 }
 
