@@ -84,6 +84,7 @@ export interface Config {
     'tracking-events': TrackingEvent;
     'article-suggestions': ArticleSuggestion;
     'quality-reviews': QualityReview;
+    'job-runs': JobRun;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -118,6 +119,7 @@ export interface Config {
     'tracking-events': TrackingEventsSelect<false> | TrackingEventsSelect<true>;
     'article-suggestions': ArticleSuggestionsSelect<false> | ArticleSuggestionsSelect<true>;
     'quality-reviews': QualityReviewsSelect<false> | QualityReviewsSelect<true>;
+    'job-runs': JobRunsSelect<false> | JobRunsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1291,6 +1293,20 @@ export interface QualityReview {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "job-runs".
+ */
+export interface JobRun {
+  id: number;
+  jobType: 'scan-news' | 'write-post' | 'generate-images' | 'quality-audit' | 'update-articles';
+  status: 'running' | 'completed' | 'error';
+  startedAt: string;
+  completedAt?: string | null;
+  message?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1546,6 +1562,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'quality-reviews';
         value: number | QualityReview;
+      } | null)
+    | ({
+        relationTo: 'job-runs';
+        value: number | JobRun;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2168,6 +2188,19 @@ export interface QualityReviewsSelect<T extends boolean = true> {
         id?: T;
       };
   editorialSummary?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "job-runs_select".
+ */
+export interface JobRunsSelect<T extends boolean = true> {
+  jobType?: T;
+  status?: T;
+  startedAt?: T;
+  completedAt?: T;
+  message?: T;
   updatedAt?: T;
   createdAt?: T;
 }
