@@ -30,124 +30,147 @@ export async function GET(req: NextRequest) {
     return guard.pausedResponse('Quality audit and monthly updates are both paused.')
   }
 
+  const run = await payload.create({
+    collection: 'job-runs',
+    data: { jobType: 'quality-audit', status: 'running', startedAt: new Date().toISOString() },
+  })
+
   // Return immediately so cron-job.org doesn't time out — heavy work runs in background
   after(async () => {
-    const now = new Date()
-    const monthLabel = now.toLocaleString('en-CA', { month: 'long', year: 'numeric' })
-    const threeMonthsAgo = new Date()
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-
-    console.log(`[quality-audit] Starting monthly run — ${monthLabel}`)
-
-    const { docs: allPosts, totalDocs } = await payload.find({
-      collection: 'posts',
-      where: { _status: { equals: 'published' } },
-      limit: 500,
-      depth: 0,
-    })
-
-    const olderPosts = allPosts.filter(
-      (p: any) => new Date(p.createdAt) <= threeMonthsAgo
-    )
-
-    // ─── PART 1: Quality audit — ALL posts ────────────────────────────────────
-
-    const qualityResults: {
-      post: any; title: string; score: number; flag: string; issues: string[]; reviewNote: string
-    }[] = []
-
-    if (guard.check('qualityAuditEnabled')) {
-      for (const post of allPosts) {
-        const plainText = lexicalToText(post.content)
-        if (!plainText || plainText.length < 100) continue
-
-        let result
-        try {
-          result = await reviewArticle(post.title, plainText)
-        } catch (e) {
-          result = {
-            score: 0, flag: 'needs-attention' as const,
-            issues: [`Review failed: ${String(e)}`],
-            reviewNote: 'Automated review failed. Please review manually.',
-          }
-        }
-
-        try {
-          await payload.update({
-            collection: 'posts',
-            id: post.id,
-            data: {
-              qualityAudit: {
-                score: result.score,
-                flag: result.flag,
-                issues: result.issues.map((issue: string) => ({ issue })),
-                reviewNote: result.reviewNote,
-                lastReviewedAt: now.toISOString(),
-              },
-            },
-          })
-        } catch (e) {
-          console.error(`[quality-audit] Failed to save quality for "${post.title}":`, e)
-        }
-
-        qualityResults.push({ post: post.id, title: post.title, ...result })
-        await sleep(500)
-      }
-    }
-
-    // ─── PART 2: Update pass — older posts only ────────────────────────────────
-
-    const updateResults = guard.check('monthlyUpdateEnabled')
-      ? await runUpdatePass(olderPosts, payload)
-      : []
-
-    const articlesUpdated = updateResults.filter((r) => r.updated)
-
-    // ─── PART 3: Audit log ─────────────────────────────────────────────────────
-
-    const flagged = qualityResults.filter((r) => r.flag !== 'clean').length
-    const avgScore = qualityResults.length > 0
-      ? Math.round(qualityResults.reduce((sum, r) => sum + r.score, 0) / qualityResults.length)
-      : 0
-
-    let editorialSummary = ''
-    try {
-      if (qualityResults.length > 0) {
-        editorialSummary = await generateEditorialSummary(
-          qualityResults.map((r) => ({ title: r.title, score: r.score, flag: r.flag })),
-          totalDocs
-        )
-      }
-    } catch {
-      editorialSummary = `${qualityResults.length} reviewed, ${flagged} flagged, avg ${avgScore}/100.`
-    }
-
-    if (articlesUpdated.length > 0) {
-      editorialSummary += `\n\nArticle updates: ${articlesUpdated.length} older posts received new developments (${articlesUpdated.map((r) => `"${r.title}"`).join(', ')}).`
-    }
+    let jobStatus: 'completed' | 'error' = 'completed'
+    let message = 'Completed'
 
     try {
-      await payload.create({
-        collection: 'quality-reviews',
-        data: {
-          runLabel: `Monthly scan — ${monthLabel}`,
-          scannedAt: now.toISOString(),
-          totalScanned: qualityResults.length,
-          flagged,
-          avgScore,
-          results: qualityResults.map((r) => ({
-            post: r.post, title: r.title, score: r.score, flag: r.flag,
-            issues: r.issues.map((issue) => ({ issue })),
-            reviewNote: r.reviewNote,
-          })),
-          editorialSummary,
-        },
+      const now = new Date()
+      const monthLabel = now.toLocaleString('en-CA', { month: 'long', year: 'numeric' })
+      const threeMonthsAgo = new Date()
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+      console.log(`[quality-audit] Starting monthly run — ${monthLabel}`)
+
+      const { docs: allPosts, totalDocs } = await payload.find({
+        collection: 'posts',
+        where: { _status: { equals: 'published' } },
+        limit: 500,
+        depth: 0,
       })
-    } catch (e) {
-      console.error('[quality-audit] Failed to create QualityReview record:', e)
-    }
 
-    console.log(`[quality-audit] Done — ${qualityResults.length} reviewed, ${flagged} flagged, ${articlesUpdated.length} updated`)
+      const olderPosts = allPosts.filter(
+        (p: any) => new Date(p.createdAt) <= threeMonthsAgo
+      )
+
+      // ─── PART 1: Quality audit — ALL posts ────────────────────────────────────
+
+      const qualityResults: {
+        post: any; title: string; score: number; flag: string; issues: string[]; reviewNote: string
+      }[] = []
+
+      if (guard.check('qualityAuditEnabled')) {
+        for (const post of allPosts) {
+          const plainText = lexicalToText(post.content)
+          if (!plainText || plainText.length < 100) continue
+
+          let result
+          try {
+            result = await reviewArticle(post.title, plainText)
+          } catch (e) {
+            result = {
+              score: 0, flag: 'needs-attention' as const,
+              issues: [`Review failed: ${String(e)}`],
+              reviewNote: 'Automated review failed. Please review manually.',
+            }
+          }
+
+          try {
+            await payload.update({
+              collection: 'posts',
+              id: post.id,
+              data: {
+                qualityAudit: {
+                  score: result.score,
+                  flag: result.flag,
+                  issues: result.issues.map((issue: string) => ({ issue })),
+                  reviewNote: result.reviewNote,
+                  lastReviewedAt: now.toISOString(),
+                },
+              },
+            })
+          } catch (e) {
+            console.error(`[quality-audit] Failed to save quality for "${post.title}":`, e)
+          }
+
+          qualityResults.push({ post: post.id, title: post.title, ...result })
+          await sleep(500)
+        }
+      }
+
+      // ─── PART 2: Update pass — older posts only ────────────────────────────────
+
+      const updateResults = guard.check('monthlyUpdateEnabled')
+        ? await runUpdatePass(olderPosts, payload)
+        : []
+
+      const articlesUpdated = updateResults.filter((r) => r.updated)
+
+      // ─── PART 3: Audit log ─────────────────────────────────────────────────────
+
+      const flagged = qualityResults.filter((r) => r.flag !== 'clean').length
+      const avgScore = qualityResults.length > 0
+        ? Math.round(qualityResults.reduce((sum, r) => sum + r.score, 0) / qualityResults.length)
+        : 0
+
+      let editorialSummary = ''
+      try {
+        if (qualityResults.length > 0) {
+          editorialSummary = await generateEditorialSummary(
+            qualityResults.map((r) => ({ title: r.title, score: r.score, flag: r.flag })),
+            totalDocs
+          )
+        }
+      } catch {
+        editorialSummary = `${qualityResults.length} reviewed, ${flagged} flagged, avg ${avgScore}/100.`
+      }
+
+      if (articlesUpdated.length > 0) {
+        editorialSummary += `\n\nArticle updates: ${articlesUpdated.length} older posts received new developments (${articlesUpdated.map((r) => `"${r.title}"`).join(', ')}).`
+      }
+
+      try {
+        await payload.create({
+          collection: 'quality-reviews',
+          data: {
+            runLabel: `Monthly scan — ${monthLabel}`,
+            scannedAt: now.toISOString(),
+            totalScanned: qualityResults.length,
+            flagged,
+            avgScore,
+            results: qualityResults.map((r) => ({
+              post: r.post, title: r.title, score: r.score, flag: r.flag,
+              issues: r.issues.map((issue) => ({ issue })),
+              reviewNote: r.reviewNote,
+            })),
+            editorialSummary,
+          },
+        })
+      } catch (e) {
+        console.error('[quality-audit] Failed to create QualityReview record:', e)
+      }
+
+      message = `Reviewed ${qualityResults.length}, flagged ${flagged}, avg ${avgScore}/100${articlesUpdated.length ? `, updated ${articlesUpdated.length}` : ''}`
+      console.log(`[quality-audit] Done — ${qualityResults.length} reviewed, ${flagged} flagged, ${articlesUpdated.length} updated`)
+    } catch (e) {
+      jobStatus = 'error'
+      message = String(e)
+      console.error('[quality-audit] Unhandled error:', e)
+    } finally {
+      try {
+        await payload.update({
+          collection: 'job-runs',
+          id: run.id,
+          data: { status: jobStatus, completedAt: new Date().toISOString(), message },
+        })
+      } catch {}
+    }
   })
 
   return NextResponse.json({ success: true, message: 'Quality audit started' })

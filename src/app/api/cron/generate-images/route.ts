@@ -51,37 +51,63 @@ export async function GET(req: NextRequest) {
 
   console.log(`[generate-images] ${posts.length} post(s) queued for image generation`)
 
+  const run = await payload.create({
+    collection: 'job-runs',
+    data: { jobType: 'generate-images', status: 'running', startedAt: new Date().toISOString() },
+  })
+
   after(async () => {
-    for (const post of posts) {
-      console.log(`[generate-images] Processing "${post.title}" (id: ${post.id})`)
+    let jobStatus: 'completed' | 'error' = 'completed'
+    let message = 'Completed'
 
-      // If a temporary BFL URL exists, download it directly instead of regenerating
-      const bflUrl = post.heroImageUrl ?? await generateArticleImage(post.title, '')
+    try {
+      let processed = 0
 
-      if (!bflUrl) {
-        console.error(`[generate-images] No image URL for "${post.title}" — skipping`)
-        continue
+      for (const post of posts) {
+        console.log(`[generate-images] Processing "${post.title}" (id: ${post.id})`)
+
+        // If a temporary BFL URL exists, download it directly instead of regenerating
+        const bflUrl = post.heroImageUrl ?? await generateArticleImage(post.title, '')
+
+        if (!bflUrl) {
+          console.error(`[generate-images] No image URL for "${post.title}" — skipping`)
+          continue
+        }
+
+        const mediaId = await saveImageToMedia(bflUrl, post.title, payload)
+        if (!mediaId) {
+          console.error(`[generate-images] Media save failed for "${post.title}" — skipping`)
+          continue
+        }
+
+        try {
+          await payload.update({
+            collection: 'posts',
+            id: post.id,
+            data: { heroImage: mediaId },
+          })
+          console.log(`[generate-images] Updated "${post.title}" with media id: ${mediaId}`)
+          processed++
+        } catch (e) {
+          console.error(`[generate-images] Failed to update post "${post.title}":`, e)
+        }
       }
 
-      const mediaId = await saveImageToMedia(bflUrl, post.title, payload)
-      if (!mediaId) {
-        console.error(`[generate-images] Media save failed for "${post.title}" — skipping`)
-        continue
-      }
-
+      message = `Generated images for ${processed}/${posts.length} post(s)`
+      console.log('[generate-images] Batch complete')
+    } catch (e) {
+      jobStatus = 'error'
+      message = String(e)
+      console.error('[generate-images] Unhandled error:', e)
+    } finally {
       try {
         await payload.update({
-          collection: 'posts',
-          id: post.id,
-          data: { heroImage: mediaId },
+          collection: 'job-runs',
+          id: run.id,
+          data: { status: jobStatus, completedAt: new Date().toISOString(), message },
         })
-        console.log(`[generate-images] Updated "${post.title}" with media id: ${mediaId}`)
-      } catch (e) {
-        console.error(`[generate-images] Failed to update post "${post.title}":`, e)
-      }
+      } catch {}
     }
-
-    console.log('[generate-images] Batch complete')
   })
 
   return NextResponse.json({

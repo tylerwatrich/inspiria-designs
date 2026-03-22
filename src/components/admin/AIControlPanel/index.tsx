@@ -1,8 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
-type JobStatus = 'idle' | 'loading' | 'success' | 'error'
+type DbRunStatus = 'running' | 'completed' | 'error'
+
+type RunState = {
+  status: DbRunStatus
+  startedAt: string
+  completedAt: string | null
+  message: string
+} | null
+
+type JobStatusMap = Record<string, RunState>
 
 type Job = {
   key: string
@@ -43,14 +52,65 @@ const NOTE: Record<string, string> = {
   'write-post': 'Runs in background — full pipeline takes 1–2 min.',
 }
 
+const POLL_INTERVAL = 5_000
+
 export default function AIControlPanel() {
-  const [statuses, setStatuses] = useState<Record<string, JobStatus>>({})
-  const [messages, setMessages] = useState<Record<string, string>>({})
-  const [lastRun, setLastRun] = useState<Record<string, string>>({})
+  const [runStates, setRunStates] = useState<JobStatusMap>({})
+  // Tracks in-flight HTTP trigger request (before DB record is created)
+  const [submitting, setSubmitting] = useState<Record<string, boolean>>({})
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const fetchStatuses = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/job-status')
+      if (!res.ok) return
+      const data: JobStatusMap = await res.json()
+      setRunStates(data)
+      return data
+    } catch {
+      // non-fatal — panel still usable
+    }
+  }, [])
+
+  // Start/stop polling based on whether any job is currently running
+  const syncPolling = useCallback((states: JobStatusMap) => {
+    const anyRunning = Object.values(states).some((s) => s?.status === 'running')
+
+    if (anyRunning && !pollRef.current) {
+      pollRef.current = setInterval(async () => {
+        const fresh = await fetchStatuses()
+        if (fresh) syncPolling(fresh)
+      }, POLL_INTERVAL)
+    } else if (!anyRunning && pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }, [fetchStatuses])
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchStatuses().then((data) => {
+      if (data) syncPolling(data)
+    })
+
+    // Re-fetch when the tab becomes visible (covers navigate-away + come-back, and tab reopen)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchStatuses().then((data) => {
+          if (data) syncPolling(data)
+        })
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [fetchStatuses, syncPolling])
 
   async function trigger(job: string) {
-    setStatuses((s) => ({ ...s, [job]: 'loading' }))
-    setMessages((m) => ({ ...m, [job]: '' }))
+    setSubmitting((s) => ({ ...s, [job]: true }))
 
     try {
       const res = await fetch('/api/admin/trigger', {
@@ -60,13 +120,29 @@ export default function AIControlPanel() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-      setStatuses((s) => ({ ...s, [job]: 'success' }))
-      setMessages((m) => ({ ...m, [job]: data.message || 'Started' }))
-      setLastRun((r) => ({ ...r, [job]: new Date().toLocaleTimeString() }))
+
+      // Fetch immediately so button transitions to "Running…" without waiting for the next poll
+      const fresh = await fetchStatuses()
+      if (fresh) syncPolling(fresh)
     } catch (e) {
-      setStatuses((s) => ({ ...s, [job]: 'error' }))
-      setMessages((m) => ({ ...m, [job]: String(e) }))
+      // On trigger failure, force an error state locally so the user sees feedback
+      setRunStates((prev) => ({
+        ...prev,
+        [job]: {
+          status: 'error',
+          startedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          message: String(e),
+        },
+      }))
+    } finally {
+      setSubmitting((s) => ({ ...s, [job]: false }))
     }
+  }
+
+  function formatTime(iso: string | null | undefined): string {
+    if (!iso) return ''
+    return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -94,14 +170,30 @@ export default function AIControlPanel() {
         }}
       >
         {JOBS.map((job) => {
-          const status = statuses[job.key] ?? 'idle'
-          const msg = messages[job.key]
-          const ran = lastRun[job.key]
-          const note = NOTE[job.key]
+          const run = runStates[job.key]
+          const isSubmitting = submitting[job.key] ?? false
+          const isRunning = run?.status === 'running'
+          const isDisabled = isSubmitting || isRunning
 
           const borderColor =
-            status === 'error' ? '#7f1d1d' : status === 'success' ? '#14532d' : '#1f2937'
-          const btnBg = status === 'loading' ? '#374151' : '#5b21b6'
+            run?.status === 'error'
+              ? '#7f1d1d'
+              : run?.status === 'completed'
+              ? '#14532d'
+              : run?.status === 'running'
+              ? '#1e3a5f'
+              : '#1f2937'
+
+          const btnBg = isDisabled ? '#374151' : '#5b21b6'
+
+          const btnLabel = isSubmitting
+            ? 'Starting…'
+            : isRunning
+            ? 'Running…'
+            : 'Run'
+
+          const note = NOTE[job.key]
+          const showNote = run?.status === 'completed' && note
 
           return (
             <div
@@ -132,7 +224,7 @@ export default function AIControlPanel() {
                 </div>
                 <button
                   onClick={() => trigger(job.key)}
-                  disabled={status === 'loading'}
+                  disabled={isDisabled}
                   style={{
                     background: btnBg,
                     color: '#fff',
@@ -141,17 +233,17 @@ export default function AIControlPanel() {
                     padding: '6px 14px',
                     fontSize: 12,
                     fontWeight: 600,
-                    cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
-                    opacity: status === 'loading' ? 0.7 : 1,
+                    opacity: isDisabled ? 0.7 : 1,
                   }}
                 >
-                  {status === 'loading' ? 'Starting…' : 'Run'}
+                  {btnLabel}
                 </button>
               </div>
 
-              {(msg || ran || (status === 'success' && note)) && (
+              {(run?.message || run?.completedAt || showNote) && (
                 <div
                   style={{
                     fontSize: 11,
@@ -164,17 +256,33 @@ export default function AIControlPanel() {
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    {msg && (
-                      <span style={{ color: status === 'error' ? '#f87171' : '#34d399' }}>
-                        {msg}
+                    {run?.message && (
+                      <span
+                        style={{
+                          color:
+                            run.status === 'error'
+                              ? '#f87171'
+                              : run.status === 'running'
+                              ? '#60a5fa'
+                              : '#34d399',
+                        }}
+                      >
+                        {run.message}
                       </span>
                     )}
-                    {status === 'success' && note && (
-                      <div style={{ color: '#6b7280', marginTop: msg ? 2 : 0 }}>{note}</div>
+                    {showNote && (
+                      <div style={{ color: '#6b7280', marginTop: run?.message ? 2 : 0 }}>{note}</div>
                     )}
                   </div>
-                  {ran && (
-                    <span style={{ color: '#4b5563', flexShrink: 0 }}>last run {ran}</span>
+                  {run?.completedAt && (
+                    <span style={{ color: '#4b5563', flexShrink: 0 }}>
+                      last run {formatTime(run.completedAt)}
+                    </span>
+                  )}
+                  {isRunning && run?.startedAt && (
+                    <span style={{ color: '#4b5563', flexShrink: 0 }}>
+                      started {formatTime(run.startedAt)}
+                    </span>
                   )}
                 </div>
               )}

@@ -27,29 +27,52 @@ export async function GET(req: NextRequest) {
     return guard.pausedResponse('Weekly article updates are paused.')
   }
 
+  const run = await payload.create({
+    collection: 'job-runs',
+    data: { jobType: 'update-articles', status: 'running', startedAt: new Date().toISOString() },
+  })
+
   // Return immediately so cron-job.org doesn't time out — heavy work runs in background
   after(async () => {
-    const threeMonthsAgo = new Date()
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+    let jobStatus: 'completed' | 'error' = 'completed'
+    let message = 'Completed'
 
-    const { docs: recentPosts } = await payload.find({
-      collection: 'posts',
-      where: {
-        and: [
-          { _status: { equals: 'published' } },
-          { createdAt: { greater_than: threeMonthsAgo.toISOString() } },
-        ],
-      },
-      limit: 100,
-      depth: 0,
-    })
+    try {
+      const threeMonthsAgo = new Date()
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
 
-    console.log(`[update-articles] Checking ${recentPosts.length} recent posts for updates`)
+      const { docs: recentPosts } = await payload.find({
+        collection: 'posts',
+        where: {
+          and: [
+            { _status: { equals: 'published' } },
+            { createdAt: { greater_than: threeMonthsAgo.toISOString() } },
+          ],
+        },
+        limit: 100,
+        depth: 0,
+      })
 
-    const results = await runUpdatePass(recentPosts, payload)
+      console.log(`[update-articles] Checking ${recentPosts.length} recent posts for updates`)
 
-    const updated = results.filter((r) => r.updated)
-    console.log(`[update-articles] Done — ${updated.length}/${results.length} updated`)
+      const results = await runUpdatePass(recentPosts, payload)
+
+      const updated = results.filter((r) => r.updated)
+      message = `Updated ${updated.length}/${results.length} posts`
+      console.log(`[update-articles] Done — ${updated.length}/${results.length} updated`)
+    } catch (e) {
+      jobStatus = 'error'
+      message = String(e)
+      console.error('[update-articles] Unhandled error:', e)
+    } finally {
+      try {
+        await payload.update({
+          collection: 'job-runs',
+          id: run.id,
+          data: { status: jobStatus, completedAt: new Date().toISOString(), message },
+        })
+      } catch {}
+    }
   })
 
   return NextResponse.json({ success: true, message: 'Update pass started' })
