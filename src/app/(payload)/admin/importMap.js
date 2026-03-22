@@ -40,6 +40,7 @@ import { FolderTypeField as FolderTypeField_3817bf644402e67bfe6577f60ef982de } f
 import { RowLabel as RowLabel_ec255a65fa6fa8d1faeb09cf35284224 } from '@/Header/RowLabel'
 import { RowLabel as RowLabel_1f6ff6ff633e3695d348f4f3c58f1466 } from '@/Footer/RowLabel'
 import { AutomationStatusBanner as AutomationStatusBanner_fb52ef3605a088d0cf37ba8a786e22ec } from '@/components/admin/AutomationStatusBanner'
+import { default as default_416ead515f73fb884a6ae86f519dd6d8 } from '@/components/admin/AIControlPanel'
 import { default as default_1a7510af427896d367a49dbf838d2de6 } from '@/components/BeforeDashboard'
 import { default as default_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
 
@@ -86,6 +87,7 @@ export const importMap = {
   "@/Header/RowLabel#RowLabel": RowLabel_ec255a65fa6fa8d1faeb09cf35284224,
   "@/Footer/RowLabel#RowLabel": RowLabel_1f6ff6ff633e3695d348f4f3c58f1466,
   "@/components/admin/AutomationStatusBanner#AutomationStatusBanner": AutomationStatusBanner_fb52ef3605a088d0cf37ba8a786e22ec,
+  "@/components/admin/AIControlPanel#default": default_416ead515f73fb884a6ae86f519dd6d8,
   "@/components/BeforeDashboard#default": default_1a7510af427896d367a49dbf838d2de6,
   "@/components/BeforeLogin#default": default_8a7ab0eb7ab5c511aba12e68480bfe5e
 }
