@@ -52,15 +52,22 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
+    // Cap to 40 most-recent headlines — each extra headline adds tokens to every scan prompt
     const recentlyCovered = [
       ...recentSuggestions.docs.map((d: any) => ({ headline: d.headline })),
       ...recentPosts.docs.map((d: any) => ({ headline: d.title })),
-    ]
+    ].slice(0, 40)
+
+    const scanDelay = () => new Promise((resolve) => setTimeout(resolve, 45_000))
 
     try {
-      // Run area scans sequentially — parallel calls exhaust the token-per-minute budget
+      // Run area scans sequentially with 45s gaps — each scan + web-search round trip
+      // consumes a large slice of the 50k input-tokens/min budget; the gap lets the
+      // window roll over before the next scan fires.
       const cbnStories = await scanForStories('canadian-business-news', recentlyCovered)
+      await scanDelay()
       const iiStories = await scanForStories('industry-insights', recentlyCovered)
+      await scanDelay()
       const resourceStories = await scanForStories('resources', recentlyCovered)
       newStories = [...cbnStories, ...iiStories, ...resourceStories]
       console.log(`[scan-news] Found ${cbnStories.length} CBN + ${iiStories.length} Industry + ${resourceStories.length} Resources stories`)
