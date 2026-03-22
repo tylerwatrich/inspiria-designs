@@ -27,6 +27,8 @@
     "seed:industries-additional": "tsx --env-file=.env scripts/seed-additional-industries.ts",
     "seed:article-types": "tsx --env-file=.env scripts/seed-article-types.ts",
     "populate:all-demographics": "tsx --env-file=.env scripts/populate-all-demographics.ts",
+    "monitor:logs": "tsx --env-file=.env scripts/monitor-vercel-logs.ts",
+    "monitor:logs:tail": "tsx --env-file=.env scripts/monitor-vercel-logs.ts --tail",
     "populate:industry-articles": "tsx --env-file=.env scripts/populate-industry-articles.ts",
     "seed:industries-batch2": "tsx --env-file=.env scripts/seed-industries-batch2.ts",
     "migrate:industries": "tsx --env-file=.env scripts/migrate-industries.ts"
