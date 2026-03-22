@@ -14,6 +14,19 @@ const ALLOWED_JOBS = [
   'update-articles',
 ] as const
 
+function getBaseUrl(req: NextRequest): string {
+  // NEXT_PUBLIC_SERVER_URL is set in Vercel env vars and local .env
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL
+  }
+  // Vercel deployment URL (not set in preview deployments for the canonical URL)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  // Fallback: derive from request
+  return req.nextUrl.origin
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -23,13 +36,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Unknown job: ${job}` }, { status: 400 })
     }
 
-    const cronUrl = new URL(`/api/cron/${job}`, req.nextUrl.origin)
-    const res = await fetch(cronUrl.toString(), {
+    const baseUrl = getBaseUrl(req)
+    const cronUrl = `${baseUrl}/api/cron/${job}`
+
+    const res = await fetch(cronUrl, {
       headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
     })
 
-    const data = await res.json()
-    return NextResponse.json(data, { status: res.status })
+    const text = await res.text()
+    try {
+      const data = JSON.parse(text)
+      return NextResponse.json(data, { status: res.status })
+    } catch {
+      console.error(`[admin/trigger] Cron route returned non-JSON (status ${res.status}):`, text.slice(0, 200))
+      return NextResponse.json(
+        { error: `Cron route returned unexpected response (status ${res.status})` },
+        { status: 502 },
+      )
+    }
   } catch (e: any) {
     console.error('[admin/trigger] Unhandled error:', e)
     return NextResponse.json({ error: e?.message ?? 'Internal server error' }, { status: 500 })
