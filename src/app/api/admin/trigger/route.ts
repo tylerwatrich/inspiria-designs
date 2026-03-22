@@ -1,59 +1,44 @@
 /**
  * Admin trigger endpoint — lets admin users fire cron jobs manually from the dashboard.
- * No separate auth check: consistent with other /api/admin/* routes in this codebase.
- * The underlying cron routes still enforce CRON_SECRET, so external callers can't bypass.
+ *
+ * Instead of HTTP-fetching the cron routes (which has URL-resolution issues on preview
+ * deployments), we import their GET handlers directly and call them with a synthetic request.
+ * after() still works — it registers against the current request lifecycle regardless of
+ * which handler originally called it.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { GET as scanNews } from '@/app/api/cron/scan-news/route'
+import { GET as writePost } from '@/app/api/cron/write-post/route'
+import { GET as generateImages } from '@/app/api/cron/generate-images/route'
+import { GET as qualityAudit } from '@/app/api/cron/quality-audit/route'
+import { GET as updateArticles } from '@/app/api/cron/update-articles/route'
 
-const ALLOWED_JOBS = [
-  'scan-news',
-  'write-post',
-  'generate-images',
-  'quality-audit',
-  'update-articles',
-] as const
-
-function getBaseUrl(req: NextRequest): string {
-  // VERCEL_URL is always the current deployment URL — correct for both preview and production.
-  // Must check this before NEXT_PUBLIC_SERVER_URL which is hardcoded to the production domain.
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
-  // Local dev
-  if (process.env.NEXT_PUBLIC_SERVER_URL) {
-    return process.env.NEXT_PUBLIC_SERVER_URL
-  }
-  return req.nextUrl.origin
-}
+const JOBS = {
+  'scan-news': scanNews,
+  'write-post': writePost,
+  'generate-images': generateImages,
+  'quality-audit': qualityAudit,
+  'update-articles': updateArticles,
+} as const
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const job = body?.job as string
 
-    if (!ALLOWED_JOBS.includes(job as (typeof ALLOWED_JOBS)[number])) {
+    if (!Object.hasOwn(JOBS, job)) {
       return NextResponse.json({ error: `Unknown job: ${job}` }, { status: 400 })
     }
 
-    const baseUrl = getBaseUrl(req)
-    const cronUrl = `${baseUrl}/api/cron/${job}`
+    // Build a synthetic request that satisfies the cron route's CRON_SECRET auth check,
+    // then call its GET handler in-process — no HTTP round-trip, no URL resolution needed.
+    const syntheticReq = new NextRequest(
+      new URL(`/api/cron/${job}`, req.nextUrl.origin),
+      { headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` } },
+    )
 
-    const res = await fetch(cronUrl, {
-      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
-    })
-
-    const text = await res.text()
-    try {
-      const data = JSON.parse(text)
-      return NextResponse.json(data, { status: res.status })
-    } catch {
-      console.error(`[admin/trigger] Cron route returned non-JSON (status ${res.status}):`, text.slice(0, 200))
-      return NextResponse.json(
-        { error: `Cron route returned unexpected response (status ${res.status})` },
-        { status: 502 },
-      )
-    }
+    return JOBS[job as keyof typeof JOBS](syntheticReq)
   } catch (e: any) {
     console.error('[admin/trigger] Unhandled error:', e)
     return NextResponse.json({ error: e?.message ?? 'Internal server error' }, { status: 500 })
