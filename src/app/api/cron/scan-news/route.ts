@@ -172,7 +172,7 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      message = `Created ${results.created}, skipped ${results.skipped}, reprioritized ${results.reprioritized}${results.errors.length ? ` (${results.errors.length} errors)` : ''}`
+      message = `Created ${results.created}, skipped ${results.skipped}, reprioritized ${results.reprioritized}${results.errors.length ? ` (${results.errors.length} errors: ${results.errors[0]})` : ''}`
       console.log('[scan-news] Done:', results)
     } catch (e) {
       jobStatus = 'error'
