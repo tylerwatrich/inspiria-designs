@@ -42,16 +42,26 @@ async function callClaude(prompt: string, systemPrompt?: string): Promise<string
     body.system = systemPrompt
   }
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'web-search-2025-03-05',
-    },
-    body: JSON.stringify(body),
-  })
+  const doFetch = () =>
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
+      },
+      body: JSON.stringify(body),
+    })
+
+  let res = await doFetch()
+
+  // On 429 wait 65s for the rate-limit window to roll over, then retry once
+  if (res.status === 429) {
+    console.warn('[callClaude] 429 rate limit hit — waiting 65s before retry')
+    await new Promise((resolve) => setTimeout(resolve, 65_000))
+    res = await doFetch()
+  }
 
   if (!res.ok) {
     const err = await res.text()

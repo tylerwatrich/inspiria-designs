@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         ...recentPosts.docs.map((d: any) => ({ headline: d.title })),
       ].slice(0, 40)
 
-      const scanDelay = () => new Promise((resolve) => setTimeout(resolve, 45_000))
+      const scanDelay = () => new Promise((resolve) => setTimeout(resolve, 65_000))
 
       try {
         // Run area scans sequentially with 45s gaps — each scan + web-search round trip
