@@ -12,9 +12,9 @@ import type { Post, Faq, Media } from '@/payload-types'
 import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import { getServerSideURL } from '@/utilities/getURL'
-import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
-import { Check, Zap, Info } from 'lucide-react'
+import { Zap, Check } from 'lucide-react'
+import { Aurora } from '@/components/Homepage/Aurora'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -24,29 +24,18 @@ export async function generateStaticParams() {
     limit: 1000,
     overrideAccess: false,
     pagination: false,
-    select: {
-      slug: true,
-    },
+    select: { slug: true },
   })
-
   return posts.docs.filter(({ slug }) => !!slug).map(({ slug }) => ({ slug }))
 }
 
-type Args = {
-  params: Promise<{
-    slug?: string
-  }>
-}
+type Args = { params: Promise<{ slug?: string }> }
 
 export default async function Post({ params: paramsPromise }: Args) {
   const { slug = '' } = await paramsPromise
   const { isEnabled: draft } = await draftMode()
-
-  // Decode to support slugs with special characters
   const decodedSlug = decodeURIComponent(slug)
   const url = '/blog/' + decodedSlug
-
-  // Pass draft mode to the query function
   const post = await queryPostBySlug({ slug: decodedSlug, draft })
 
   if (!post) return <PayloadRedirects url={url} />
@@ -63,11 +52,7 @@ export default async function Post({ params: paramsPromise }: Args) {
       ? (post.heroImage as Media).url ?? undefined
       : undefined
 
-  const organization = {
-    '@type': 'Organization',
-    name: siteSettings.siteName,
-    url: siteUrl,
-  }
+  const organization = { '@type': 'Organization', name: siteSettings.siteName, url: siteUrl }
 
   const articleSchema = {
     '@type': 'Article',
@@ -81,95 +66,114 @@ export default async function Post({ params: paramsPromise }: Args) {
     publisher: organization,
     ...(heroImageUrl ? { image: heroImageUrl } : {}),
     ...(post.populatedAuthors && post.populatedAuthors.length > 0
-      ? {
-          author: post.populatedAuthors.map((a) => ({
-            '@type': 'Person',
-            name: a.name,
-          })),
-        }
+      ? { author: post.populatedAuthors.map((a) => ({ '@type': 'Person', name: a.name })) }
       : { author: organization }),
   }
 
   const schemaGraph: object[] = [articleSchema]
-
   if (populatedFaqs.length > 0) {
     schemaGraph.push({
       '@type': 'FAQPage',
       mainEntity: populatedFaqs.map((faq) => ({
         '@type': 'Question',
         name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
       })),
     })
   }
 
-  const ldJson = {
-    '@context': 'https://schema.org',
-    '@graph': schemaGraph,
+  const ldJson = { '@context': 'https://schema.org', '@graph': schemaGraph }
+
+  // ─── Shared glass card style ───────────────────────────────────────────────
+  const glassCard: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.02)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: '24px',
   }
 
   return (
-    <article className="bg-light-bg dark:bg-zinc-900 pb-24">
+    // data-theme="dark" activates dark: Tailwind variants (including dark:prose-invert) for all children
+    <article className="pb-24" data-theme="dark" style={{ color: '#fff' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
       />
-      <PageClient />
-      {/* Allows redirects for valid pages too */}
+
+      <Aurora />
       <PayloadRedirects disableNotFound url={url} />
       {draft && <LivePreviewListener />}
 
       <PostHero post={post} />
 
-      <div className="container pt-12">
-        <div className="max-w-[52rem] mx-auto">
-          {/* Article Summary & Takeaways above the article block */}
-          <div className="space-y-6 mb-10">
-            {/* Article Summary (Hidden from view but present for SEO/AI) */}
-            {post.articleSummary && (
-              <div className="hidden">
-                <p>{post.articleSummary}</p>
+      <div className="container pt-4">
+        <div className="max-w-[52rem] mx-auto space-y-6">
+
+          {/* Hidden summary for SEO */}
+          {post.articleSummary && (
+            <div className="hidden">
+              <p>{post.articleSummary}</p>
+            </div>
+          )}
+
+          {/* Key Takeaways */}
+          {post.keyTakeaways && post.keyTakeaways.length > 0 && (
+            <section
+              className="relative overflow-hidden p-6 md:p-8"
+              style={{
+                ...glassCard,
+                border: '1px solid rgba(0,240,255,0.15)',
+              }}
+            >
+              {/* Faint background glyph */}
+              <div
+                className="absolute top-0 right-0 p-8 pointer-events-none translate-x-1/4 -translate-y-1/4"
+                style={{ opacity: 0.06 }}
+              >
+                <Zap className="w-48 h-48" />
               </div>
-            )}
 
-            {/* Key Takeaways */}
-            {post.keyTakeaways && post.keyTakeaways.length > 0 && (
-              <section className="bg-zinc-900 dark:bg-black rounded-2xl p-6 md:p-8 text-white shadow-floating-lg overflow-hidden relative animate-in fade-in slide-in-from-top-4 duration-700 delay-100 fill-both">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-                  <Zap className="w-48 h-48" />
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-brand-blue-500 p-1.5 rounded-lg">
-                      <Zap className="w-4 h-4 text-white fill-current" />
-                    </div>
-                    <h2 className="text-xs font-black uppercase tracking-[0.2em]">Key Insights</h2>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div
+                    className="p-1.5 rounded-lg"
+                    style={{ background: 'rgba(0,240,255,0.15)' }}
+                  >
+                    <Zap className="w-4 h-4" style={{ color: '#00f0ff' }} fill="currentColor" />
                   </div>
-                  <ul className="grid sm:grid-cols-2 gap-6">
-                    {post.keyTakeaways.map((item, i) => (
-                      <li key={i} className="flex gap-3">
-                        <Check className="w-5 h-5 text-brand-blue-500 shrink-0 mt-0.5" />
-                        <p className="text-sm md:text-base font-semibold leading-snug text-zinc-100">
-                          {item.point}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                  <h2
+                    className="text-xs font-black uppercase tracking-[0.2em]"
+                    style={{ color: '#00f0ff' }}
+                  >
+                    Key Insights
+                  </h2>
                 </div>
-              </section>
-            )}
-          </div>
 
-          {/* Last Updated badge */}
+                <ul className="grid sm:grid-cols-2 gap-5">
+                  {post.keyTakeaways.map((item, i) => (
+                    <li key={i} className="flex gap-3">
+                      <Check
+                        className="w-5 h-5 shrink-0 mt-0.5"
+                        style={{ color: '#00f0ff' }}
+                      />
+                      <p className="text-sm md:text-base font-semibold leading-snug" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                        {item.point}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+
+          {/* Last updated */}
           {post.articleUpdates && post.articleUpdates.length > 0 && (() => {
-            const latestUpdate = post.articleUpdates[post.articleUpdates.length - 1]
+            const latest = post.articleUpdates[post.articleUpdates.length - 1]
             return (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+              <p className="text-sm" style={{ color: '#64748b' }}>
                 Last updated:{' '}
-                {new Date(latestUpdate.updatedAt as string).toLocaleDateString('en-CA', {
+                {new Date(latest.updatedAt as string).toLocaleDateString('en-CA', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -178,18 +182,27 @@ export default async function Post({ params: paramsPromise }: Args) {
             )
           })()}
 
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-floating px-8 py-10 md:px-14 md:py-14">
+          {/* Article body */}
+          <div style={glassCard} className="px-8 py-10 md:px-14 md:py-14">
+            {/* Inline Trade Compass prompt */}
             {post.cta === 'trade-compass' && (
-              <div className="mb-8 border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
+              <div
+                className="mb-8 p-6 flex flex-col sm:flex-row items-center gap-4 rounded-xl"
+                style={{
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                }}
+              >
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  <p className="font-semibold text-white mb-1">
                     Find your next export market
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm" style={{ color: '#94a3b8' }}>
                     Use our{' '}
                     <Link
                       href="/trade-compass"
-                      className="text-red-600 dark:text-red-400 underline underline-offset-2 font-medium hover:text-red-700"
+                      className="underline underline-offset-2 font-medium hover:text-red-400 transition-colors"
+                      style={{ color: '#f87171' }}
                     >
                       Trade Compass
                     </Link>{' '}
@@ -199,70 +212,111 @@ export default async function Post({ params: paramsPromise }: Args) {
                 </div>
                 <Link
                   href="/trade-compass"
-                  className="shrink-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors whitespace-nowrap"
+                  className="shrink-0 font-semibold py-2.5 px-6 rounded-lg transition-colors whitespace-nowrap text-white hover:opacity-90"
+                  style={{ background: '#dc2626' }}
                 >
                   Try Trade Compass →
                 </Link>
               </div>
             )}
-            {/* RichText content */}
+
             <RichText data={post.content} enableGutter={false} />
           </div>
 
+          {/* Bottom CTA */}
           {post.cta === 'trade-compass' ? (
-            <section className="mt-6 bg-red-600 text-white rounded-2xl shadow-floating-lg p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+            <section
+              className="p-8 md:p-12 text-center rounded-3xl"
+              style={{
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid rgba(239,68,68,0.25)',
+              }}
+            >
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">
                 Discover your best export markets
               </h2>
-              <p className="text-red-100 max-w-xl mx-auto mb-6">
+              <p className="max-w-xl mx-auto mb-6" style={{ color: '#94a3b8' }}>
                 Our Trade Compass analyzes real Canadian trade data to pinpoint which international
                 markets offer the biggest opportunity for your business.
               </p>
               <Link
                 href="/trade-compass"
-                className="inline-block bg-white text-red-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-red-50 transition-all transform hover:scale-105"
+                className="inline-block font-bold py-4 px-10 rounded-full text-[12px] tracking-widest uppercase transition-all hover:opacity-90"
+                style={{ background: '#dc2626', color: '#fff' }}
               >
                 Explore Trade Compass
               </Link>
             </section>
           ) : (
-            <section className="mt-10 bg-brand-blue-500 text-white rounded-2xl shadow-floating-lg p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                Ready to grow your business online?
+            <section
+              className="p-8 md:p-12 text-center"
+              style={{
+                ...glassCard,
+                border: '1px solid rgba(0,240,255,0.15)',
+              }}
+            >
+              <h2
+                className="text-xs font-bold tracking-[0.4em] uppercase mb-5"
+                style={{ color: '#00f0ff' }}
+              >
+                Get Started
               </h2>
-              <p className="text-blue-100 max-w-xl mx-auto mb-6">
+              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                Ready to grow your business online?
+              </h3>
+              <p className="max-w-xl mx-auto mb-8" style={{ color: '#94a3b8' }}>
                 Free consultation, no pressure. Tell us about your business and where you want to
                 take it.
               </p>
               <LeadCaptureModal
                 triggerLabel="Book a Free Strategy Call"
-                triggerClassName="bg-white text-brand-blue-600 font-bold py-3 px-8 rounded-lg shadow-floating hover:bg-gray-100 transition-all transform hover:scale-105"
+                triggerClassName="bg-white text-black px-10 py-4 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all hover:bg-cyan-300 hover:shadow-[0_0_35px_rgba(0,240,255,0.5)] inline-block"
                 source="post"
               />
             </section>
           )}
 
-          {/* FAQ Section */}
+          {/* FAQ */}
           {populatedFaqs.length > 0 && (
-            <section className="mt-10">
-              <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 mb-6">
+            <section className="mt-4">
+              <h2 className="text-xl font-bold mb-6 text-white">
                 Frequently Asked Questions
               </h2>
-              <div className="divide-y divide-zinc-200 dark:divide-zinc-700 border border-zinc-200 dark:border-zinc-700 rounded-2xl overflow-hidden bg-white dark:bg-zinc-800 shadow-floating">
-                {populatedFaqs.map((faq) => (
-                  <details key={faq.id} className="group">
-                    <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-100 text-base leading-snug">
+              <div
+                className="overflow-hidden"
+                style={{
+                  ...glassCard,
+                  divide: 'none',
+                }}
+              >
+                {populatedFaqs.map((faq, i) => (
+                  <details
+                    key={faq.id}
+                    className="group"
+                    style={
+                      i > 0
+                        ? { borderTop: '1px solid rgba(255,255,255,0.06)' }
+                        : undefined
+                    }
+                  >
+                    <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none transition-colors hover:bg-white/5">
+                      <span className="font-semibold text-white text-base leading-snug">
                         {faq.question}
                       </span>
-                      <span className="shrink-0 w-5 h-5 rounded-full border border-zinc-300 dark:border-zinc-600 flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-open:rotate-45 transition-transform duration-200">
+                      <span
+                        className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center group-open:rotate-45 transition-transform duration-200"
+                        style={{
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                         </svg>
                       </span>
                     </summary>
                     <div className="px-6 pb-5 pt-1">
-                      <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed text-sm md:text-base">
+                      <p className="leading-relaxed text-sm md:text-base" style={{ color: '#94a3b8' }}>
                         {faq.answer}
                       </p>
                     </div>
@@ -274,13 +328,22 @@ export default async function Post({ params: paramsPromise }: Args) {
         </div>
       </div>
 
+      {/* Related posts */}
       {post.relatedPosts && post.relatedPosts.length > 0 && (
-        <div className="container mt-20">
+        <div className="container mt-24">
           <div className="max-w-[52rem] mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">
-              More <span className="text-brand-blue-500">Articles</span>
+            <h2
+              className="text-2xl md:text-3xl font-bold mb-8"
+              style={{
+                background: 'linear-gradient(180deg, #fff 30%, #94a3b8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              More Articles
             </h2>
-            <RelatedPosts docs={post.relatedPosts.filter((post) => typeof post === 'object')} />
+            <RelatedPosts docs={post.relatedPosts.filter((p) => typeof p === 'object')} />
           </div>
         </div>
       )}
@@ -291,15 +354,9 @@ export default async function Post({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
   const { isEnabled: draft } = await draftMode()
-
-  // Decode to support slugs with special characters
   const decodedSlug = decodeURIComponent(slug)
   const post = await queryPostBySlug({ slug: decodedSlug, draft })
-
-  return generateMeta({
-    doc: post,
-    collection: 'posts',
-  })
+  return generateMeta({ doc: post, collection: 'posts' })
 }
 
 const getSiteSettings = cache(async () => {
@@ -307,10 +364,8 @@ const getSiteSettings = cache(async () => {
   return payload.findGlobal({ slug: 'site-settings' })
 })
 
-// Accept draft as a parameter instead of calling draftMode() again
 const queryPostBySlug = cache(async ({ slug, draft }: { slug: string; draft: boolean }) => {
   const payload = await getPayload({ config: configPromise })
-
   const result = await payload.find({
     collection: 'posts',
     draft,
@@ -318,12 +373,7 @@ const queryPostBySlug = cache(async ({ slug, draft }: { slug: string; draft: boo
     overrideAccess: draft,
     pagination: false,
     depth: 2,
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    where: { slug: { equals: slug } },
   })
-
   return result.docs?.[0] || null
 })
