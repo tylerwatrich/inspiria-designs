@@ -28,7 +28,7 @@ export const PostHero: React.FC<{
             {/* Back link */}
             <Link
               href="/blog"
-              className="inline-flex items-center gap-1.5 mb-8 group text-white/40 hover:text-cyan-400 transition-colors"
+              className="inline-flex items-center gap-1.5 mb-8 group text-white/60 hover:text-cyan-400 transition-colors"
             >
               <svg
                 width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -84,7 +84,7 @@ export const PostHero: React.FC<{
             >
               {hasAuthors && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Author
                   </p>
                   <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
@@ -94,7 +94,7 @@ export const PostHero: React.FC<{
               )}
               {publishedAt && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Date Published
                   </p>
                   <time dateTime={publishedAt} className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
