@@ -6,33 +6,24 @@
 ## Current Objective
 
 **What we're trying to do:**
-User tracking system implemented — every site visitor is recorded in a `PageViews` Payload collection with their IP address, location (country/city/region from Vercel edge headers), and a full log of every page they visit.
-Neon production DB reset to match local — 38 clean published posts, correct schema with FAQs and key takeaways, no duplicates.
+Homepage redesign — new dark aurora design system implemented. Two versions built using `ai_studio_redesign.html` as the design reference.
 
 **Why it matters:**
-First-party analytics stored directly in the CMS — no third-party dependency for visitor data.
-Neon had 74 posts with duplicates and stale data. Local is the source of truth.
+The old homepage had a basic light-theme layout. The new design uses a dark `#03050a` background, fixed aurora blobs (blue/cyan/purple), glass-card service grid, Plus Jakarta Sans font, and a scroll progress bar in cyan.
 
 ---
 
 ## Current State
 
-**Stage:** Implementation complete — needs `pnpm dev` to auto-migrate the new `page_views` table
+**Stage:** Implementation complete — needs `pnpm dev` to verify
 **Status:** 🟡 Ready to test
-**Stage:** Complete — Neon reset, Vercel redeploy triggered (branch: key-takeaways-and-faq)
-**Status:** 🟢 Done
 
-**Blocker:** None — tracking failures are silently caught and never break the site.
-**Blocker:** None
+**Blocker:** None known
 
 **Next Action:**
-1. Start dev server (`pnpm dev`) — Payload will auto-migrate the new `page-views` table
-2. Run `pnpm payload generate:types` to update `payload-types.ts`
-3. Visit any page → check `/admin/collections/page-views` for the record
-4. Note: IP geolocation headers (`x-vercel-ip-*`) only populate on Vercel — local dev will show blank country/city
-- Monitor Vercel deploy for successful build
-- Verify production site shows correct post count
-- Note: Vercel's `DATABASE_URI` env var must point to Neon (not localhost) — confirm in Vercel dashboard if prod still behaves oddly
+1. Run `pnpm dev` and visit `/` to see Version 1 (existing content + new design)
+2. Visit `/design-preview` to see Version 2 (HTML file content + new design)
+3. Swap `page.tsx` with the design-preview version if V2 is preferred
 
 ---
 
@@ -103,3 +94,4 @@ Then append a one-liner to the history below:
 | 2026-03-16 | Claude | Implement user/page tracking system | PageViews collection + /api/track + PageTracker component — needs pnpm dev to migrate |
 | 2026-03-16 | Claude | Reset Neon prod DB from local | Wiped Neon (74 posts), restored local dump (38 clean posts), all migrations intact, Vercel redeploy triggered |
 | 2026-03-17 | Claude | Add BFL Flux hero image generation | imageGenerator.ts created, write-post cron updated, heroImageUrl field added to Posts — needs pnpm dev to migrate |
+| 2026-04-06 | Claude | Homepage aurora redesign | 6 new files — Aurora, HeroSection, ServicesGrid, MissionSection components + V1 page.tsx rewrite + V2 /design-preview route |

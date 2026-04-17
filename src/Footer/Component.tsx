@@ -1,14 +1,10 @@
 import { getCachedGlobal } from '@/utilities/getGlobals'
-import Link from 'next/link'
 import React from 'react'
 
 import type { Footer } from '@/payload-types'
 
-import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { CMSLink } from '@/components/Link'
-import { Logo } from '@/components/Logo/Logo'
 import TextLogo from '@/components/Branding/textLogo'
-import Slogan from '@/components/Branding/slogan'
 
 export async function Footer() {
   const footerData: Footer = await getCachedGlobal('footer', 1)()
@@ -16,29 +12,36 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    <footer className="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-black mt-20">
-      <div className="container px-6 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-          <div className="mb-4 md:mb-0">
-            <TextLogo />
-            <Slogan />
-          </div>
-          <nav className="flex space-x-6 mb-4 md:mb-0">
-            {navItems.map(({ link }, i) => {
-              return (
-                <CMSLink
-                  appearance="headerLink"
-                  className="whitespace-nowrap text-gray-600 hover:text-brand-blue-500 transition-colors dark:text-gray-300"
-                  key={i}
-                  {...link}
-                />
-              )
-            })}
+    <footer
+      style={{
+        background: 'rgba(3, 5, 10, 0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.07)',
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-8 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <TextLogo />
+
+        {navItems.length > 0 && (
+          <nav className="flex flex-wrap justify-center gap-8">
+            {navItems.map(({ link }, i) => (
+              <CMSLink
+                key={i}
+                appearance="headerLink"
+                className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/50 hover:text-white transition-colors whitespace-nowrap"
+                {...link}
+              />
+            ))}
           </nav>
-          <div className="flex flex-col-reverse items-start md:flex-row gap-4 md:items-center">
-            <ThemeSelector />
-          </div>
-        </div>
+        )}
+
+        <p
+          className="text-[10px] font-bold tracking-[0.2em] uppercase"
+          style={{ color: 'rgba(255,255,255,0.25)' }}
+        >
+          &copy; {new Date().getFullYear()} Inspiria Digital
+        </p>
       </div>
     </footer>
   )

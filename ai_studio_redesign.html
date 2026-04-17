@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspiria Digital | Performance Web Design & AI Search Optimization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-black: #03050a;
+            --highlight-cyan: #00f0ff;
+            --soft-glow: rgba(0, 240, 255, 0.15);
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Ambient Fluid Glows */
+        .aurora {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            filter: blur(140px);
+            z-index: -1;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .aurora-1 { top: -200px; right: -100px; background: #0055ff; }
+        .aurora-2 { bottom: -200px; left: -100px; background: var(--highlight-cyan); }
+        .aurora-3 { top: 40%; left: 30%; width: 400px; height: 400px; background: #6028ff; opacity: 0.15; }
+
+        /* The Glass Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 240, 255, 0.05);
+        }
+
+        .text-gradient {
+            background: linear-gradient(180deg, #fff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: var(--highlight-cyan);
+            z-index: 100;
+            box-shadow: 0 0 10px var(--highlight-cyan);
+        }
+
+        .cta-button {
+            background: #fff;
+            color: #000;
+            font-weight: 700;
+            transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .cta-button:hover {
+            background: var(--highlight-cyan);
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        .nav-link {
+            position: relative;
+            opacity: 0.6;
+            transition: 0.3s;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover { opacity: 1; color: var(--highlight-cyan); }
+
+        /* Icon Container Style */
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-progress" id="progressBar"></div>
+
+    <!-- Background Decoration -->
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="aurora aurora-3"></div>
+
+    <!-- Navigation -->
+    <nav class="flex justify-between items-center px-8 py-8 max-w-7xl mx-auto relative z-50">
+        <div class="text-xl font-extrabold tracking-tighter">
+            INSPIRIA<span class="text-cyan-400">DIGITAL</span>
+        </div>
+        <div class="hidden lg:flex space-x-10 text-[11px] font-bold tracking-[0.2em]">
+            <a href="#services" class="nav-link">SERVICES</a>
+            <a href="#about" class="nav-link">OUR MISSION</a>
+            <a href="#" class="nav-link">CASE STUDIES</a>
+            <a href="#" class="nav-link">INSIGHTS</a>
+        </div>
+        <button class="px-6 py-2 border border-white/10 rounded-full text-[11px] font-bold tracking-widest hover:bg-white hover:text-black transition">
+            GET IN TOUCH
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-24 px-6 relative">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] tracking-[0.3em] font-bold text-cyan-400 uppercase mb-10">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>Optimizing for the Next Era of Search</span>
+            </div>
+            
+            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-gradient">
+                Elevate Your Digital <br>Search Presence.
+            </h1>
+            
+            <p class="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto mb-14 leading-relaxed font-light">
+                Inspiria Digital bridges the gap between complex web architecture and intuitive human experiences. We craft high-performance websites optimized for both humans and AI search engines.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-5">
+                <a href="#services" class="cta-button px-10 py-5 rounded-full text-[12px] tracking-widest uppercase">Start Your Transformation</a>
+                <a href="#" class="px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold border border-white/10 hover:bg-white/5 transition">Explore Our Work</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20">
+                <h2 class="text-xs font-bold tracking-[0.4em] text-cyan-500 uppercase mb-6">Our Capabilities</h2>
+                <h3 class="text-4xl md:text-5xl font-bold max-w-2xl leading-tight">Comprehensive solutions for digital dominance.</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Web Dev -->
+                <div class="glass-card p-12">
+                    <div class="icon-box">
+                        <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-5">Web Development</h4>
+                    <p class="text-slate-400 leading-relaxed text-sm">We build fast, scalable, and responsive websites using modern frameworks. Our code is clean, our performance is unmatched, and our architectures are built to last.</p>
+                </div>
+
+                <!-- AI Search / AEO -->
+                <div class="glass-card p-12">
+                    <div class="icon-box">
+                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-5">SEO & AEO</h4>
+                    <p class="text-slate-400 leading-relaxed text-sm">Transition your brand into the future with AI Engine Optimization (AEO). We ensure your content is not just searchable by Google, but authoritative for AI LLMs.</p>
+                </div>
+
+                <!-- UI/UX -->
+                <div class="glass-card p-12">
+                    <div class="icon-box">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-5">UI/UX Design</h4>
+                    <p class="text-slate-400 leading-relaxed text-sm">Design that converts. We focus on the user journey, combining aesthetic minimalism with functional precision to ensure your visitors stay engaged.</p>
+                </div>
+
+                <!-- Branding -->
+                <div class="glass-card p-12">
+                    <div class="icon-box">
+                        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-5">Brand Identity</h4>
+                    <p class="text-slate-400 leading-relaxed text-sm">We define how the world sees you. From logo systems to visual language, we create cohesive identities that resonate across all digital touchpoints.</p>
+                </div>
+
+                <!-- Digital Strategy -->
+                <div class="glass-card p-12 lg:col-span-2">
+                    <div class="icon-box">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-5">Strategic Growth</h4>
+                    <p class="text-slate-400 leading-relaxed text-sm">Beyond the build. We partner with brands to identify market opportunities, optimize funnel conversions, and execute marketing strategies that produce measurable ROI.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section id="about" class="py-32 px-6 border-t border-white/5 relative overflow-hidden">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-xs font-bold tracking-[0.4em] text-cyan-500 uppercase mb-8">Our Mission</h2>
+            <p class="text-3xl md:text-5xl font-light leading-snug italic text-white/90">
+                "To empower businesses by creating digital environments where <span class="text-white font-bold not-italic underline decoration-cyan-500 underline-offset-8">innovation meets impact</span>, ensuring long-term authority in an AI-first world."
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-24 px-8 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+            <div class="max-w-xs">
+                <div class="text-xl font-extrabold mb-6 uppercase tracking-tighter">INSPIRIA<span class="text-cyan-500">DIGITAL</span></div>
+                <p class="text-slate-500 text-sm leading-relaxed mb-6">
+                    A Canadian digital agency specializing in the intersection of high-end design and algorithmic search dominance.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-16">
+                <div>
+                    <h5 class="text-[10px] font-bold tracking-[0.3em] uppercase text-white mb-6">Follow</h5>
+                    <ul class="text-sm text-slate-500 space-y-4">
+                        <li><a href="#" class="hover:text-cyan-400 transition">LinkedIn</a></li>
+                        <li><a href="#" class="hover:text-cyan-400 transition">Instagram</a></li>
+                        <li><a href="#" class="hover:text-cyan-400 transition">X / Twitter</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-[10px] font-bold tracking-[0.3em] uppercase text-white mb-6">Office</h5>
+                    <p class="text-sm text-slate-500 leading-loose">
+                        Toronto, Canada<br>
+                        hello@inspiriadigital.com
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between text-[10px] text-slate-600 tracking-[0.2em] uppercase font-bold">
+            <div>&copy; 2024 Inspiria Digital. All Rights Reserved.</div>
+            <div class="mt-4 md:mt-0">Precision Engineered in Canada</div>
+        </div>
+    </footer>
+
+    <script>
+        // Progress bar logic
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("progressBar").style.width = scrolled + "%";
+        };
+    </script>
+</body>
+</html>
