@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import {
   INDUSTRIES,
   PROVINCES,
@@ -589,7 +590,7 @@ export default function TradeCompass() {
                       triggerClassName="h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-red-600/20 active:scale-95 transition-all w-full"
                       source="trade-compass"
                     />
-                    <a
+                    <Link
                       href="/"
                       className="flex items-center justify-center h-14 font-bold uppercase tracking-widest text-[10px] rounded-2xl active:scale-95 transition-all hover:text-white"
                       style={{
@@ -606,7 +607,7 @@ export default function TradeCompass() {
                       }}
                     >
                       Explore Our Work
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
