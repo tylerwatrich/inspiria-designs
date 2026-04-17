@@ -116,7 +116,7 @@ function AboutSection({ aboutImage }: AboutProps) {
             </h2>
             <h3 className="text-4xl md:text-5xl font-bold leading-tight text-white mb-6">
               We move fast. <br />
-              We don't cut corners.
+              We don&apos;t cut corners.
             </h3>
             <p className="text-sm leading-relaxed mb-8" style={{ color: '#94a3b8' }}>
               {
