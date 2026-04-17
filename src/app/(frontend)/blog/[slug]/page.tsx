@@ -49,7 +49,7 @@ export default async function Post({ params: paramsPromise }: Args) {
   const postUrl = `${siteUrl}/blog/${decodedSlug}`
   const heroImageUrl =
     post.heroImage && typeof post.heroImage === 'object'
-      ? (post.heroImage as Media).url ?? undefined
+      ? ((post.heroImage as Media).url ?? undefined)
       : undefined
 
   const organization = { '@type': 'Organization', name: siteSettings.siteName, url: siteUrl }
@@ -109,7 +109,6 @@ export default async function Post({ params: paramsPromise }: Args) {
 
       <div className="container pt-4">
         <div className="max-w-[52rem] mx-auto space-y-6">
-
           {/* Hidden summary for SEO */}
           {post.articleSummary && (
             <div className="hidden">
@@ -136,10 +135,7 @@ export default async function Post({ params: paramsPromise }: Args) {
 
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6">
-                  <div
-                    className="p-1.5 rounded-lg"
-                    style={{ background: 'rgba(0,240,255,0.15)' }}
-                  >
+                  <div className="p-1.5 rounded-lg" style={{ background: 'rgba(0,240,255,0.15)' }}>
                     <Zap className="w-4 h-4" style={{ color: '#00f0ff' }} fill="currentColor" />
                   </div>
                   <h2
@@ -153,11 +149,11 @@ export default async function Post({ params: paramsPromise }: Args) {
                 <ul className="grid sm:grid-cols-2 gap-5">
                   {post.keyTakeaways.map((item, i) => (
                     <li key={i} className="flex gap-3">
-                      <Check
-                        className="w-5 h-5 shrink-0 mt-0.5"
-                        style={{ color: '#00f0ff' }}
-                      />
-                      <p className="text-sm md:text-base font-semibold leading-snug" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                      <Check className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#00f0ff' }} />
+                      <p
+                        className="text-sm md:text-base font-semibold leading-snug"
+                        style={{ color: 'rgba(255,255,255,0.85)' }}
+                      >
                         {item.point}
                       </p>
                     </li>
@@ -168,19 +164,21 @@ export default async function Post({ params: paramsPromise }: Args) {
           )}
 
           {/* Last updated */}
-          {post.articleUpdates && post.articleUpdates.length > 0 && (() => {
-            const latest = post.articleUpdates[post.articleUpdates.length - 1]
-            return (
-              <p className="text-sm" style={{ color: '#64748b' }}>
-                Last updated:{' '}
-                {new Date(latest.updatedAt as string).toLocaleDateString('en-CA', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            )
-          })()}
+          {post.articleUpdates &&
+            post.articleUpdates.length > 0 &&
+            (() => {
+              const latest = post.articleUpdates[post.articleUpdates.length - 1]
+              return (
+                <p className="text-sm" style={{ color: '#64748b' }}>
+                  Last updated:{' '}
+                  {new Date(latest.updatedAt as string).toLocaleDateString('en-CA', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              )
+            })()}
 
           {/* Article body */}
           <div style={glassCard} className="px-8 py-10 md:px-14 md:py-14">
@@ -194,9 +192,7 @@ export default async function Post({ params: paramsPromise }: Args) {
                 }}
               >
                 <div className="flex-1">
-                  <p className="font-semibold text-white mb-1">
-                    Find your next export market
-                  </p>
+                  <p className="font-semibold text-white mb-1">Find your next export market</p>
                   <p className="text-sm" style={{ color: '#94a3b8' }}>
                     Use our{' '}
                     <Link
@@ -270,7 +266,7 @@ export default async function Post({ params: paramsPromise }: Args) {
               </p>
               <LeadCaptureModal
                 triggerLabel="Book a Free Strategy Call"
-                triggerClassName="bg-white text-black px-10 py-4 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all hover:bg-cyan-300 hover:shadow-[0_0_35px_rgba(0,240,255,0.5)] inline-block"
+                triggerClassName="bg-white text-black px-10 py-4 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all hover:bg-cyan-300 hover:shadow-[0_0_35px_rgba(0,240,255,0.5)]"
                 source="post"
               />
             </section>
@@ -279,25 +275,16 @@ export default async function Post({ params: paramsPromise }: Args) {
           {/* FAQ */}
           {populatedFaqs.length > 0 && (
             <section className="mt-4">
-              <h2 className="text-xl font-bold mb-6 text-white">
-                Frequently Asked Questions
-              </h2>
+              <h2 className="text-xl font-bold mb-6 text-white">Frequently Asked Questions</h2>
               <div
                 className="overflow-hidden"
-                style={{
-                  ...glassCard,
-                  divide: 'none',
-                }}
+                style={glassCard}
               >
                 {populatedFaqs.map((faq, i) => (
                   <details
                     key={faq.id}
                     className="group"
-                    style={
-                      i > 0
-                        ? { borderTop: '1px solid rgba(255,255,255,0.06)' }
-                        : undefined
-                    }
+                    style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.06)' } : undefined}
                   >
                     <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none transition-colors hover:bg-white/5">
                       <span className="font-semibold text-white text-base leading-snug">
@@ -311,12 +298,20 @@ export default async function Post({ params: paramsPromise }: Args) {
                         }}
                       >
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          <path
+                            d="M5 1v8M1 5h8"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
                         </svg>
                       </span>
                     </summary>
                     <div className="px-6 pb-5 pt-1">
-                      <p className="leading-relaxed text-sm md:text-base" style={{ color: '#94a3b8' }}>
+                      <p
+                        className="leading-relaxed text-sm md:text-base"
+                        style={{ color: '#94a3b8' }}
+                      >
                         {faq.answer}
                       </p>
                     </div>
