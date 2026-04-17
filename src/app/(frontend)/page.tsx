@@ -25,7 +25,12 @@ const servicesV1: ServiceItem[] = [
     iconColor: 'text-cyan-400',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+        />
       </svg>
     ),
     title: 'Web Design & Development',
@@ -36,7 +41,12 @@ const servicesV1: ServiceItem[] = [
     iconColor: 'text-purple-400',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+        />
       </svg>
     ),
     title: 'Brand Identity',
@@ -47,7 +57,12 @@ const servicesV1: ServiceItem[] = [
     iconColor: 'text-emerald-400',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+        />
       </svg>
     ),
     title: 'UI/UX Design',
@@ -58,7 +73,12 @@ const servicesV1: ServiceItem[] = [
     iconColor: 'text-orange-400',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M13 10V3L4 14h7v7l9-11h-7z"
+        />
       </svg>
     ),
     title: 'SEO & AEO',
@@ -83,9 +103,7 @@ function AboutSection({ aboutImage }: AboutProps) {
   ]
 
   return (
-    <section
-      className="py-32 px-6 aurora-section-divider"
-    >
+    <section className="py-32 px-6 aurora-section-divider">
       <div className="max-w-7xl mx-auto">
         <div className="aurora-about-glass p-8 md:p-16 flex flex-col md:flex-row items-center gap-12">
           {/* Text */}
@@ -97,10 +115,13 @@ function AboutSection({ aboutImage }: AboutProps) {
               Why Choose Us
             </h2>
             <h3 className="text-4xl md:text-5xl font-bold leading-tight text-white mb-6">
-              We move fast. <br />We don't cut corners.
+              We move fast. <br />
+              We don't cut corners.
             </h3>
             <p className="text-sm leading-relaxed mb-8" style={{ color: '#94a3b8' }}>
-              {"We're not a faceless agency running cookie-cutter templates. We take the time to understand your business, move fast, and deliver work that actually moves the needle. No fluff, no runaround."}
+              {
+                "We're not a faceless agency running cookie-cutter templates. We take the time to understand your business, move fast, and deliver work that actually moves the needle. No fluff, no runaround."
+              }
             </p>
             <ul className="space-y-5">
               {checkmarks.map((item, i) => (
@@ -112,8 +133,7 @@ function AboutSection({ aboutImage }: AboutProps) {
                     ✓
                   </span>
                   <span className="text-sm" style={{ color: '#94a3b8' }}>
-                    <span className="font-semibold text-white">{item.label}:</span>{' '}
-                    {item.body}
+                    <span className="font-semibold text-white">{item.label}:</span> {item.body}
                   </span>
                 </li>
               ))}
@@ -151,12 +171,11 @@ function ContactSection() {
           Ready to start growing?
         </h3>
         <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: '#94a3b8' }}>
-          Tell us about your business and where you want to take it. Free consultation, no
-          pressure.
+          Tell us about your business and where you want to take it. Free consultation, no pressure.
         </p>
         <LeadCaptureModal
           triggerLabel="Contact Us Now"
-          triggerClassName="bg-white text-black px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all hover:bg-cyan-300 hover:shadow-[0_0_35px_rgba(0,240,255,0.5)] inline-block"
+          triggerClassName="bg-white text-black px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all hover:bg-cyan-300 hover:shadow-[0_0_35px_rgba(0,240,255,0.5)]"
           source="homepage"
         />
       </div>
@@ -217,7 +236,8 @@ export default async function HomePage() {
         badge="Optimizing for the Next Era of Search"
         headline={
           <>
-            Your business <br />deserves to be found.
+            Your business <br />
+            deserves to be found.
           </>
         }
         subtitle="We build digital presence that actually works — websites, branding, and online strategy that turns visitors into customers and makes your business look like it means business."

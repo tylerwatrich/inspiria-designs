@@ -8,41 +8,13 @@ export function Aurora() {
     const original = document.body.style.backgroundColor
     document.body.style.backgroundColor = '#03050a'
 
-    // Scroll progress bar
-    const bar = document.getElementById('aurora-scroll-progress')
-    const onScroll = () => {
-      const scrolled = document.documentElement.scrollTop
-      const max =
-        document.documentElement.scrollHeight - document.documentElement.clientHeight
-      if (bar && max > 0) bar.style.width = `${(scrolled / max) * 100}%`
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-
     return () => {
       document.body.style.backgroundColor = original
-      window.removeEventListener('scroll', onScroll)
     }
   }, [])
 
   return (
     <>
-      {/* Scroll progress */}
-      <div
-        id="aurora-scroll-progress"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          height: '2px',
-          width: '0%',
-          background: '#00f0ff',
-          boxShadow: '0 0 10px #00f0ff',
-          zIndex: 9999,
-          transition: 'none',
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Aurora blob — top right, blue */}
       <div
         aria-hidden
