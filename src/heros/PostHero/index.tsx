@@ -1,4 +1,4 @@
-import { formatDateTime } from 'src/utilities/formatDateTime'
+import { formatDateTime } from '@/utilities/formatDateTime'
 import React from 'react'
 import Link from 'next/link'
 
@@ -19,51 +19,44 @@ export const PostHero: React.FC<{
   const hasHeroImage = (heroImage && typeof heroImage !== 'string') || !!heroImageUrl
 
   return (
-    <div className="bg-light-bg dark:bg-zinc-900 pt-8 pb-2">
+    <div className="pt-36 pb-16">
       <div className="container">
-        <div
-          className={
-            hasHeroImage ? 'grid lg:grid-cols-[1fr_420px] gap-10 items-center' : 'grid grid-cols-1'
-          }
-        >
+        <div className={hasHeroImage ? 'grid lg:grid-cols-[1fr_420px] gap-12 items-center' : 'grid grid-cols-1'}>
+
           {/* Left Column */}
-          <div className="text-gray-800 dark:text-white">
+          <div className="text-white">
+            {/* Back link */}
             <Link
               href="/blog"
-              className="flex items-center gap-1.5 text-gray-500 dark:text-white/60 hover:text-brand-blue-500 dark:hover:text-white transition-colors mb-6 group"
+              className="inline-flex items-center gap-1.5 mb-8 group text-white/60 hover:text-cyan-400 transition-colors"
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                 className="transition-transform group-hover:-translate-x-1"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
-              <span className="text-sm font-medium">Back to Blog</span>
+              <span className="text-sm font-medium tracking-wide">Back to Insights</span>
             </Link>
 
+            {/* Category pills */}
             {hasCategories && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2 mb-7">
                 {categories?.map((category, index) => {
                   if (typeof category === 'object' && category !== null) {
-                    const { title: categoryTitle } = category
-
-                    const titleToUse = categoryTitle || 'Untitled category'
-
                     return (
-                      <div
+                      <span
                         key={index}
-                        className="bg-brand-blue-500 text-white text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+                        className="text-[10px] font-bold uppercase tracking-[0.3em] px-3 py-1.5 rounded-full"
+                        style={{
+                          background: 'rgba(0,240,255,0.08)',
+                          border: '1px solid rgba(0,240,255,0.2)',
+                          color: '#00f0ff',
+                        }}
                       >
-                        {titleToUse}
-                      </div>
+                        {category.title || 'Untitled'}
+                      </span>
                     )
                   }
                   return null
@@ -71,41 +64,62 @@ export const PostHero: React.FC<{
               </div>
             )}
 
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-8">{title}</h1>
+            {/* Title */}
+            <h1
+              className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight mb-10"
+              style={{
+                background: 'linear-gradient(180deg, #fff 30%, #94a3b8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {title}
+            </h1>
 
-            <div className="flex flex-col md:flex-row gap-4 md:gap-16 border-t border-gray-200 dark:border-white/20 pt-6">
+            {/* Author / Date meta */}
+            <div
+              className="flex flex-col md:flex-row gap-6 md:gap-16 pt-6"
+              style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
+            >
               {hasAuthors && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Author
                   </p>
-                  <p>{formatAuthors(populatedAuthors)}</p>
+                  <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    {formatAuthors(populatedAuthors)}
+                  </p>
                 </div>
               )}
               {publishedAt && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-gray-400 dark:text-white/50 text-xs uppercase tracking-widest">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     Date Published
                   </p>
-                  <time dateTime={publishedAt}>{formatDateTime(publishedAt)}</time>
+                  <time dateTime={publishedAt} className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    {formatDateTime(publishedAt)}
+                  </time>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column — Hero image */}
           {heroImage && typeof heroImage !== 'string' ? (
-            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-floating-lg mt-10 lg:mt-0">
+            <div
+              className="relative aspect-[4/3] w-full rounded-3xl overflow-hidden mt-10 lg:mt-0"
+              style={{ border: '1px solid rgba(255,255,255,0.07)' }}
+            >
               <Media fill priority resource={heroImage} imgClassName="object-cover" />
             </div>
           ) : heroImageUrl ? (
-            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-floating-lg mt-10 lg:mt-0">
+            <div
+              className="relative aspect-[4/3] w-full rounded-3xl overflow-hidden mt-10 lg:mt-0"
+              style={{ border: '1px solid rgba(255,255,255,0.07)' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={heroImageUrl}
-                alt={title}
-                className="object-cover w-full h-full"
-              />
+              <img src={heroImageUrl} alt={title} className="object-cover w-full h-full" />
             </div>
           ) : null}
         </div>

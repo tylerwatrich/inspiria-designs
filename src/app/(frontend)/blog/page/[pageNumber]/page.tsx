@@ -6,8 +6,8 @@ import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import React from 'react'
-import PageClient from './page.client'
 import { notFound } from 'next/navigation'
+import { Aurora } from '@/components/Homepage/Aurora'
 
 export const revalidate = 600
 
@@ -22,7 +22,6 @@ export default async function Page({ params: paramsPromise }: Args) {
   const payload = await getPayload({ config: configPromise })
 
   const sanitizedPageNumber = Number(pageNumber)
-
   if (!Number.isInteger(sanitizedPageNumber)) notFound()
 
   const posts = await payload.find({
@@ -41,20 +40,41 @@ export default async function Page({ params: paramsPromise }: Args) {
   })
 
   return (
-    <div className="bg-light-bg dark:bg-zinc-900 min-h-screen pb-24">
-      <PageClient />
+    <div className="min-h-screen pb-24" style={{ color: '#fff' }}>
+      <Aurora />
 
-      {/* Hero header */}
-      <div className="container pt-24 mb-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-          Canadian Business <span className="text-brand-blue-500">Insights</span>
+      {/* Hero */}
+      <div className="container pt-40 mb-16 text-center">
+        <div
+          className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.3em] font-bold uppercase mb-8"
+          style={{ background: 'rgba(255,255,255,0.05)', color: '#00f0ff' }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ background: '#00f0ff' }}
+          />
+          <span>Canadian Business Insights</span>
+        </div>
+
+        <h1
+          className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6"
+          style={{
+            background: 'linear-gradient(180deg, #fff 30%, #94a3b8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          The Latest from <br />Canadian Business
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          The latest news, trends, and analysis shaping Canadian business today.
+
+        <p className="text-lg max-w-2xl mx-auto" style={{ color: '#94a3b8' }}>
+          News, trends, and analysis shaping Canadian business today.
         </p>
       </div>
 
-      <div className="container mb-8 text-sm text-gray-500 dark:text-gray-400">
+      {/* Page range */}
+      <div className="container mb-10 text-sm" style={{ color: '#64748b' }}>
         <PageRange
           collection="posts"
           currentPage={posts.page}
@@ -77,7 +97,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { pageNumber } = await paramsPromise
   return {
-    title: `Blog Posts ${pageNumber || ''}`,
+    title: `Insights — Page ${pageNumber}`,
   }
 }
 
@@ -89,12 +109,9 @@ export async function generateStaticParams() {
   })
 
   const totalPages = Math.ceil(totalDocs / 10)
-
   const pages: { pageNumber: string }[] = []
-
   for (let i = 1; i <= totalPages; i++) {
     pages.push({ pageNumber: String(i) })
   }
-
   return pages
 }
