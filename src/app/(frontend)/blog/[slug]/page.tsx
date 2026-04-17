@@ -169,7 +169,7 @@ export default async function Post({ params: paramsPromise }: Args) {
             (() => {
               const latest = post.articleUpdates[post.articleUpdates.length - 1]
               return (
-                <p className="text-sm" style={{ color: '#64748b' }}>
+                <p className="text-sm" style={{ color: '#94a3b8' }}>
                   Last updated:{' '}
                   {new Date(latest.updatedAt as string).toLocaleDateString('en-CA', {
                     year: 'numeric',
