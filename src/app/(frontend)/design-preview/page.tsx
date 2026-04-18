@@ -7,18 +7,11 @@
  */
 
 import React from 'react'
-import { Plus_Jakarta_Sans } from 'next/font/google'
 
 import { Aurora } from '@/components/Homepage/Aurora'
 import { HeroSection } from '@/components/Homepage/HeroSection'
 import { ServicesGrid, ServiceItem } from '@/components/Homepage/ServicesGrid'
 import { MissionSection } from '@/components/Homepage/MissionSection'
-
-const jakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['300', '400', '600', '800'],
-  display: 'swap',
-})
 
 // --- Services data — exact content from ai_studio_redesign.html ---
 const servicesV2: ServiceItem[] = [
@@ -155,7 +148,7 @@ function PreviewFooter() {
 
 export default function DesignPreviewPage() {
   return (
-    <main className={jakartaSans.className} style={{ color: '#fff' }}>
+    <main style={{ color: '#fff' }}>
       {/* Aurora background + scroll progress (client) */}
       <Aurora />
 
