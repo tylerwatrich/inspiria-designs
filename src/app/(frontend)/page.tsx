@@ -1,7 +1,6 @@
 import React from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { Plus_Jakarta_Sans } from 'next/font/google'
 
 import { Media } from '@/components/Media'
 import { Media as MediaType } from '@/payload-types'
@@ -12,12 +11,6 @@ import { Aurora } from '@/components/Homepage/Aurora'
 import { HeroSection } from '@/components/Homepage/HeroSection'
 import { ServicesGrid, ServiceItem } from '@/components/Homepage/ServicesGrid'
 import { MissionSection } from '@/components/Homepage/MissionSection'
-
-const jakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['300', '400', '600', '800'],
-  display: 'swap',
-})
 
 // --- Services data (Version 1 — current homepage content) ---
 const servicesV1: ServiceItem[] = [
@@ -223,7 +216,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className={jakartaSans.className} style={{ color: '#fff' }}>
+    <main style={{ color: '#fff' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}

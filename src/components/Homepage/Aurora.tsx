@@ -26,10 +26,11 @@ export function Aurora() {
           height: '700px',
           borderRadius: '50%',
           background: '#0055ff',
-          filter: 'blur(140px)',
+          filter: 'blur(80px)',
           opacity: 0.35,
           zIndex: -1,
           pointerEvents: 'none',
+          willChange: 'filter',
         }}
       />
 
@@ -44,10 +45,11 @@ export function Aurora() {
           height: '700px',
           borderRadius: '50%',
           background: '#00f0ff',
-          filter: 'blur(140px)',
+          filter: 'blur(80px)',
           opacity: 0.35,
           zIndex: -1,
           pointerEvents: 'none',
+          willChange: 'filter',
         }}
       />
 
@@ -62,10 +64,11 @@ export function Aurora() {
           height: '400px',
           borderRadius: '50%',
           background: '#6028ff',
-          filter: 'blur(140px)',
+          filter: 'blur(80px)',
           opacity: 0.15,
           zIndex: -1,
           pointerEvents: 'none',
+          willChange: 'filter',
         }}
       />
     </>

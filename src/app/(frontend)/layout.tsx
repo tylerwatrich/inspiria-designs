@@ -15,13 +15,19 @@ import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 
-import { Inter } from 'next/font/google'
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
 
 const inter = Inter({
   subsets: ['latin'],
-  display: 'swap', // Ensures text is visible while the font is loading
+  display: 'swap',
+})
+
+const jakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '600', '800'],
+  display: 'swap',
 })
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,7 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="/favicon-inspiria.jpg" rel="apple-touch-icon" sizes="512x512" />
       </head>
 
-      <body className={`${inter.className} dark:bg-zinc-900`}>
+      <body className={`${inter.className} ${jakartaSans.className} dark:bg-zinc-900`}>
         <Providers>
           <PageTracker />
           <AdminBar
