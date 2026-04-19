@@ -184,7 +184,7 @@ function ContactSection() {
 }
 
 // ─────────────────────────────────────────────
-//  Page
+//  Page.
 // ─────────────────────────────────────────────
 
 export default async function HomePage() {
