@@ -48,37 +48,19 @@ export function HeroSection({
         <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
           <a
             href={primaryCta.href}
-            className="px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold transition-all"
+            className="aurora-cta-primary-hover px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold"
             style={{
               background: '#fff',
               color: '#000',
               display: 'inline-block',
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget
-              el.style.background = '#00f0ff'
-              el.style.boxShadow = '0 0 35px rgba(0,240,255,0.5)'
-              el.style.transform = 'scale(1.02)'
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget
-              el.style.background = '#fff'
-              el.style.boxShadow = 'none'
-              el.style.transform = 'scale(1)'
             }}
           >
             {primaryCta.label}
           </a>
           <a
             href={secondaryCta.href}
-            className="px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold border transition-all"
+            className="px-10 py-5 rounded-full text-[12px] tracking-widest uppercase font-bold border hover:bg-white/5 transition-colors duration-200"
             style={{ borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent'
-            }}
           >
             {secondaryCta.label}
           </a>

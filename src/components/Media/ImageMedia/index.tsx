@@ -14,23 +14,8 @@ import { getMediaUrl } from '@/utilities/getMediaUrl'
 const { breakpoints } = cssVariables
 
 const getAbsoluteUrl = (url: string | StaticImageData): string | StaticImageData => {
-  // If it's a StaticImageData object (imported image), return as-is
-  if (typeof url !== 'string') {
-    console.log('URL 1: ' + url)
-
-    return url
-  }
-
-  // If it's already an absolute URL, return as-is
-  if (url.startsWith('http')) {
-    console.log('URL 2: ' + url)
-
-    return url
-  }
-
-  // Convert relative URL to absolute
-  console.log('URL 3: ' + `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`)
-
+  if (typeof url !== 'string') return url
+  if (url.startsWith('http')) return url
   return `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`
 }
 
@@ -79,6 +64,11 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
         .map(([, value]) => `(max-width: ${value}px) ${value * 2}w`)
         .join(', ')
 
+  // Payload media API routes can't be optimized on Vercel — the image optimizer
+  // makes a circular HTTP request to the same serverless deployment, causing 502s.
+  const isInternalMediaUrl =
+    typeof src === 'string' && (src.includes('/api/media/') || src.includes('/api/payload-jobs/'))
+
   const imageElement = (
     <NextImage
       alt={alt || ''}
@@ -88,13 +78,13 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
       placeholder="blur"
       blurDataURL={placeholderBlur}
       priority={priority}
-      quality={100}
+      quality={85}
       loading={loading}
       sizes={sizes}
       src={src}
       // src={getAbsoluteUrl(src)}
       width={!fill ? width : undefined}
-      unoptimized={true}
+      unoptimized={isInternalMediaUrl}
     />
   )
 

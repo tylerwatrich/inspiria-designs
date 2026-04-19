@@ -4,7 +4,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import sharp from 'sharp' // sharp-import
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { s3Storage } from '@payloadcms/storage-s3'
 import { fileURLToPath } from 'url'
 
 // import { seoPlugin } from '@payloadcms/plugin-seo'
@@ -39,12 +39,23 @@ import { getServerSideURL } from './utilities/getURL'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const storagePlugin = process.env.VERCEL_ENV
-  ? vercelBlobStorage({
+const storagePlugin = process.env.R2_BUCKET
+  ? s3Storage({
       collections: {
-        media: true,
+        media: {
+          generateFileURL: ({ filename }) =>
+            `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${filename}`,
+        },
       },
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
+      bucket: process.env.R2_BUCKET!,
+      config: {
+        endpoint: process.env.R2_ENDPOINT!,
+        region: 'auto',
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+        },
+      },
     })
   : undefined
 

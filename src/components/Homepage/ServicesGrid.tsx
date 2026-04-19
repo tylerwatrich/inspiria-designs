@@ -37,29 +37,11 @@ export function ServicesGrid({ eyebrow = 'Our Capabilities', heading, services }
           {services.map((service, i) => (
             <div
               key={i}
-              className={`p-12 group cursor-default${service.wide ? ' lg:col-span-2' : ''}`}
+              className={`aurora-card-hover p-12 group cursor-default${service.wide ? ' lg:col-span-2' : ''}`}
               style={{
                 background: 'rgba(255,255,255,0.02)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: '24px',
-                transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)',
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget
-                el.style.background = 'rgba(255,255,255,0.05)'
-                el.style.border = '1px solid rgba(0,240,255,0.3)'
-                el.style.transform = 'translateY(-8px)'
-                el.style.boxShadow =
-                  '0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(0,240,255,0.05)'
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget
-                el.style.background = 'rgba(255,255,255,0.02)'
-                el.style.border = '1px solid rgba(255,255,255,0.07)'
-                el.style.transform = 'translateY(0)'
-                el.style.boxShadow = 'none'
               }}
             >
               {/* Icon box */}
