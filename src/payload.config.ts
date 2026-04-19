@@ -43,6 +43,8 @@ const storagePlugin = process.env.R2_BUCKET
   ? s3Storage({
       collections: { media: true },
       bucket: process.env.R2_BUCKET!,
+      generateURL: ({ filename }) =>
+        `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${filename}`,
       config: {
         endpoint: process.env.R2_ENDPOINT!,
         region: 'auto',
