@@ -64,6 +64,11 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
         .map(([, value]) => `(max-width: ${value}px) ${value * 2}w`)
         .join(', ')
 
+  // Payload media API routes can't be optimized on Vercel — the image optimizer
+  // makes a circular HTTP request to the same serverless deployment, causing 502s.
+  const isInternalMediaUrl =
+    typeof src === 'string' && (src.includes('/api/media/') || src.includes('/api/payload-jobs/'))
+
   const imageElement = (
     <NextImage
       alt={alt || ''}
@@ -79,6 +84,7 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
       src={src}
       // src={getAbsoluteUrl(src)}
       width={!fill ? width : undefined}
+      unoptimized={isInternalMediaUrl}
     />
   )
 

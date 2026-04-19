@@ -40,6 +40,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.vercel.app',
       },
+      // Cloudflare R2 public CDN
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+      },
     ],
     localPatterns: [
       {
