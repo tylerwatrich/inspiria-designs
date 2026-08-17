@@ -27,7 +27,6 @@ import { PageViews } from './collections/PageViews'
 import { PageVisits } from './collections/PageVisits'
 import { TrackingEvents } from './collections/TrackingEvents'
 import { ArticleSuggestions } from './collections/ArticleSuggestions'
-import { QualityReviews } from './collections/QualityReviews'
 import { AutomationSettings } from './globals/AutomationSettings'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -139,7 +138,6 @@ export default buildConfig({
     PageVisits,
     TrackingEvents,
     ArticleSuggestions,
-    QualityReviews,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, Home, SiteSettings, AutomationSettings],

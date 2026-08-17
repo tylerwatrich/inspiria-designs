@@ -163,23 +163,6 @@ export default async function Post({ params: paramsPromise }: Args) {
             </section>
           )}
 
-          {/* Last updated */}
-          {post.articleUpdates &&
-            post.articleUpdates.length > 0 &&
-            (() => {
-              const latest = post.articleUpdates[post.articleUpdates.length - 1]
-              return (
-                <p className="text-sm" style={{ color: '#94a3b8' }}>
-                  Last updated:{' '}
-                  {new Date(latest.updatedAt as string).toLocaleDateString('en-CA', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              )
-            })()}
-
           {/* Article body */}
           <div style={glassCard} className="px-8 py-10 md:px-14 md:py-14">
             {/* Inline Trade Compass prompt */}

@@ -83,7 +83,6 @@ export interface Config {
     'page-visits': PageVisit;
     'tracking-events': TrackingEvent;
     'article-suggestions': ArticleSuggestion;
-    'quality-reviews': QualityReview;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -117,7 +116,6 @@ export interface Config {
     'page-visits': PageVisitsSelect<false> | PageVisitsSelect<true>;
     'tracking-events': TrackingEventsSelect<false> | TrackingEventsSelect<true>;
     'article-suggestions': ArticleSuggestionsSelect<false> | ArticleSuggestionsSelect<true>;
-    'quality-reviews': QualityReviewsSelect<false> | QualityReviewsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -344,34 +342,6 @@ export interface Post {
       }[]
     | null;
   slug: string;
-  /**
-   * Populated automatically by the monthly quality scan.
-   */
-  qualityAudit?: {
-    /**
-     * 0–100. 80+ is solid. 60–79 needs attention. Below 60 is flagged.
-     */
-    score?: number | null;
-    flag?: ('clean' | 'needs-attention' | 'ai-slop' | 'incoherent' | 'both') | null;
-    issues?:
-      | {
-          issue?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    reviewNote?: string | null;
-    lastReviewedAt?: string | null;
-  };
-  lastCheckedForUpdates?: string | null;
-  articleUpdates?:
-    | {
-        updateNumber?: number | null;
-        updatedAt?: string | null;
-        summary?: string | null;
-        updateText?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1251,46 +1221,6 @@ export interface ArticleSuggestion {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "quality-reviews".
- */
-export interface QualityReview {
-  id: number;
-  /**
-   * e.g. "Monthly scan — March 2026"
-   */
-  runLabel?: string | null;
-  scannedAt?: string | null;
-  totalScanned?: number | null;
-  /**
-   * Posts with flag = needs-attention, ai-slop, incoherent, or both
-   */
-  flagged?: number | null;
-  avgScore?: number | null;
-  results?:
-    | {
-        post?: (number | null) | Post;
-        title?: string | null;
-        score?: number | null;
-        flag?: string | null;
-        issues?:
-          | {
-              issue?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        reviewNote?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Claude's overall assessment of content quality this month.
-   */
-  editorialSummary?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1544,10 +1474,6 @@ export interface PayloadLockedDocument {
         value: number | ArticleSuggestion;
       } | null)
     | ({
-        relationTo: 'quality-reviews';
-        value: number | QualityReview;
-      } | null)
-    | ({
         relationTo: 'redirects';
         value: number | Redirect;
       } | null)
@@ -1788,30 +1714,6 @@ export interface PostsSelect<T extends boolean = true> {
         name?: T;
       };
   slug?: T;
-  qualityAudit?:
-    | T
-    | {
-        score?: T;
-        flag?: T;
-        issues?:
-          | T
-          | {
-              issue?: T;
-              id?: T;
-            };
-        reviewNote?: T;
-        lastReviewedAt?: T;
-      };
-  lastCheckedForUpdates?: T;
-  articleUpdates?:
-    | T
-    | {
-        updateNumber?: T;
-        updatedAt?: T;
-        summary?: T;
-        updateText?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2138,36 +2040,6 @@ export interface ArticleSuggestionsSelect<T extends boolean = true> {
   discoveredAt?: T;
   publishedPost?: T;
   claudeEditorialNote?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "quality-reviews_select".
- */
-export interface QualityReviewsSelect<T extends boolean = true> {
-  runLabel?: T;
-  scannedAt?: T;
-  totalScanned?: T;
-  flagged?: T;
-  avgScore?: T;
-  results?:
-    | T
-    | {
-        post?: T;
-        title?: T;
-        score?: T;
-        flag?: T;
-        issues?:
-          | T
-          | {
-              issue?: T;
-              id?: T;
-            };
-        reviewNote?: T;
-        id?: T;
-      };
-  editorialSummary?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2568,18 +2440,6 @@ export interface AutomationSetting {
    * When enabled, articles go live immediately. Disable to have Claude write drafts for your review instead.
    */
   autoPublishEnabled?: boolean | null;
-  /**
-   * Checks posts from the last 3 months for new developments and appends update blocks.
-   */
-  weeklyUpdateEnabled?: boolean | null;
-  /**
-   * Claude reviews all published posts for AI slop and incoherence, scoring and flagging them.
-   */
-  qualityAuditEnabled?: boolean | null;
-  /**
-   * During the monthly audit, also check posts older than 3 months for new developments.
-   */
-  monthlyUpdateEnabled?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2664,9 +2524,6 @@ export interface AutomationSettingsSelect<T extends boolean = true> {
   rePrioritizeEnabled?: T;
   autoWriteEnabled?: T;
   autoPublishEnabled?: T;
-  weeklyUpdateEnabled?: T;
-  qualityAuditEnabled?: T;
-  monthlyUpdateEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
