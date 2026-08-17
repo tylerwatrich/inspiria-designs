@@ -1,7 +1,7 @@
 /**
  * CRON B — Writer
  *
- * Schedule: Mon/Wed/Fri at 10am and 3pm UTC (0 10,15 * * 1,3,5)
+ * Schedule: Tue/Thu at 10am UTC (0 10 * * 2,4)
  * URL: https://inspiriadigital.com/api/cron/write-post
  * Header: Authorization: Bearer YOUR_CRON_SECRET
  */

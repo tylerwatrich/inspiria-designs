@@ -1,7 +1,7 @@
 /**
  * CRON A — News scanner
  *
- * Schedule: every 3 hours
+ * Schedule: Tue/Thu at 8am UTC (0 8 * * 2,4) — before write-post's 10am run
  * URL: https://inspiriadigital.com/api/cron/scan-news
  * Header: Authorization: Bearer YOUR_CRON_SECRET
  */
@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { scanForStories, rePrioritizeExisting } from '@/lib/geminiResearch'
+import { scanAllAreas, rePrioritizeExisting } from '@/lib/geminiResearch'
 import { automationGuard } from '@/lib/automationGuard'
 
 export const maxDuration = 300
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // ─── Step 1: Scan for new stories ──────────────────────────────────────────
 
     console.log('[scan-news] Scanning for new stories...')
-    let newStories: Awaited<ReturnType<typeof scanForStories>> = []
+    let newStories: Awaited<ReturnType<typeof scanAllAreas>> = []
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -52,28 +52,20 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
-    // Cap to 40 most-recent headlines — each extra headline adds tokens to every scan prompt
+    // Cap to 40 most-recent headlines — each extra headline adds tokens to the scan prompt
     const recentlyCovered = [
       ...recentSuggestions.docs.map((d: any) => ({ headline: d.headline })),
       ...recentPosts.docs.map((d: any) => ({ headline: d.title })),
     ].slice(0, 40)
 
-    const scanDelay = () => new Promise((resolve) => setTimeout(resolve, 45_000))
-
     try {
-      // Run area scans sequentially with 45s gaps — each scan + web-search round trip
-      // consumes a large slice of the 50k input-tokens/min budget; the gap lets the
-      // window roll over before the next scan fires.
-      const cbnStories = await scanForStories('canadian-business-news', recentlyCovered)
-      await scanDelay()
-      const iiStories = await scanForStories('industry-insights', recentlyCovered)
-      await scanDelay()
-      const resourceStories = await scanForStories('resources', recentlyCovered)
-      newStories = [...cbnStories, ...iiStories, ...resourceStories]
-      console.log(`[scan-news] Found ${cbnStories.length} CBN + ${iiStories.length} Industry + ${resourceStories.length} Resources stories`)
+      // Single combined call covering all three areas — replaces the old 3 sequential
+      // per-area scans, which duplicated the same system-prompt/topic-list tokens 3x.
+      newStories = await scanAllAreas(recentlyCovered)
+      console.log(`[scan-news] Found ${newStories.length} stories across all areas`)
     } catch (e) {
-      console.error('[scan-news] scanForStories failed:', e)
-      results.errors.push(`scanForStories: ${String(e)}`)
+      console.error('[scan-news] scanAllAreas failed:', e)
+      results.errors.push(`scanAllAreas: ${String(e)}`)
     }
 
     const recentHeadlines = new Set(
@@ -115,10 +107,10 @@ export async function GET(req: NextRequest) {
     }
 
     // ─── Step 2: Re-prioritize existing suggestions ─────────────────────────────
-    // Wait 60s before rePrioritize — the 3 area scans consume most of the
-    // 50k input tokens/min budget; this lets the rate-limit window roll over.
+    // Short gap before rePrioritize — the combined scan above is one call instead
+    // of three, so there's much less token volume to let the rate-limit window clear.
 
-    await new Promise((resolve) => setTimeout(resolve, 60_000))
+    await new Promise((resolve) => setTimeout(resolve, 20_000))
 
     if (guard.check('rePrioritizeEnabled')) {
       const pendingAndApproved = await payload.find({

@@ -23,7 +23,7 @@ async function getResearchProvider(): Promise<'claude' | 'gemini'> {
 
 // ─── Claude web search ─────────────────────────────────────────────────────────
 
-async function callClaude(prompt: string, systemPrompt?: string): Promise<string> {
+async function callClaude(prompt: string, systemPrompt?: string, maxTokens = 4096): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
 
@@ -32,8 +32,8 @@ async function callClaude(prompt: string, systemPrompt?: string): Promise<string
   ]
 
   const body: Record<string, unknown> = {
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4096,
+    model: 'claude-haiku-4-5',
+    max_tokens: maxTokens,
     tools: [{ type: 'web_search_20250305', name: 'web_search' }],
     messages,
   }
@@ -70,14 +70,14 @@ async function callClaude(prompt: string, systemPrompt?: string): Promise<string
 const GEMINI_MODEL = 'gemini-2.0-flash'
 const GEMINI_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
-async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
+async function callGemini(prompt: string, systemPrompt?: string, maxTokens = 4096): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
 
   const body: Record<string, unknown> = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     tools: [{ google_search: {} }],
-    generationConfig: { temperature: 0.3 },
+    generationConfig: { temperature: 0.3, maxOutputTokens: maxTokens },
   }
 
   if (systemPrompt) {
@@ -101,12 +101,12 @@ async function callGemini(prompt: string, systemPrompt?: string): Promise<string
 
 // ─── Unified call dispatcher ───────────────────────────────────────────────────
 
-async function callResearch(prompt: string, systemPrompt?: string): Promise<string> {
+async function callResearch(prompt: string, systemPrompt?: string, maxTokens = 4096): Promise<string> {
   const provider = await getResearchProvider()
   if (provider === 'gemini') {
-    return callGemini(prompt, systemPrompt)
+    return callGemini(prompt, systemPrompt, maxTokens)
   }
-  return callClaude(prompt, systemPrompt)
+  return callClaude(prompt, systemPrompt, maxTokens)
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -156,16 +156,16 @@ export type FactCheckResult = {
 // ─── Area scan configs ────────────────────────────────────────────────────────
 
 type AreaConfig = {
-  system: string
-  prompt: (recentlyCoveredBlock: string) => string
+  label: string
+  role: string
+  instructions: string
 }
 
 const AREA_CONFIGS: Record<ArticleArea, AreaConfig> = {
   'canadian-business-news': {
-    system: `You are a research analyst for Inspiria Digital, a Canadian business news publication.
-Your job is to find real, current news stories that matter to Canadian small business owners — people running businesses with 1–50 employees who need to understand what news means for their operations, costs, and opportunities.
-You MUST respond with valid JSON only. No preamble, no markdown fences.`,
-    prompt: (recentlyCoveredBlock) => `${recentlyCoveredBlock}Search the web right now for the most significant Canadian business and technology news from the past 6 hours, with a focus on impact for Canadian small business owners.
+    label: 'CANADIAN BUSINESS NEWS',
+    role: `Section 1 — Canadian business news analyst. Find real, current news stories that matter to Canadian small business owners — people running businesses with 1–50 employees who need to understand what news means for their operations, costs, and opportunities.`,
+    instructions: `Search the web right now for the most significant Canadian business and technology news from the past 6 hours, with a focus on impact for Canadian small business owners.
 
 Cover these topic areas:
 - Bank of Canada rate decisions and lending conditions for small businesses
@@ -215,11 +215,9 @@ Only include stories with actual sources you found. Do not fabricate.`,
   },
 
   'industry-insights': {
-    system: `You are a market research analyst for Inspiria Digital, a Canadian web design agency.
-Your job is to find news, trends, and developments directly relevant to contractors/trades, law firms, real estate professionals, and government procurement specialists in Canada.
-Focus on what drives these businesses to reconsider their digital presence — operational challenges, regulatory changes, digital adoption pressures, competitive shifts, and client acquisition.
-You MUST respond with valid JSON only. No preamble, no markdown fences.`,
-    prompt: (recentlyCoveredBlock) => `${recentlyCoveredBlock}Search the web for recent news and trends (past 7 days) relevant to these Canadian industry sectors: contractors and trades, law firms, real estate professionals, and government procurement specialists.
+    label: 'INDUSTRY INSIGHTS',
+    role: `You are a market research analyst for Inspiria Digital, a Canadian web design agency. Your job is to find news, trends, and developments directly relevant to contractors/trades, law firms, real estate professionals, and government procurement specialists in Canada. Focus on what drives these businesses to reconsider their digital presence — operational challenges, regulatory changes, digital adoption pressures, competitive shifts, and client acquisition.`,
+    instructions: `Search the web for recent news and trends (past 7 days) relevant to these Canadian industry sectors: contractors and trades, law firms, real estate professionals, and government procurement specialists.
 
 Cover these topic areas:
 - Regulatory changes affecting contractors, lawyers, realtors, or procurement officers in Canada
@@ -265,11 +263,9 @@ Only include stories with actual sources you found. Do not fabricate.`,
   },
 
   resources: {
-    system: `You are a digital marketing research analyst for Inspiria Digital, a Canadian web design agency.
-Your job is to find recent articles, studies, platform announcements, and best practice guides about web design, SEO, digital marketing, and small business technology.
-Focus on content that a Canadian small business owner would find useful when evaluating or improving their online presence.
-You MUST respond with valid JSON only. No preamble, no markdown fences.`,
-    prompt: (recentlyCoveredBlock) => `${recentlyCoveredBlock}Search the web for recent (past 2 weeks) articles, studies, or announcements about web design, SEO, and digital marketing relevant to Canadian small businesses.
+    label: 'RESOURCES',
+    role: `You are a digital marketing research analyst for Inspiria Digital, a Canadian web design agency. Your job is to find recent articles, studies, platform announcements, and best practice guides about web design, SEO, digital marketing, and small business technology. Focus on content that a Canadian small business owner would find useful when evaluating or improving their online presence.`,
+    instructions: `Search the web for recent (past 2 weeks) articles, studies, or announcements about web design, SEO, and digital marketing relevant to Canadian small businesses.
 
 Cover these topic areas:
 - Google algorithm updates and their impact on small business websites
@@ -315,34 +311,48 @@ Only include topics with actual sources you found. Do not fabricate.`,
   },
 }
 
-// ─── Scan for news ────────────────────────────────────────────────────────────
+// ─── Scan for news (all areas in a single call) ────────────────────────────────
+// Combines all three area scans into one request instead of three sequential
+// calls — cuts both call count and duplicated system-prompt/topic-list tokens.
 
-export async function scanForStories(
-  area: ArticleArea,
+const AREA_ORDER: ArticleArea[] = ['canadian-business-news', 'industry-insights', 'resources']
+
+export async function scanAllAreas(
   recentlyCovered: { headline: string }[] = [],
 ): Promise<GeminiSuggestion[]> {
-  const config = AREA_CONFIGS[area]
-
   const recentlyCoveredBlock = recentlyCovered.length
-    ? `\nIMPORTANT: Do NOT suggest stories that are semantically similar to any of the following recently covered topics.
+    ? `IMPORTANT: Do NOT suggest stories that are semantically similar to any of the following recently covered topics.
 A story is "too similar" if it covers the same event, policy, company announcement, or trend — even if the headline wording differs.
 
 Recently covered (do not repeat):
 ${recentlyCovered.map((r) => `- "${r.headline}"`).join('\n')}
-\n`
+
+`
     : ''
 
-  const prompt = config.prompt(recentlyCoveredBlock)
-  const raw = await callResearch(prompt, config.system)
+  const system = `You are the research team for Inspiria Digital. You cover three distinct content areas in a single pass — treat each section below independently, with its own topic focus and scoring bands.
+
+${AREA_ORDER.map((area) => `${AREA_CONFIGS[area].label}: ${AREA_CONFIGS[area].role}`).join('\n\n')}
+
+You MUST respond with valid JSON only. No preamble, no markdown fences.`
+
+  const prompt = `${recentlyCoveredBlock}Search the web now and return results for all three sections below. Treat each as a separate research task with its own topic list and scoring — do not blend sections together or let one section's stories bleed into another's "area" or "vertical" values.
+
+${AREA_ORDER.map(
+  (area, i) => `═══ SECTION ${i + 1}: ${AREA_CONFIGS[area].label} ═══
+${AREA_CONFIGS[area].instructions}`
+).join('\n\n')}
+
+Return a single JSON array combining the story objects from all three sections — each object must include the correct "area" field ("canadian-business-news", "industry-insights", or "resources") matching which section it came from.`
+
+  const raw = await callResearch(prompt, system, 8192)
   const match = raw.match(/\[[\s\S]*\]/)
 
   try {
     const parsed = JSON.parse(match ? match[0] : raw)
-    // Ensure area is set correctly even if the AI drifts
-    const stories = Array.isArray(parsed) ? parsed : []
-    return stories.map((s: any) => ({ ...s, area }))
+    return Array.isArray(parsed) ? parsed : []
   } catch (e) {
-    console.error(`[research] Failed to parse scanForStories(${area}) response:`, e, '\nRaw:', raw)
+    console.error('[research] Failed to parse scanAllAreas response:', e, '\nRaw:', raw)
     return []
   }
 }
