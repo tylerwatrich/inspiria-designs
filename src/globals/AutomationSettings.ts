@@ -1,8 +1,14 @@
 import type { GlobalConfig } from 'payload'
 
+import { authenticated } from '../access/authenticated'
+
 export const AutomationSettings: GlobalConfig = {
   slug: 'automation-settings',
   label: 'Automation Controls',
+  access: {
+    read: authenticated,
+    update: authenticated,
+  },
   admin: {
     description: 'Pause or resume any automated function. Changes take effect on the next scheduled run.',
     group: 'Settings',

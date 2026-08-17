@@ -1,8 +1,15 @@
 import { GlobalConfig } from 'payload'
 
+import { authenticated } from '../access/authenticated'
+import { anyone } from '../access/anyone'
+
 export const Home: GlobalConfig = {
   slug: 'home',
   label: 'Home Page',
+  access: {
+    read: anyone,
+    update: authenticated,
+  },
   fields: [
     {
       name: 'heroTitle',

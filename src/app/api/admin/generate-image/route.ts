@@ -6,6 +6,11 @@ import { generateArticleImage, saveImageToMedia } from '@/lib/imageGenerator'
 export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const payload = await getPayload({ config })
 

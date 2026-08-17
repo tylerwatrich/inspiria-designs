@@ -10,8 +10,12 @@ import fs from 'fs'
 
 const BASE_URL = 'http://localhost:3000'
 const LIVE_BASE = 'https://inspiriadesigns.com'
-const EMAIL = 'tyler.watrich@me.com'
-const PASSWORD = process.env.PAYLOAD_ADMIN_PASSWORD || 'REDACTED_PAYLOAD_PASSWORD'
+const EMAIL = process.env.PAYLOAD_ADMIN_EMAIL
+const PASSWORD = process.env.PAYLOAD_ADMIN_PASSWORD
+
+if (!EMAIL || !PASSWORD) {
+  throw new Error('PAYLOAD_ADMIN_EMAIL and PAYLOAD_ADMIN_PASSWORD must be set in the environment')
+}
 
 const slugs = [
   'the-enduring-value-of-websites-why-every-business-needs-an-online-presence',
