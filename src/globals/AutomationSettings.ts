@@ -78,44 +78,5 @@ export const AutomationSettings: GlobalConfig = {
         },
       ],
     },
-    {
-      type: 'collapsible',
-      label: '🔄 Article Updater — Recent Posts (Cron D — weekly)',
-      fields: [
-        {
-          name: 'weeklyUpdateEnabled',
-          label: 'Enable weekly updates for recent posts',
-          type: 'checkbox',
-          defaultValue: true,
-          admin: {
-            description: 'Checks posts from the last 3 months for new developments and appends update blocks.',
-          },
-        },
-      ],
-    },
-    {
-      type: 'collapsible',
-      label: '🔍 Quality Audit + Older Post Updates (Cron C — monthly)',
-      fields: [
-        {
-          name: 'qualityAuditEnabled',
-          label: 'Enable monthly quality audit',
-          type: 'checkbox',
-          defaultValue: true,
-          admin: {
-            description: 'Claude reviews all published posts for AI slop and incoherence, scoring and flagging them.',
-          },
-        },
-        {
-          name: 'monthlyUpdateEnabled',
-          label: 'Enable monthly updates for older posts',
-          type: 'checkbox',
-          defaultValue: true,
-          admin: {
-            description: 'During the monthly audit, also check posts older than 3 months for new developments.',
-          },
-        },
-      ],
-    },
   ],
 }

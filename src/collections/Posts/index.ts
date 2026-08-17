@@ -48,7 +48,7 @@ export const Posts: CollectionConfig<'posts'> = {
     },
   },
   admin: {
-    defaultColumns: ['title', 'slug', 'qualityAudit.flag', 'qualityAudit.score', 'updatedAt'],
+    defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -398,66 +398,6 @@ export const Posts: CollectionConfig<'posts'> = {
       admin: {
         position: 'sidebar',
       },
-    },
-    // ─── Quality Audit (populated by monthly cron) ───────────────────────────
-    {
-      name: 'qualityAudit',
-      type: 'group',
-      admin: { description: 'Populated automatically by the monthly quality scan.' },
-      fields: [
-        {
-          name: 'score',
-          type: 'number',
-          min: 0,
-          max: 100,
-          admin: { description: '0–100. 80+ is solid. 60–79 needs attention. Below 60 is flagged.', readOnly: true },
-        },
-        {
-          name: 'flag',
-          type: 'select',
-          options: [
-            { label: '✅ Clean', value: 'clean' },
-            { label: '⚠️ Needs Attention', value: 'needs-attention' },
-            { label: '🚨 AI Slop', value: 'ai-slop' },
-            { label: '🚨 Incoherent', value: 'incoherent' },
-            { label: '🚨 Both', value: 'both' },
-          ],
-          admin: { readOnly: true },
-        },
-        {
-          name: 'issues',
-          type: 'array',
-          admin: { readOnly: true },
-          fields: [{ name: 'issue', type: 'text' }],
-        },
-        {
-          name: 'reviewNote',
-          type: 'textarea',
-          admin: { readOnly: true, rows: 4 },
-        },
-        {
-          name: 'lastReviewedAt',
-          type: 'date',
-          admin: { readOnly: true },
-        },
-      ],
-    },
-    // ─── Article Updates (populated by weekly/monthly update crons) ──────────
-    {
-      name: 'lastCheckedForUpdates',
-      type: 'date',
-      admin: { readOnly: true },
-    },
-    {
-      name: 'articleUpdates',
-      type: 'array',
-      admin: { readOnly: true },
-      fields: [
-        { name: 'updateNumber', type: 'number', admin: { readOnly: true } },
-        { name: 'updatedAt', type: 'date', admin: { readOnly: true } },
-        { name: 'summary', type: 'text', admin: { readOnly: true } },
-        { name: 'updateText', type: 'textarea', admin: { readOnly: true, rows: 4 } },
-      ],
     },
   ],
   hooks: {

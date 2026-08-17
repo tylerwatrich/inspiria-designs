@@ -8,9 +8,6 @@ type SettingsKey =
   | 'rePrioritizeEnabled'
   | 'autoWriteEnabled'
   | 'autoPublishEnabled'
-  | 'weeklyUpdateEnabled'
-  | 'qualityAuditEnabled'
-  | 'monthlyUpdateEnabled'
 
 type Guard = {
   check: (key: SettingsKey) => boolean
