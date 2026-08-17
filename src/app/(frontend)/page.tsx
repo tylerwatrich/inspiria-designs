@@ -12,6 +12,7 @@ import { Aurora } from '@/components/Homepage/Aurora'
 import { HeroSection } from '@/components/Homepage/HeroSection'
 import { ServicesGrid, ServiceItem } from '@/components/Homepage/ServicesGrid'
 import { MissionSection } from '@/components/Homepage/MissionSection'
+import { NewsFeed } from '@/components/Homepage/NewsFeed'
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -189,10 +190,28 @@ function ContactSection() {
 
 export default async function HomePage() {
   const payload = await getPayload({ config })
-  const [home, siteSettings] = await Promise.all([
+  const [home, siteSettings, recentPostsResult] = await Promise.all([
     payload.findGlobal({ slug: 'home' }),
     payload.findGlobal({ slug: 'site-settings' }),
+    payload.find({
+      collection: 'posts',
+      limit: 3,
+      sort: '-publishedAt',
+      depth: 1,
+      overrideAccess: false,
+      where: { _status: { equals: 'published' } },
+      select: {
+        title: true,
+        slug: true,
+        publishedAt: true,
+        articleSummary: true,
+        categories: true,
+        heroImage: true,
+        heroImageUrl: true,
+      },
+    }),
   ])
+  const recentPosts = recentPostsResult.docs
 
   const siteUrl = getServerSideURL()
 
@@ -231,6 +250,8 @@ export default async function HomePage() {
 
       {/* Aurora background + scroll progress (client) */}
       <Aurora />
+
+      <NewsFeed posts={recentPosts} />
 
       <HeroSection
         badge="Optimizing for the Next Era of Search"
