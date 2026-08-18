@@ -93,7 +93,7 @@ Respond with JSON only:
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 1000,
+      max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
