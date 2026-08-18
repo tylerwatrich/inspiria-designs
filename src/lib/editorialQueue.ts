@@ -99,10 +99,11 @@ Respond with JSON only:
   })
 
   const data = await res.json()
-  if (!data.content?.[0]?.text) {
+  const textBlock = data.content?.find((b: any) => b.type === 'text')
+  if (!textBlock?.text) {
     throw new Error(`[deliberate] Anthropic API error: ${JSON.stringify(data)}`)
   }
-  const raw = data.content[0].text.trim()
+  const raw = textBlock.text.trim()
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
 
   try {
