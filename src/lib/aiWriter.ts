@@ -146,7 +146,7 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most compellin
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 2500,
+      max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -156,6 +156,9 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most compellin
   const textBlock = data.content?.find((b: any) => b.type === 'text')
   if (!textBlock?.text) {
     throw new Error(`[writeArticleFromSuggestion] Anthropic API error: ${JSON.stringify(data)}`)
+  }
+  if (data.stop_reason === 'max_tokens') {
+    throw new Error('[writeArticleFromSuggestion] Response truncated (hit max_tokens) — article JSON is incomplete')
   }
   const raw = textBlock.text.trim()
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
@@ -214,7 +217,7 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most newsworth
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 2500,
+      max_tokens: 8000,
       system: getSystemPrompt('canadian-business-news'),
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -224,6 +227,9 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most newsworth
   const textBlock = data.content?.find((b: any) => b.type === 'text')
   if (!textBlock?.text) {
     throw new Error(`[generateArticle] Anthropic API error: ${JSON.stringify(data)}`)
+  }
+  if (data.stop_reason === 'max_tokens') {
+    throw new Error('[generateArticle] Response truncated (hit max_tokens) — article JSON is incomplete')
   }
   const raw = textBlock.text.trim()
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
