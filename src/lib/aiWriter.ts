@@ -153,10 +153,11 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most compellin
   })
 
   const data = await res.json()
-  if (!data.content?.[0]?.text) {
+  const textBlock = data.content?.find((b: any) => b.type === 'text')
+  if (!textBlock?.text) {
     throw new Error(`[writeArticleFromSuggestion] Anthropic API error: ${JSON.stringify(data)}`)
   }
-  const raw = data.content[0].text.trim()
+  const raw = textBlock.text.trim()
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
   return JSON.parse(clean) as ArticleJSON
 }
@@ -220,10 +221,11 @@ Write 7–10 content blocks, 600–900 words total. Lead with the most newsworth
   })
 
   const data = await res.json()
-  if (!data.content?.[0]?.text) {
+  const textBlock = data.content?.find((b: any) => b.type === 'text')
+  if (!textBlock?.text) {
     throw new Error(`[generateArticle] Anthropic API error: ${JSON.stringify(data)}`)
   }
-  const raw = data.content[0].text.trim()
+  const raw = textBlock.text.trim()
   const clean = raw.replace(/^```json\n?/, '').replace(/\n?```$/, '')
   return JSON.parse(clean) as ArticleJSON
 }
