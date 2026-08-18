@@ -239,6 +239,6 @@ export async function GET(req: NextRequest) {
 
     console.log(`[write-post] Done — "${post.title}" saved as ${status}`)
   })
-
+// com
   return NextResponse.json({ success: true, message: 'Writing started' })
 }
